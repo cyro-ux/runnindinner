@@ -1,0 +1,54 @@
+name: Deploy Running Dinner Planner
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy-acceptance:
+    if: github.ref == 'refs/heads/develop'
+    name: Deploy to Acceptance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to acc.runningdiner.nl
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/running-dinner/acc
+            git pull origin develop
+            npm install --production
+            # Backup database before reload
+            mkdir -p /backup
+            sqlite3 data/app.db ".backup '/backup/acc-pre-deploy-$(date +%Y%m%d-%H%M%S).db'" 2>/dev/null || true
+            pm2 reload running-dinner-acc
+            # Health check
+            sleep 2
+            curl -sf http://localhost:3001/api/mollie/price > /dev/null && echo "Health check OK" || echo "Health check FAILED"
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to runningdiner.nl
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/running-dinner/prod
+            # Backup database before deploy
+            mkdir -p /backup
+            sqlite3 data/app.db ".backup '/backup/prod-pre-deploy-$(date +%Y%m%d-%H%M%S).db'"
+            git pull origin main
+            npm install --production
+            pm2 reload running-dinner-prod
+            # Health check
+            sleep 2
+            curl -sf http://localhost:3000/api/mollie/price > /dev/null && echo "Health check OK" || echo "Health check FAILED"

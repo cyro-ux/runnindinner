@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Running Dinner Planner</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- ── Auth top bar (only shown when served via Node.js server) ── -->
+<div id="auth-bar" style="display:none;background:#1a56db;color:#fff;padding:8px 20px;font-size:.83rem;align-items:center;gap:16px;font-family:system-ui,sans-serif">
+  <span style="font-weight:700">🍽️ Running Dinner Planner</span>
+  <span id="auth-license-info" style="opacity:.85"></span>
+  <span style="margin-left:auto;display:flex;align-items:center;gap:12px">
+    <a id="auth-subscribe-link" href="/subscribe.html" style="color:#fff;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:100px;font-weight:600;text-decoration:none;display:none">Abonnement nemen</a>
+    <span id="auth-user-email" style="opacity:.8"></span>
+    <button id="auth-logout-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.8rem">Uitloggen</button>
+  </span>
+</div>
+<div id="auth-gate" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:#f9fafb;font-family:system-ui,sans-serif">
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:48px 40px;max-width:420px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+    <div style="font-size:2.5rem;margin-bottom:12px">🔒</div>
+    <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px">Abonnement vereist</h2>
+    <p style="color:#6b7280;margin-bottom:24px;font-size:.9rem">Om de Running Dinner Planner te gebruiken heb je een actief abonnement nodig.</p>
+    <a href="/subscribe.html" style="display:block;background:#1a56db;color:#fff;border-radius:10px;padding:13px;font-weight:700;text-decoration:none;margin-bottom:12px">Abonnement nemen – €5/jaar</a>
+    <a href="/login.html" style="color:#1a56db;font-size:.85rem">Inloggen met ander account</a>
+  </div>
+</div>
+
+  <div id="app">
+    <header>
+      <h1>🍽️ Running Dinner Planner</h1>
+      <nav class="steps-nav">
+        <button class="step-btn active" data-step="1">1. Configuratie</button>
+        <button class="step-btn" data-step="2">2. Deelnemers</button>
+        <button class="step-btn" data-step="3">3. Planning</button>
+        <button class="step-btn" data-step="4">4. Overzicht</button>
+      </nav>
+    </header>
+
+    <!-- STEP 1: Configuration -->
+    <section id="step-1" class="step active">
+      <h2>Stap 1: Configuratie</h2>
+      <div class="card">
+        <h3>Selecteer actieve onderdelen</h3>
+        <div class="course-config">
+          <label class="course-item optional">
+            <input type="checkbox" id="has-voorborrel" name="voorborrel">
+            <span class="course-icon">🥂</span>
+            <span class="course-name">Voorborrel</span>
+            <span class="badge optional-badge">Optioneel</span>
+          </label>
+          <label class="course-item required">
+            <input type="checkbox" id="has-voorgerecht" name="voorgerecht" checked disabled>
+            <span class="course-icon">🥗</span>
+            <span class="course-name">Voorgerecht</span>
+            <span class="badge required-badge">Verplicht</span>
+            <span class="duration-badge">45 min</span>
+          </label>
+          <label class="course-item required">
+            <input type="checkbox" id="has-hoofdgerecht" name="hoofdgerecht" checked disabled>
+            <span class="course-icon">🍖</span>
+            <span class="course-name">Hoofdgerecht</span>
+            <span class="badge required-badge">Verplicht</span>
+            <span class="duration-badge">60 min</span>
+          </label>
+          <label class="course-item required">
+            <input type="checkbox" id="has-nagerecht" name="nagerecht" checked disabled>
+            <span class="course-icon">🍰</span>
+            <span class="course-name">Nagerecht</span>
+            <span class="badge required-badge">Verplicht</span>
+            <span class="duration-badge">45 min</span>
+          </label>
+          <label class="course-item optional">
+            <input type="checkbox" id="has-naborrel" name="naborrel">
+            <span class="course-icon">🎉</span>
+            <span class="course-name">Naborrel</span>
+            <span class="badge optional-badge">Optioneel</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Tijdsinstellingen</h3>
+        <div class="time-config">
+          <div class="time-item" id="voorborrel-time-config" style="display:none">
+            <label>🥂 Voorborrel starttijd:</label>
+            <input type="time" id="voorborrel-start" value="17:00">
+            <span class="duration-info">Duur: <input type="number" id="voorborrel-duration" value="45" min="15" max="120"> min</span>
+          </div>
+          <div class="time-item">
+            <label>🥗 Voorgerecht starttijd:</label>
+            <input type="time" id="voorgerecht-start" value="18:00">
+            <span class="duration-info">Duur: <input type="number" id="voorgerecht-duration" value="45" min="15" max="120"> min</span>
+          </div>
+          <div class="time-item">
+            <label>🍖 Hoofdgerecht starttijd:</label>
+            <input type="time" id="hoofdgerecht-start" value="19:00">
+            <span class="duration-info">Duur: <input type="number" id="hoofdgerecht-duration" value="60" min="15" max="120"> min</span>
+          </div>
+          <div class="time-item">
+            <label>🍰 Nagerecht starttijd:</label>
+            <input type="time" id="nagerecht-start" value="20:15">
+            <span class="duration-info">Duur: <input type="number" id="nagerecht-duration" value="45" min="15" max="120"> min</span>
+          </div>
+          <div class="time-item" id="naborrel-time-config" style="display:none">
+            <label>🎉 Naborrel starttijd:</label>
+            <input type="time" id="naborrel-start" value="21:15">
+            <span class="duration-info">Duur: <input type="number" id="naborrel-duration" value="60" min="15" max="120"> min</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Tafelgrootte</h3>
+        <div class="table-size-config">
+          <label>Minimum gasten per tafel: <input type="number" id="min-table-size" value="4" min="1" max="20"></label>
+          <label>Maximum gasten per tafel: <input type="number" id="max-table-size" value="6" min="2" max="20"></label>
+          <p class="hint" style="margin-top:6px;font-size:0.78rem">Gastheer/vrouw telt <strong>niet</strong> mee in dit getal.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Evenement details</h3>
+        <div class="event-details">
+          <label>Evenement naam: <input type="text" id="event-name" placeholder="Running Dinner 2026" value="Running Dinner 2026"></label>
+          <label>Datum: <input type="date" id="event-date" value="2026-05-16"></label>
+          <label>Stad/gemeente: <input type="text" id="event-city" placeholder="Amsterdam" value=""></label>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" onclick="goToStep(2)">Volgende: Deelnemers →</button>
+      </div>
+    </section>
+
+    <!-- STEP 2: Participants -->
+    <section id="step-2" class="step">
+      <h2>Stap 2: Deelnemers</h2>
+      <div class="card">
+        <div class="participants-header">
+          <h3>Deelnemers (<span id="participant-count">0</span>)</h3>
+          <button class="btn-primary" onclick="openAddParticipant()">+ Deelnemer toevoegen</button>
+        </div>
+        <div id="participants-list" class="participants-list">
+          <p class="empty-state">Nog geen deelnemers toegevoegd. Klik op "+ Deelnemer toevoegen" om te beginnen.</p>
+        </div>
+      </div>
+
+      <div class="card" id="force-combos-card">
+        <h3>Geforceerde combinaties</h3>
+        <p class="hint">Specificeer deelnemers die altijd samen aan tafel moeten zitten.</p>
+        <div id="forced-combos-list"></div>
+        <button class="btn-secondary" onclick="addForcedCombo()">+ Combinatie toevoegen</button>
+      </div>
+
+      <div class="card">
+        <h3>Importeren / Exporteren</h3>
+        <p class="hint">Download het Excel-sjabloon, vul de deelnemers in en importeer het bestand terug. Verwijder de voorbeeldrij vóór het importeren.</p>
+        <div class="group-actions">
+          <button class="btn-secondary" onclick="downloadTemplate()">📋 Download Excel-sjabloon</button>
+          <button class="btn-secondary" onclick="document.getElementById('import-file').click()">📥 Importeer Excel</button>
+          <input type="file" id="import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importParticipantsFromFile(event)">
+        </div>
+        <div id="import-status" class="import-status-msg"></div>
+      </div>
+
+      <div class="card">
+        <h3>Groepsbeheer</h3>
+        <p class="hint">Sla de huidige deelnemerslijst op om volgend jaar opnieuw te gebruiken.</p>
+        <div class="group-actions">
+          <button class="btn-secondary" onclick="showSaveGroupModal()">💾 Groep opslaan</button>
+          <button class="btn-secondary" onclick="showLoadGroupModal()">📂 Groep laden</button>
+          <button class="btn-danger" onclick="deleteAllParticipants()">🗑️ Alle deelnemers verwijderen</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goToStep(1)">← Terug</button>
+        <button class="btn-primary" onclick="goToStep(3)" id="btn-to-planning">Volgende: Planning →</button>
+      </div>
+    </section>
+
+    <!-- STEP 3: Planning -->
+    <section id="step-3" class="step">
+      <h2>Stap 3: Automatische Planning</h2>
+
+      <div class="card" id="social-locations-card" style="display:none">
+        <h3>Locatie sociale gangen</h3>
+        <p class="hint">Selecteer welke deelnemer de sociale gang organiseert, of voer een apart adres in.</p>
+        <div id="social-locations-body"></div>
+      </div>
+
+      <div class="card">
+        <h3>Planning genereren</h3>
+        <p>Klik op de knop hieronder om een optimale indeling te genereren. Het algoritme zorgt voor maximale spreiding van tafelgenoten.</p>
+        <div id="planning-stats" class="planning-stats" style="display:none"></div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="generatePlanning()">⚡ Genereer Planning</button>
+          <button class="btn-secondary" onclick="regeneratePlanning()" id="btn-regenerate" style="display:none">🔄 Opnieuw genereren</button>
+        </div>
+        <div id="planning-warnings" class="warnings-box" style="display:none"></div>
+      </div>
+
+      <div id="planning-result" style="display:none">
+        <div class="card">
+          <h3>Tafelindeling per gang</h3>
+          <div id="courses-overview"></div>
+        </div>
+
+        <div class="card">
+          <h3>Wijzigingslog</h3>
+          <div id="manual-adjustment-area"></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goToStep(2)">← Terug</button>
+        <button class="btn-primary" onclick="goToStep(4)" id="btn-to-overview" style="display:none">Volgende: Overzicht →</button>
+      </div>
+    </section>
+
+    <!-- STEP 4: Overview -->
+    <section id="step-4" class="step">
+      <h2>Stap 4: Overzicht</h2>
+      <div class="view-tabs">
+        <button class="tab-btn active" onclick="switchTab('per-person')">📋 Route per deelnemer</button>
+        <button class="tab-btn" onclick="switchTab('per-location')">📍 Per locatie</button>
+        <button class="tab-btn" onclick="switchTab('envelope')">✉️ Envelop-kaartjes</button>
+      </div>
+
+      <div id="tab-per-person" class="tab-content active">
+        <div class="print-controls">
+          <p class="hint organizer-note">🔒 Organisatorsoverzicht — dit toont de volledige route per deelnemer voor de hele avond.</p>
+          <button class="btn-secondary" onclick="printSection('per-person')">🖨️ Print routes</button>
+        </div>
+        <div id="per-person-content"></div>
+      </div>
+
+      <div id="tab-per-location" class="tab-content">
+        <div class="print-controls">
+          <button class="btn-secondary" onclick="printSection('per-location')">🖨️ Print locatie-overzicht</button>
+        </div>
+        <div id="per-location-content"></div>
+      </div>
+
+      <div id="tab-envelope" class="tab-content">
+        <div class="print-controls">
+          <p class="hint">✉️ <strong>Envelop-kaartjes</strong> — per tafel, per gang. Leg de kaartjes <strong>gesloten</strong> op tafel. Gasten openen de envelop aan het einde van het gerecht en zien dan hun volgende bestemming.</p>
+          <button class="btn-secondary" onclick="printSection('envelope')">🖨️ Print alle kaartjes</button>
+          <button class="btn-secondary" onclick="printSingleEnvelopes()">🖨️ Print per gang (aparte pagina's)</button>
+        </div>
+        <div id="envelope-content"></div>
+      </div>
+
+      <div class="snapshot-bar card">
+        <h3>Momentopnames</h3>
+        <p class="hint">Sla de huidige planning op als momentopname om later te raadplegen.</p>
+        <div class="group-actions">
+          <button class="btn-secondary" onclick="savePlanningSnapshot()">💾 Momentopname opslaan</button>
+          <button class="btn-secondary" onclick="showLoadSnapshotModal()">📂 Momentopname laden</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goToStep(3)">← Terug naar planning</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Generic list modal (groups + snapshots) -->
+  <div id="list-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeListModal()"></div>
+    <div class="modal-content" style="max-width:480px">
+      <div class="modal-header">
+        <h3 id="list-modal-title">Beheer</h3>
+        <button class="modal-close" onclick="closeListModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="list-modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add/Edit Participant -->
+  <div id="participant-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeParticipantModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Deelnemer toevoegen</h3>
+        <button class="modal-close" onclick="closeParticipantModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="participant-form" onsubmit="saveParticipant(event)">
+          <input type="hidden" id="participant-id">
+
+          <h4>Persoonsgegevens</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Naam persoon 1 *</label>
+              <input type="text" id="p-name1" required placeholder="Jan de Vries">
+            </div>
+            <div class="form-group">
+              <label>Naam partner (optioneel)</label>
+              <input type="text" id="p-name2" placeholder="Marie de Vries">
+            </div>
+          </div>
+
+          <h4>Adres</h4>
+          <div class="form-row" style="flex-wrap:nowrap;align-items:flex-end;gap:10px">
+            <div class="form-group" style="flex:1.2">
+              <label>Postcode *</label>
+              <input type="text" id="p-postcode" required placeholder="1234AB" maxlength="7"
+                oninput="this.value=this.value.replace(/\s/g,'')" onblur="autoLookupPostcode()">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>Huisnummer *</label>
+              <input type="text" id="p-housenumber" required placeholder="12" onblur="autoLookupPostcode()">
+            </div>
+            <div style="padding-bottom:2px;flex-shrink:0">
+              <button type="button" class="btn-secondary" id="btn-postcode-lookup" onclick="lookupPostcode()">🔍 Opzoeken</button>
+            </div>
+          </div>
+          <div id="postcode-status" class="postcode-status"></div>
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label>Straatnaam *</label>
+              <input type="text" id="p-street" required placeholder="Wordt automatisch gevuld">
+            </div>
+            <div class="form-group flex-2">
+              <label>Woonplaats *</label>
+              <input type="text" id="p-city" required placeholder="Wordt automatisch gevuld">
+            </div>
+          </div>
+
+          <h4>Beschikbaarheid</h4>
+          <p class="hint">Geef aan bij welke onderdelen persoon 1 en eventueel de partner aanwezig kunnen zijn.</p>
+          <div id="availability-grid" class="availability-grid"></div>
+
+          <h4>Gastrol voorkeur</h4>
+          <div class="form-group">
+            <label>Bij welk onderdeel wil je graag gastheer/gastvrouw zijn?</label>
+            <select id="p-host-preference">
+              <option value="">Geen voorkeur</option>
+            </select>
+          </div>
+
+          <h4>Dieetwensen & Allergieën</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Persoon 1 – dieetwensen/allergieën</label>
+              <input type="text" id="p-diet1" placeholder="bijv. vegetarisch, noten allergie">
+            </div>
+            <div class="form-group" id="diet2-group">
+              <label>Partner – dieetwensen/allergieën</label>
+              <input type="text" id="p-diet2" placeholder="bijv. lactose-intolerant">
+            </div>
+          </div>
+
+          <h4>Voorkeur tafelgenoten</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Wil graag samen eten met:</label>
+              <input type="text" id="p-prefer-with" placeholder="Namen, komma gescheiden">
+            </div>
+            <div class="form-group">
+              <label>Wil NIET samen eten met:</label>
+              <input type="text" id="p-avoid" placeholder="Namen, komma gescheiden">
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeParticipantModal()">Annuleren</button>
+            <button type="submit" class="btn-primary">Opslaan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+  // Auth check – only runs when accessed via the Node.js server (not file://)
+  (async function initAuthBar() {
+    if (location.protocol === 'file:') return; // Direct file open – skip auth
+    try {
+      const res  = await fetch('/api/app/access');
+      if (!res.ok) {
+        if (res.status === 401) {
+          // Not logged in → redirect to login
+          window.location.href = '/login.html?next=/app';
+        }
+        // 404 or other = no Node.js backend (static server) → allow use
+        return;
+      }
+      const data = await res.json();
+
+      // Show auth bar
+      const bar = document.getElementById('auth-bar');
+      bar.style.display  = 'flex';
+
+      if (!data.access) {
+        // Logged in but no active license → show gate
+        document.getElementById('app').style.display      = 'none';
+        document.getElementById('auth-gate').style.display = 'flex';
+        return;
+      }
+
+      // Has access – show license info
+      if (data.license_until) {
+        const until = new Date(data.license_until).toLocaleDateString('nl-NL');
+        document.getElementById('auth-license-info').textContent = `Abonnement geldig t/m ${until}`;
+      }
+
+      // Show user email
+      const meRes  = await fetch('/api/auth/me');
+      const meData = await meRes.json();
+      if (meData?.user?.email) {
+        document.getElementById('auth-user-email').textContent = meData.user.email;
+      }
+    } catch {
+      // Server not reachable – allow offline/direct use
+    }
+
+    // Logout
+    document.getElementById('auth-logout-btn').addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/login.html';
+    });
+  })();
+  </script>
+</body>
+</html>

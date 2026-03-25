@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inloggen – Running Dinner Planner</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/home.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">🍽️</div>
+    <h1 class="auth-title">Inloggen</h1>
+    <p class="auth-subtitle">Welkom terug bij Running Dinner Planner</p>
+
+    <div class="auth-error" id="error-msg"></div>
+
+    <form class="auth-form" id="login-form">
+      <div class="form-group">
+        <label for="email">E-mailadres</label>
+        <input type="email" id="email" autocomplete="email" placeholder="jouw@email.nl" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Wachtwoord</label>
+        <input type="password" id="password" autocomplete="current-password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn-primary" id="submit-btn">Inloggen</button>
+    </form>
+
+    <div class="auth-links">
+      <a href="/forgot-password.html">Wachtwoord vergeten?</a><br><br>
+      Nog geen account? <a href="/register.html">Registreer gratis</a>
+    </div>
+  </div>
+</div>
+<script>
+  // Redirect if already logged in
+  fetch('/api/auth/me').then(r => {
+    if (r.ok) return r.json();
+  }).then(data => {
+    if (data?.ok) {
+      window.location.href = data.user.role === 'admin' ? '/admin/' : '/app';
+    }
+  }).catch(() => {});
+
+  document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const err = document.getElementById('error-msg');
+    btn.disabled = true;
+    btn.textContent = 'Inloggen...';
+    err.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email:    document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        const redirect = new URLSearchParams(location.search).get('next') || '/app';
+        window.location.href = data.user?.role === 'admin' ? '/admin/' : redirect;
+      } else {
+        err.textContent = data.error || 'Inloggen mislukt';
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Inloggen';
+      }
+    } catch {
+      err.textContent = 'Netwerkfout. Probeer het opnieuw.';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Inloggen';
+    }
+  });
+</script>
+</body>
+</html>

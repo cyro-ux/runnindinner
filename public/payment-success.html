@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Betaling geslaagd – Running Dinner Planner</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/home.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <style>
+    .success-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f9fafb; padding: 24px; }
+    .success-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 48px 40px; width: 100%; max-width: 460px; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+    .success-icon { font-size: 4rem; margin-bottom: 16px; }
+    .success-title { font-size: 1.8rem; font-weight: 800; color: #16a34a; margin-bottom: 10px; }
+    .success-msg { color: #6b7280; margin-bottom: 28px; line-height: 1.7; }
+    .success-info { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px; margin-bottom: 28px; font-size: .88rem; color: #166534; text-align: left; }
+    .success-info p { margin-bottom: 6px; }
+    .success-info p:last-child { margin: 0; }
+    .btn-app { display: block; background: #1a56db; color: #fff; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 700; text-decoration: none; margin-bottom: 12px; }
+    .btn-app:hover { background: #1343b0; text-decoration: none; }
+    .success-note { font-size: .8rem; color: #9ca3af; }
+    .loading { color: #6b7280; font-size: .9rem; }
+  </style>
+</head>
+<body>
+<div class="success-page">
+  <div class="success-card">
+    <div class="success-icon">🎉</div>
+    <h1 class="success-title">Betaling geslaagd!</h1>
+    <p class="success-msg">Bedankt voor je abonnement. Je hebt nu volledige toegang tot de Running Dinner Planner.</p>
+
+    <div class="success-info" id="info-block">
+      <p class="loading">Abonnementsgegevens laden…</p>
+    </div>
+
+    <a href="/app" class="btn-app">Open de planner →</a>
+    <p class="success-note">Je ontvangt een factuur per e-mail.</p>
+  </div>
+</div>
+<script>
+  // Fetch updated user info to display license date
+  fetch('/api/auth/me')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      const info = document.getElementById('info-block');
+      if (data?.user?.license_until) {
+        const until = new Date(data.user.license_until).toLocaleDateString('nl-NL');
+        info.innerHTML = `
+          <p>✓ <strong>Abonnement actief</strong></p>
+          <p>Geldig tot: <strong>${until}</strong></p>
+          <p>Account: ${data.user.email}</p>
+        `;
+      } else {
+        info.innerHTML = '<p>Abonnement wordt verwerkt. Dit kan een moment duren.</p>';
+      }
+    })
+    .catch(() => {
+      document.getElementById('info-block').innerHTML = '<p>Abonnement wordt verwerkt. Controleer je e-mail voor de factuur.</p>';
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin – Running Dinner Planner</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #1a56db; --blue-dark: #1343b0; --blue-light: #ebf5ff;
+      --green: #16a34a; --red: #dc2626; --amber: #d97706; --purple: #7c3aed;
+      --text: #111827; --muted: #6b7280; --border: #e5e7eb;
+      --bg: #f9fafb; --card: #ffffff; --radius: 10px;
+      --sidebar: 220px;
+    }
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+
+    /* Header */
+    .hdr { display: flex; align-items: center; gap: 12px; background: #fff; border-bottom: 1px solid var(--border); padding: 13px 24px; position: sticky; top: 0; z-index: 50; }
+    .hdr-logo { font-weight: 800; font-size: .95rem; }
+    .hdr-env  { padding: 3px 10px; border-radius: 100px; font-size: .72rem; font-weight: 700; }
+    .hdr-env.dev  { background: #fef3c7; color: #92400e; }
+    .hdr-env.prod { background: #dcfce7; color: #166534; }
+    .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .hdr-user  { font-size: .82rem; color: var(--muted); }
+    .hdr-btn   { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font-size: .82rem; color: var(--muted); cursor: pointer; }
+    .hdr-btn:hover { background: var(--bg); }
+
+    /* Layout */
+    .layout { display: flex; flex: 1; min-height: 0; }
+
+    /* Sidebar */
+    .sidebar { width: var(--sidebar); background: #fff; border-right: 1px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+    .nav-item { display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px 20px; font-size: .86rem; font-weight: 500; border: none; background: none; cursor: pointer; text-align: left; color: var(--text); border-left: 3px solid transparent; }
+    .nav-item:hover { background: var(--bg); }
+    .nav-item.active { background: var(--blue-light); color: var(--blue); border-left-color: var(--blue); font-weight: 700; }
+    .nav-item .icon { font-size: .95rem; }
+    .nav-sep { height: 1px; background: var(--border); margin: 8px 16px; }
+
+    /* Main */
+    .main { flex: 1; padding: 24px; overflow-y: auto; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; }
+
+    /* Cards */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 18px; }
+    .card-title { font-size: .9rem; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+
+    /* Stats grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .stat-label { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+    .stat-val { font-size: 1.9rem; font-weight: 800; line-height: 1; }
+    .stat-val.blue   { color: var(--blue); }
+    .stat-val.green  { color: var(--green); }
+    .stat-val.red    { color: var(--red); }
+    .stat-val.amber  { color: var(--amber); }
+    .stat-val.purple { color: var(--purple); }
+    .stat-sub { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+    /* Gauge bar */
+    .gauge-wrap { margin-top: 8px; }
+    .gauge-bar  { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .gauge-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+    .gauge-fill.green  { background: var(--green); }
+    .gauge-fill.amber  { background: var(--amber); }
+    .gauge-fill.red    { background: var(--red); }
+    .gauge-label { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+    /* User-type breakdown */
+    .type-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .type-chip { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 100px; font-size: .75rem; font-weight: 600; }
+    .type-chip.paid   { background: #dcfce7; color: #166534; }
+    .type-chip.manual { background: var(--blue-light); color: var(--blue); }
+    .type-chip.test   { background: #fef3c7; color: #92400e; }
+
+    /* Table */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .83rem; white-space: nowrap; }
+    th { text-align: left; padding: 9px 12px; background: var(--bg); border-bottom: 2px solid var(--border); font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+    td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9fafb; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: .72rem; font-weight: 700; }
+    .badge.active  { background: #dcfce7; color: #166534; }
+    .badge.expired { background: #fef2f2; color: #dc2626; }
+    .badge.admin   { background: #ede9fe; color: #7c3aed; }
+    .badge.paid    { background: #dcfce7; color: #166534; }
+    .badge.manual  { background: var(--blue-light); color: var(--blue); }
+    .badge.test    { background: #fef3c7; color: #92400e; }
+    .btn-sm { padding: 3px 9px; border-radius: 5px; font-size: .75rem; font-weight: 600; cursor: pointer; border: 1px solid; }
+    .btn-del { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+    .btn-del:hover { background: #fee2e2; }
+
+    /* Session list */
+    .session-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .83rem; }
+    .session-item:last-child { border: none; }
+    .session-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .session-email { font-weight: 600; }
+    .session-time  { color: var(--muted); font-size: .75rem; margin-left: auto; }
+
+    /* Forms */
+    .form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .form-group label { font-size: .82rem; font-weight: 600; }
+    .form-group input, .form-group select {
+      border: 1px solid var(--border); border-radius: 7px; padding: 8px 11px;
+      font-size: .86rem; font-family: inherit; outline: none; background: #fff;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); }
+    .form-hint { font-size: .73rem; color: var(--muted); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 7px; font-size: .86rem; font-weight: 600; cursor: pointer; border: none; }
+    .btn-blue   { background: var(--blue); color: #fff; }
+    .btn-blue:hover { background: var(--blue-dark); }
+    .btn-green  { background: #16a34a; color: #fff; }
+    .btn-green:hover { background: #15803d; }
+    .btn-amber  { background: #d97706; color: #fff; }
+    .btn-amber:hover { background: #b45309; }
+    .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { background: var(--bg); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .alert { padding: 9px 13px; border-radius: 7px; font-size: .83rem; margin-bottom: 12px; display: none; }
+    .alert.ok  { background: #f0fdf4; border: 1px solid #bbf7d0; color: var(--green); }
+    .alert.err { background: #fef2f2; border: 1px solid #fecaca; color: var(--red); }
+
+    /* Deploy log */
+    .deploy-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; margin-bottom: 8px; font-size: .82rem; }
+    .deploy-top  { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .deploy-env  { font-weight: 700; font-size: .72rem; text-transform: uppercase; }
+    .deploy-env.production { color: var(--green); }
+    .deploy-env.staging    { color: var(--amber); }
+    .deploy-time { color: var(--muted); font-size: .75rem; }
+
+    /* Chart bars */
+    .mini-chart { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
+    .bar { background: var(--blue-light); border-radius: 2px 2px 0 0; flex: 1; }
+    .bar.cur { background: var(--blue); }
+    .chart-lbls { display: flex; justify-content: space-between; font-size: .68rem; color: var(--muted); margin-top: 4px; }
+
+    /* CMS preview */
+    .cms-prev { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-top: 14px; }
+    .cms-prev-lbl { font-size: .7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+    .cms-prev-h1  { font-size: 1rem; font-weight: 800; margin-bottom: 4px; }
+    .cms-prev-sub { font-size: .82rem; color: var(--muted); }
+    .cms-prev-btn { display: inline-block; background: var(--blue); color: #fff; border-radius: 7px; padding: 6px 14px; font-size: .8rem; font-weight: 700; margin-top: 8px; }
+
+    .empty-row td { color: var(--muted); text-align: center; padding: 20px; }
+    .load-row  td { color: var(--muted); text-align: center; padding: 12px; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <span class="hdr-logo">🍽️ Running Dinner Admin</span>
+  <span class="hdr-env" id="env-badge">...</span>
+  <div class="hdr-right">
+    <span class="hdr-user" id="hdr-user"></span>
+    <button class="hdr-btn" id="logout-btn">Uitloggen</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <button class="nav-item active" data-page="dashboard"><span class="icon">📊</span>Dashboard</button>
+    <button class="nav-item" data-page="sessions"><span class="icon">🟢</span>Actieve sessies</button>
+    <div class="nav-sep"></div>
+    <button class="nav-item" data-page="users"><span class="icon">👥</span>Gebruikers</button>
+    <button class="nav-item" data-page="orders"><span class="icon">🧾</span>Bestellingen</button>
+    <div class="nav-sep"></div>
+    <button class="nav-item" data-page="settings"><span class="icon">⚙️</span>Instellingen</button>
+    <button class="nav-item" data-page="cms"><span class="icon">✏️</span>Paginabeheer</button>
+    <button class="nav-item" data-page="deploy"><span class="icon">🚀</span>Deployment</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <h1 class="page-title">Dashboard</h1>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat"><div class="stat-label">Totaal gebruikers</div><div class="stat-val blue" id="st-total">–</div><div class="stat-sub" id="st-type-breakdown">–</div></div>
+        <div class="stat"><div class="stat-label">Actief abonnement</div><div class="stat-val green" id="st-active">–</div><div class="stat-sub" id="st-pct">–</div></div>
+        <div class="stat"><div class="stat-label">Verlopen</div><div class="stat-val red" id="st-expired">–</div><div class="stat-sub">Nog niet verlengd</div></div>
+        <div class="stat"><div class="stat-label">Actieve sessies</div><div class="stat-val purple" id="st-sessions">–</div><div class="stat-sub">Afgelopen 30 minuten</div></div>
+        <div class="stat"><div class="stat-label">Totale omzet</div><div class="stat-val blue" id="st-revenue">–</div><div class="stat-sub" id="st-rev-month-label">–</div></div>
+        <div class="stat"><div class="stat-label">Planningen gemaakt</div><div class="stat-val amber" id="st-plannings">–</div><div class="stat-sub">Website-teller</div></div>
+      </div>
+
+      <!-- Server load -->
+      <div class="card">
+        <div class="card-title">Serverbelasting</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:.82rem;font-weight:600;margin-bottom:6px">CPU-load</div>
+            <div class="gauge-wrap">
+              <div class="gauge-bar"><div class="gauge-fill" id="cpu-fill" style="width:0%"></div></div>
+              <div class="gauge-label" id="cpu-label">–</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.82rem;font-weight:600;margin-bottom:6px">Geheugengebruik</div>
+            <div class="gauge-wrap">
+              <div class="gauge-bar"><div class="gauge-fill" id="mem-fill" style="width:0%"></div></div>
+              <div class="gauge-label" id="mem-label">–</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User type breakdown -->
+      <div class="card">
+        <div class="card-title">Gebruikers per type</div>
+        <div class="type-row">
+          <span class="type-chip paid">💳 Betaald: <strong id="ty-paid">–</strong></span>
+          <span class="type-chip manual">✍️ Handmatig: <strong id="ty-manual">–</strong></span>
+          <span class="type-chip test">🧪 Test: <strong id="ty-test">–</strong></span>
+        </div>
+        <div style="margin-top:14px">
+          <div class="card-title" style="margin-bottom:10px">Omzet per maand</div>
+          <div class="mini-chart" id="revenue-chart"></div>
+          <div class="chart-lbls" id="revenue-labels"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSIES -->
+    <div class="page" id="page-sessions">
+      <h1 class="page-title">Actieve sessies</h1>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin:0">Ingelogde gebruikers (laatste 30 min)</div>
+          <button class="btn btn-outline" id="refresh-sessions-btn" style="font-size:.8rem;padding:6px 12px">↻ Vernieuwen</button>
+        </div>
+        <div id="sessions-list"><p style="color:var(--muted);font-size:.85rem">Laden…</p></div>
+      </div>
+    </div>
+
+    <!-- GEBRUIKERS -->
+    <div class="page" id="page-users">
+      <h1 class="page-title">Gebruikers</h1>
+
+      <div class="card">
+        <div class="card-title">Nieuwe gebruiker aanmaken</div>
+        <div class="alert" id="create-user-alert"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>E-mailadres</label>
+            <input type="email" id="nu-email" placeholder="gebruiker@email.nl">
+          </div>
+          <div class="form-group">
+            <label>Wachtwoord</label>
+            <input type="password" id="nu-password" placeholder="Min. 8 tekens">
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="nu-type">
+              <option value="manual">✍️ Handmatig</option>
+              <option value="test">🧪 Test</option>
+              <option value="paid">💳 Betaald</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Abonnement (dagen, leeg = geen)</label>
+            <input type="number" id="nu-days" placeholder="365" min="1">
+            <span class="form-hint">Leeglaten = geen actief abonnement</span>
+          </div>
+        </div>
+        <button class="btn btn-blue" id="create-user-btn">Gebruiker aanmaken</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Alle gebruikers</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>E-mail</th>
+                <th>Type</th>
+                <th>Rol</th>
+                <th>Lid sinds</th>
+                <th>Lidmaatschapsduur</th>
+                <th>Laatste login</th>
+                <th>Abonnement t/m</th>
+                <th>Betalingen</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr class="load-row"><td colspan="10">Laden…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- BESTELLINGEN -->
+    <div class="page" id="page-orders">
+      <h1 class="page-title">Bestellingen &amp; Facturen</h1>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Factuurnummer</th>
+                <th>Gebruiker</th>
+                <th>Type</th>
+                <th>Bedrag</th>
+                <th>Datum</th>
+                <th>Status</th>
+                <th>Mollie ID</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr class="load-row"><td colspan="7">Laden…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSTELLINGEN -->
+    <div class="page" id="page-settings">
+      <h1 class="page-title">Instellingen</h1>
+
+      <div class="card">
+        <div class="card-title">Abonnementsprijs</div>
+        <div class="alert" id="settings-alert"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prijs in centen (bijv. 500 = €5,00)</label>
+            <input type="number" id="price-cents" min="100" step="1" placeholder="500">
+            <span class="form-hint">Minimaal 100 cent (€1,00). Geldt voor volgende betaling.</span>
+          </div>
+          <div class="form-group">
+            <label>Looptijd in dagen (standaard 365)</label>
+            <input type="number" id="duration-days" min="1" step="1" placeholder="365">
+          </div>
+        </div>
+        <button class="btn btn-blue" id="save-settings-btn">Instellingen opslaan</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Planningenteller (website-teller)</div>
+        <div class="alert" id="counter-alert"></div>
+        <div class="form-group" style="max-width:200px">
+          <label>Huidige teller</label>
+          <input type="number" id="planning-count-input" min="0" placeholder="0">
+          <span class="form-hint">Zichtbaar op de website als sociaal bewijs.</span>
+        </div>
+        <button class="btn btn-blue" id="save-counter-btn">Teller opslaan</button>
+      </div>
+    </div>
+
+    <!-- CMS -->
+    <div class="page" id="page-cms">
+      <h1 class="page-title">Paginabeheer</h1>
+      <div class="alert" id="cms-alert"></div>
+      <div class="card">
+        <div class="card-title">Homepage teksten</div>
+        <div class="form-group"><label>Hero-titel</label><input type="text" id="cms-hero-title"></div>
+        <div class="form-group"><label>Hero-ondertitel</label><input type="text" id="cms-hero-subtitle"></div>
+        <div class="form-group"><label>Hero-knoptekst</label><input type="text" id="cms-hero-cta"></div>
+        <div class="form-group"><label>Introductietekst functies</label><input type="text" id="cms-features-intro"></div>
+        <div class="form-group"><label>Prijslabel</label><input type="text" id="cms-price-label"></div>
+        <div class="form-group"><label>Footer-tekst</label><input type="text" id="cms-footer-text"></div>
+        <button class="btn btn-blue" id="save-cms-btn">Teksten opslaan</button>
+        <div class="cms-prev">
+          <div class="cms-prev-lbl">Live preview homepage hero</div>
+          <div class="cms-prev-h1"  id="prev-title">–</div>
+          <div class="cms-prev-sub" id="prev-sub">–</div>
+          <span class="cms-prev-btn" id="prev-btn">–</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Homepage afbeelding (hero)</div>
+        <div class="form-group"><label>Upload (JPG/PNG, max 2 MB)</label><input type="file" id="cms-photo" accept="image/*"></div>
+        <img id="cms-photo-preview" style="display:none;width:140px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-bottom:10px" alt="">
+        <button class="btn btn-blue" id="save-photo-btn">Afbeelding opslaan</button>
+      </div>
+    </div>
+
+    <!-- DEPLOYMENT -->
+    <div class="page" id="page-deploy">
+      <h1 class="page-title">Deployment</h1>
+      <div class="alert" id="deploy-alert"></div>
+      <div class="card">
+        <div class="card-title">Uitrollen</div>
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px">Registreer een deployment. De server herstart automatisch via PM2.</p>
+        <div class="form-group" style="max-width:400px">
+          <label>Notitie (optioneel)</label>
+          <input type="text" id="deploy-note" placeholder="bijv. betaalmethoden toegevoegd">
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-green" id="deploy-prod-btn">🚀 Deploy naar productie</button>
+          <button class="btn btn-amber" id="deploy-staging-btn">🔧 Deploy naar staging</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Recente deployments</div>
+        <div id="deploy-log"><p style="color:var(--muted);font-size:.85rem">Laden…</p></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+'use strict';
+
+// ── Auth guard ─────────────────────────────────────────────────────────────
+async function checkAuth() {
+  try {
+    const res  = await fetch('/api/auth/me');
+    if (!res.ok) throw new Error('unauth');
+    const data = await res.json();
+    if (!data.ok || data.user.role !== 'admin') throw new Error('not admin');
+    document.getElementById('hdr-user').textContent = data.user.email;
+    const badge = document.getElementById('env-badge');
+    if (location.port === '3001') { badge.textContent = 'DEV'; badge.className = 'hdr-env dev'; }
+    else { badge.textContent = 'PROD'; badge.className = 'hdr-env prod'; }
+  } catch {
+    window.location.href = '/login.html?next=/admin/';
+  }
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${name}"]`).classList.add('active');
+  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, deploy: loadDeploy };
+  loaders[name]?.();
+}
+document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
+
+// ── Logout ─────────────────────────────────────────────────────────────────
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/login.html';
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const fmtEur  = cents => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format((cents||0) / 100);
+const fmtDate = ts    => ts ? new Date(ts).toLocaleDateString('nl-NL') : '–';
+const fmtDT   = ts    => ts ? new Date(ts).toLocaleString('nl-NL') : '–';
+const fmtAgo  = ts => {
+  if (!ts) return '–';
+  const d = Math.floor((Date.now() - ts) / 86400000);
+  if (d === 0) return 'Vandaag';
+  if (d === 1) return '1 dag geleden';
+  if (d < 30)  return `${d} dagen geleden`;
+  const m = Math.floor(d / 30);
+  if (m < 12)  return `${m} maand${m>1?'en':''} geleden`;
+  const y = Math.floor(m / 12);
+  return `${y} jaar geleden`;
+};
+const memberDuration = ts => {
+  if (!ts) return '–';
+  const d = Math.floor((Date.now() - ts) / 86400000);
+  if (d < 30)  return `${d} dag${d!==1?'en':''}`;
+  const m = Math.floor(d / 30);
+  if (m < 12)  return `${m} maand${m>1?'en':''}`;
+  const y = Math.floor(m / 12); const rm = m % 12;
+  return `${y} jaar${rm ? ` ${rm}m` : ''}`;
+};
+function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.className = `alert ${type}`; el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+function gaugeColor(pct) { return pct < 60 ? 'green' : pct < 85 ? 'amber' : 'red'; }
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const res  = await fetch('/api/admin/stats');
+    const data = await res.json();
+    const s    = data.stats;
+
+    document.getElementById('st-total').textContent    = s.totalUsers;
+    document.getElementById('st-type-breakdown').textContent = `${s.paidUsers} betaald · ${s.manualUsers} hand. · ${s.testUsers} test`;
+    document.getElementById('st-active').textContent   = s.activeUsers;
+    document.getElementById('st-pct').textContent      = s.totalUsers ? `${Math.round(s.activeUsers/s.totalUsers*100)}% van totaal` : '';
+    document.getElementById('st-expired').textContent  = s.expiredUsers;
+    document.getElementById('st-sessions').textContent = s.activeSessions;
+    document.getElementById('st-revenue').textContent  = fmtEur(s.totalRevenue);
+    document.getElementById('st-rev-month-label').textContent = `Deze maand: ${fmtEur(s.revenueMonth)}`;
+    document.getElementById('st-plannings').textContent = s.planningCount.toLocaleString('nl-NL');
+
+    document.getElementById('ty-paid').textContent   = s.paidUsers;
+    document.getElementById('ty-manual').textContent = s.manualUsers;
+    document.getElementById('ty-test').textContent   = s.testUsers;
+
+    // CPU gauge
+    const cpuFill  = document.getElementById('cpu-fill');
+    const cpuColor = gaugeColor(s.serverLoad);
+    cpuFill.style.width = s.serverLoad + '%';
+    cpuFill.className   = `gauge-fill ${cpuColor}`;
+    document.getElementById('cpu-label').textContent = `${s.serverLoad}% — ${s.serverLoad < 60 ? 'normaal' : s.serverLoad < 85 ? 'verhoogd' : 'kritiek'}`;
+
+    // Memory gauge
+    const memFill  = document.getElementById('mem-fill');
+    const memColor = gaugeColor(s.memoryUsed);
+    memFill.style.width = s.memoryUsed + '%';
+    memFill.className   = `gauge-fill ${memColor}`;
+    document.getElementById('mem-label').textContent = `${s.memoryUsed}% in gebruik`;
+
+    // Simple bar chart placeholder (last 12 months)
+    const months = ['Okt','Nov','Dec','Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep'];
+    const bars   = [20,30,40,25,45,50,35,55,40,30,45,s.revenueMonth > 0 ? 75 : 60];
+    const max    = Math.max(...bars);
+    document.getElementById('revenue-chart').innerHTML =
+      bars.map((b,i) => `<div class="bar${i===11?' cur':''}" style="height:${Math.round(b/max*100)}%" title="${months[i]}"></div>`).join('');
+    document.getElementById('revenue-labels').innerHTML =
+      months.map(m => `<span>${m}</span>`).join('');
+
+  } catch(e) { console.error(e); }
+}
+
+// ── SESSIES ────────────────────────────────────────────────────────────────
+async function loadSessions() {
+  const el = document.getElementById('sessions-list');
+  try {
+    const res  = await fetch('/api/admin/active-sessions');
+    const data = await res.json();
+    if (!data.sessions.length) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:.85rem">Geen actieve sessies op dit moment.</p>';
+      return;
+    }
+    el.innerHTML = data.sessions.map(s => `
+      <div class="session-item">
+        <span class="session-dot"></span>
+        <span class="session-email">${escH(s.email)}</span>
+        <span style="font-size:.75rem;color:var(--muted)">Ingelogd ${fmtAgo(s.loginAt)}</span>
+        <span class="session-time">Actief: ${fmtDT(s.lastSeen)}</span>
+      </div>
+    `).join('');
+  } catch { el.innerHTML = '<p style="color:var(--red);font-size:.85rem">Laden mislukt</p>'; }
+}
+document.getElementById('refresh-sessions-btn').addEventListener('click', loadSessions);
+
+// ── GEBRUIKERS ─────────────────────────────────────────────────────────────
+async function loadUsers() {
+  const tbody = document.getElementById('users-tbody');
+  tbody.innerHTML = '<tr class="load-row"><td colspan="10">Laden…</td></tr>';
+  try {
+    const res  = await fetch('/api/admin/users');
+    const data = await res.json();
+    if (!data.users.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Geen gebruikers</td></tr>'; return; }
+    const now = Date.now();
+    tbody.innerHTML = data.users.map(u => {
+      const active  = u.license_until && u.license_until > now;
+      const typeMap = { paid: '💳 Betaald', manual: '✍️ Handmatig', test: '🧪 Test' };
+      return `<tr>
+        <td>${escH(u.email)}</td>
+        <td><span class="badge ${u.user_type||'paid'}">${typeMap[u.user_type]||u.user_type}</span></td>
+        <td><span class="badge ${u.role}">${u.role}</span></td>
+        <td>${fmtDate(u.created_at)}</td>
+        <td>${memberDuration(u.created_at)}</td>
+        <td>${fmtAgo(u.last_login)}</td>
+        <td>${u.license_until ? fmtDate(u.license_until) : '–'}</td>
+        <td style="text-align:center">${u.payment_count||0}</td>
+        <td><span class="badge ${active?'active':'expired'}">${active?'Actief':'Verlopen'}</span></td>
+        <td>${u.role!=='admin' ? `<button class="btn-sm btn-del" onclick="deleteUser('${u.id}','${escH(u.email)}')">✕</button>` : ''}</td>
+      </tr>`;
+    }).join('');
+  } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Laden mislukt</td></tr>'; }
+}
+
+async function deleteUser(id, email) {
+  if (!confirm(`Gebruiker "${email}" definitief verwijderen?`)) return;
+  await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+  loadUsers(); loadDashboard();
+}
+
+// Create user
+document.getElementById('create-user-btn').addEventListener('click', async () => {
+  const btn  = document.getElementById('create-user-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:      document.getElementById('nu-email').value,
+        password:   document.getElementById('nu-password').value,
+        user_type:  document.getElementById('nu-type').value,
+        license_days: document.getElementById('nu-days').value || undefined,
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert('create-user-alert', data.message, 'ok');
+      document.getElementById('nu-email').value = '';
+      document.getElementById('nu-password').value = '';
+      document.getElementById('nu-days').value = '';
+      loadUsers();
+    } else {
+      showAlert('create-user-alert', data.error, 'err');
+    }
+  } catch { showAlert('create-user-alert', 'Netwerkfout', 'err'); }
+  btn.disabled = false;
+});
+
+// ── BESTELLINGEN ───────────────────────────────────────────────────────────
+async function loadOrders() {
+  const tbody = document.getElementById('orders-tbody');
+  tbody.innerHTML = '<tr class="load-row"><td colspan="7">Laden…</td></tr>';
+  try {
+    const res  = await fetch('/api/admin/orders');
+    const data = await res.json();
+    if (!data.orders.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Geen bestellingen</td></tr>'; return; }
+    tbody.innerHTML = data.orders.map(o => `<tr>
+      <td><strong>${escH(o.invoice_number||'–')}</strong></td>
+      <td>${escH(o.user_email||'–')}</td>
+      <td><span class="badge ${o.user_type||'paid'}">${{paid:'💳 Betaald',manual:'✍️ Hand.',test:'🧪 Test'}[o.user_type]||o.user_type||'–'}</span></td>
+      <td>${fmtEur(o.amount_cents)}</td>
+      <td>${fmtDate(o.created_at)}</td>
+      <td><span class="badge ${o.status==='paid'?'active':'expired'}">${o.status}</span></td>
+      <td style="font-size:.72rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis">${escH(o.mollie_payment_id||'–')}</td>
+    </tr>`).join('');
+  } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Laden mislukt</td></tr>'; }
+}
+
+// ── INSTELLINGEN ───────────────────────────────────────────────────────────
+async function loadSettings() {
+  try {
+    const res  = await fetch('/api/admin/stats');
+    const data = await res.json();
+    document.getElementById('price-cents').value  = data.stats.priceCents;
+    document.getElementById('duration-days').value = 365;
+    document.getElementById('planning-count-input').value = data.stats.planningCount;
+  } catch {}
+}
+
+document.getElementById('save-settings-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-settings-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subscription_price_cents:   parseInt(document.getElementById('price-cents').value, 10),
+        subscription_duration_days: parseInt(document.getElementById('duration-days').value, 10),
+      }),
+    });
+    const data = await res.json();
+    showAlert('settings-alert', res.ok ? 'Opgeslagen' : (data.error||'Mislukt'), res.ok ? 'ok' : 'err');
+  } catch { showAlert('settings-alert', 'Netwerkfout', 'err'); }
+  btn.disabled = false;
+});
+
+document.getElementById('save-counter-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-counter-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/planning-count', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ count: parseInt(document.getElementById('planning-count-input').value, 10) }),
+    });
+    const data = await res.json();
+    showAlert('counter-alert', res.ok ? `Teller opgeslagen op ${data.count}` : (data.error||'Mislukt'), res.ok ? 'ok' : 'err');
+  } catch { showAlert('counter-alert', 'Netwerkfout', 'err'); }
+  btn.disabled = false;
+});
+
+// ── CMS ────────────────────────────────────────────────────────────────────
+async function loadCms() {
+  try {
+    const res  = await fetch('/api/cms');
+    const data = await res.json();
+    const c    = data.cms || {};
+    const map  = { 'cms-hero-title':'hero_title', 'cms-hero-subtitle':'hero_subtitle', 'cms-hero-cta':'hero_cta', 'cms-features-intro':'features_intro', 'cms-price-label':'price_label', 'cms-footer-text':'footer_text' };
+    for (const [id, key] of Object.entries(map)) { const el = document.getElementById(id); if (el && c[key]) el.value = c[key]; }
+    updateCmsPreview();
+    if (c.hero_photo) { const img = document.getElementById('cms-photo-preview'); img.src = c.hero_photo; img.style.display = 'block'; }
+  } catch {}
+}
+
+function updateCmsPreview() {
+  document.getElementById('prev-title').textContent = document.getElementById('cms-hero-title').value;
+  document.getElementById('prev-sub').textContent   = document.getElementById('cms-hero-subtitle').value;
+  document.getElementById('prev-btn').textContent   = document.getElementById('cms-hero-cta').value;
+}
+['cms-hero-title','cms-hero-subtitle','cms-hero-cta'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateCmsPreview);
+});
+
+document.getElementById('save-cms-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-cms-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/cms', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        hero_title:     document.getElementById('cms-hero-title').value,
+        hero_subtitle:  document.getElementById('cms-hero-subtitle').value,
+        hero_cta:       document.getElementById('cms-hero-cta').value,
+        features_intro: document.getElementById('cms-features-intro').value,
+        price_label:    document.getElementById('cms-price-label').value,
+        footer_text:    document.getElementById('cms-footer-text').value,
+      }),
+    });
+    showAlert('cms-alert', res.ok ? 'Teksten opgeslagen' : 'Opslaan mislukt', res.ok ? 'ok' : 'err');
+  } catch { showAlert('cms-alert', 'Netwerkfout', 'err'); }
+  btn.disabled = false;
+});
+
+document.getElementById('cms-photo').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { const img = document.getElementById('cms-photo-preview'); img.src = ev.target.result; img.style.display = 'block'; };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('save-photo-btn').addEventListener('click', async () => {
+  const file = document.getElementById('cms-photo').files[0];
+  if (!file) { showAlert('cms-alert', 'Selecteer eerst een afbeelding', 'err'); return; }
+  if (file.size > 2 * 1024 * 1024) { showAlert('cms-alert', 'Max 2 MB', 'err'); return; }
+  const btn = document.getElementById('save-photo-btn'); btn.disabled = true;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const res = await fetch('/api/cms/photo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'hero_photo', dataUrl: ev.target.result }) });
+      showAlert('cms-alert', res.ok ? 'Afbeelding opgeslagen' : 'Mislukt', res.ok ? 'ok' : 'err');
+    } catch { showAlert('cms-alert', 'Netwerkfout', 'err'); }
+    btn.disabled = false;
+  };
+  reader.readAsDataURL(file);
+});
+
+// ── DEPLOYMENT ─────────────────────────────────────────────────────────────
+async function loadDeploy() {
+  const log = document.getElementById('deploy-log');
+  try {
+    const res  = await fetch('/api/admin/deployments');
+    const data = await res.json();
+    if (!data.deployments.length) { log.innerHTML = '<p style="color:var(--muted);font-size:.85rem">Nog geen deployments</p>'; return; }
+    log.innerHTML = data.deployments.map(d => `
+      <div class="deploy-item">
+        <div class="deploy-top">
+          <span class="deploy-env ${d.env}">${d.env.toUpperCase()}</span>
+          <span class="deploy-time">${fmtDT(d.created_at)}</span>
+        </div>
+        <span style="color:var(--muted)">Door: ${escH(d.deployed_by)}${d.note ? ` — ${escH(d.note)}` : ''}</span>
+      </div>`).join('');
+  } catch { log.innerHTML = '<p style="color:var(--red);font-size:.85rem">Laden mislukt</p>'; }
+}
+
+async function triggerDeploy(env) {
+  if (!confirm(`Deployen naar ${env}?`)) return;
+  const btn = document.getElementById(`deploy-${env==='production'?'prod':'staging'}-btn`);
+  btn.disabled = true;
+  try {
+    const res  = await fetch('/api/admin/deploy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ env, note: document.getElementById('deploy-note').value }) });
+    const data = await res.json();
+    showAlert('deploy-alert', res.ok ? data.message : (data.error||'Mislukt'), res.ok ? 'ok' : 'err');
+    if (res.ok) loadDeploy();
+  } catch { showAlert('deploy-alert', 'Netwerkfout', 'err'); }
+  btn.disabled = false;
+}
+document.getElementById('deploy-prod-btn').addEventListener('click', () => triggerDeploy('production'));
+document.getElementById('deploy-staging-btn').addEventListener('click', () => triggerDeploy('staging'));
+
+// ── Init ───────────────────────────────────────────────────────────────────
+(async () => {
+  await checkAuth();
+  loadDashboard();
+})();
+</script>
+</body>
+</html>

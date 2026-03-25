@@ -1,0 +1,30 @@
+# Environment files (secrets)
+.env
+.env.acc
+.env.dev
+
+# Database
+data/
+data-acc/
+
+# Dependencies
+node_modules/
+
+# Temporary build files
+docx-gen/
+create-docx.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Generated documents
+*.docx

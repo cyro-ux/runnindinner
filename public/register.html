@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account aanmaken – Running Dinner Planner</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/home.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <style>
+    .steps-indicator {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; margin-bottom: 28px;
+    }
+    .step-dot {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .step-dot-circle {
+      width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: .78rem; font-weight: 700;
+    }
+    .step-dot-circle.active { background: #1a56db; color: #fff; }
+    .step-dot-circle.pending { background: #e5e7eb; color: #9ca3af; }
+    .step-dot-label { font-size: .7rem; color: #6b7280; white-space: nowrap; }
+    .step-dot-label.active { color: #1a56db; font-weight: 600; }
+    .step-connector { width: 40px; height: 2px; background: #e5e7eb; margin: 0 4px; margin-bottom: 18px; }
+    .payment-info-box {
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;
+      padding: 10px 14px; font-size: .82rem; color: #92400e; margin-bottom: 16px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">🍽️</div>
+    <h1 class="auth-title">Account aanmaken</h1>
+    <p class="auth-subtitle">Stap 1 van 2 — aanmelden, daarna betalen</p>
+
+    <!-- Stappen indicator -->
+    <div class="steps-indicator">
+      <div class="step-dot">
+        <div class="step-dot-circle active">1</div>
+        <span class="step-dot-label active">Account</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-dot">
+        <div class="step-dot-circle pending">2</div>
+        <span class="step-dot-label">Betalen</span>
+      </div>
+    </div>
+
+    <div class="payment-info-box">
+      💳 Na het aanmaken word je direct doorgestuurd naar de betaalpagina. Toegang kost <strong>€5 per jaar</strong>.
+    </div>
+
+    <div class="auth-error"   id="error-msg"></div>
+    <div class="auth-success" id="success-msg"></div>
+
+    <form class="auth-form" id="register-form">
+      <div class="form-group">
+        <label for="email">E-mailadres</label>
+        <input type="email" id="email" autocomplete="email" placeholder="jouw@email.nl" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Wachtwoord <span style="font-weight:400;color:#6b7280">(min. 8 tekens)</span></label>
+        <input type="password" id="password" autocomplete="new-password" placeholder="••••••••" required minlength="8">
+      </div>
+      <div class="form-group">
+        <label for="password2">Wachtwoord herhalen</label>
+        <input type="password" id="password2" autocomplete="new-password" placeholder="••••••••" required minlength="8">
+      </div>
+      <button type="submit" class="btn-primary" id="submit-btn">Account aanmaken → naar betalen</button>
+    </form>
+
+    <!-- Betaalmethoden -->
+    <div style="margin-top:16px;text-align:center">
+      <p style="font-size:.75rem;color:#9ca3af;margin-bottom:8px">Betaalmethoden</p>
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+        <span style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:.74rem;font-weight:600;color:#374151">🇳🇱 iDEAL</span>
+        <span style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:.74rem;font-weight:600;color:#374151">🇧🇪 Bancontact</span>
+        <span style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:.74rem;font-weight:600;color:#374151">PayPal</span>
+        <span style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:.74rem;font-weight:600;color:#374151">Creditcard</span>
+        <span style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:.74rem;font-weight:600;color:#374151">SEPA</span>
+      </div>
+    </div>
+
+    <div class="auth-links">
+      Al een account? <a href="/login.html">Inloggen</a>
+    </div>
+  </div>
+</div>
+<script>
+  document.getElementById('register-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn    = document.getElementById('submit-btn');
+    const errEl  = document.getElementById('error-msg');
+    const succEl = document.getElementById('success-msg');
+    errEl.style.display = succEl.style.display = 'none';
+
+    const password  = document.getElementById('password').value;
+    const password2 = document.getElementById('password2').value;
+    if (password !== password2) {
+      errEl.textContent = 'Wachtwoorden komen niet overeen';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Account aanmaken…';
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('email').value, password }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        // Auto-login immediately, then start Mollie payment
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: document.getElementById('email').value, password }),
+        });
+        if (loginRes.ok) {
+          // Directly start checkout
+          btn.textContent = 'Doorsturen naar betaalpagina…';
+          const checkoutRes = await fetch('/api/mollie/create-payment', { method: 'POST' });
+          const checkoutData = await checkoutRes.json();
+          if (checkoutRes.ok && checkoutData.url) {
+            window.location.href = checkoutData.url;
+            return;
+          }
+        }
+        // Fallback: redirect to subscribe page
+        succEl.textContent = 'Account aangemaakt! Doorsturen naar betaalpagina…';
+        succEl.style.display = 'block';
+        setTimeout(() => { window.location.href = '/subscribe.html'; }, 1000);
+      } else {
+        errEl.textContent = data.error || 'Registreren mislukt';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Account aanmaken → naar betalen';
+      }
+    } catch {
+      errEl.textContent = 'Netwerkfout. Probeer het opnieuw.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Account aanmaken → naar betalen';
+    }
+  });
+</script>
+</body>
+</html>
