@@ -631,10 +631,12 @@ header h1 {
 .location-header p { margin: 0; opacity: 0.9; font-size: 0.85rem; }
 .location-body { padding: 16px 20px; }
 
+.location-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .guests-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  min-width: 400px;
 }
 .guests-table th {
   background: var(--bg);
@@ -975,11 +977,66 @@ header h1 {
   @page { margin: 15mm; }
 }
 
+@media (max-width: 768px) {
+  #app { padding: 0 12px 32px; }
+  header { margin: 0 -12px 20px; padding: 16px 16px 0; }
+  .card { padding: 18px; }
+  .modal-content { max-width: 100%; margin: 8px; }
+  .modal-body { padding: 18px; }
+  .modal-header { padding: 16px 18px; }
+  .tables-grid { grid-template-columns: 1fr; }
+  .participants-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .env-cards-row { justify-content: center; }
+  .env-card-new { width: 100%; max-width: 300px; }
+  .envelope-card { padding: 18px 16px; }
+  .envelope-row { flex-direction: column; gap: 6px; }
+  .env-time { min-width: unset; }
+  .env-course { min-width: unset; }
+  .guests-table { font-size: 0.8rem; }
+  .guests-table th, .guests-table td { padding: 6px 8px; }
+  .route-item { gap: 10px; }
+  .route-time { min-width: 55px; font-size: 0.82rem; }
+  .view-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab-btn { white-space: nowrap; padding: 8px 14px; font-size: 0.85rem; }
+  .planning-stats { gap: 10px; }
+  .stat-box { min-width: 80px; padding: 10px 12px; }
+  .stat-number { font-size: 1.4rem; }
+  .social-location-row { flex-direction: column; gap: 8px; }
+  .social-location-label { min-width: unset; padding-top: 0; }
+  .availability-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .availability-course-name { min-width: unset; }
+  .forced-combo-item { flex-direction: column; align-items: stretch; }
+  .forced-combo-item select { flex: none; }
+  .list-modal-save-row { flex-direction: column; }
+  .change-item { flex-direction: column; align-items: flex-start; }
+  .btn-row { justify-content: stretch; }
+  .btn-row .btn-primary,
+  .btn-row .btn-secondary { flex: 1; text-align: center; }
+}
+
 @media (max-width: 600px) {
-  header h1 { font-size: 1.4rem; }
-  .step-btn { padding: 8px 14px; font-size: 0.8rem; }
+  header h1 { font-size: 1.3rem; }
+  header { padding: 14px 14px 0; }
+  .steps-nav { gap: 2px; }
+  .step-btn { padding: 7px 10px; font-size: 0.75rem; }
   .form-row { flex-direction: column; }
+  .form-group { min-width: unset; }
   .table-size-config { flex-direction: column; }
   .time-item { flex-direction: column; align-items: flex-start; }
   .time-item label { min-width: unset; }
+  .event-details label { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .event-details input { max-width: 100%; }
+  .participant-card { flex-direction: column; align-items: flex-start; padding: 12px; }
+  .participant-actions { width: 100%; justify-content: flex-end; }
+  .person-schedule-header { padding: 12px 14px; }
+  .person-schedule-header h3 { font-size: 1rem; }
+  .schedule-route { padding: 12px 14px; }
+  .location-header { padding: 12px 14px; }
+  .location-body { padding: 12px 14px; }
+  .course-block-header { flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 14px; }
+  .course-block-time { margin-left: 0; }
+  .group-actions { flex-direction: column; }
+  .group-actions .btn-primary,
+  .group-actions .btn-secondary { width: 100%; text-align: center; }
+  .print-controls { flex-direction: column; align-items: stretch; }
 }

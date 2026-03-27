@@ -152,6 +152,22 @@
 
     .empty-row td { color: var(--muted); text-align: center; padding: 20px; }
     .load-row  td { color: var(--muted); text-align: center; padding: 12px; font-style: italic; }
+
+    /* Responsive admin */
+    @media (max-width: 768px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 8px 12px; gap: 4px; border-right: none; border-bottom: 1px solid var(--border); }
+      .nav-item { padding: 8px 14px; white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; font-size: .78rem; }
+      .nav-item.active { border-left-color: transparent; border-bottom-color: var(--blue); }
+      .nav-sep { display: none; }
+      .main { padding: 16px; }
+      .page-title { font-size: 1.1rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .stat-val { font-size: 1.4rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .hdr { padding: 10px 14px; gap: 8px; }
+      .hdr-user { display: none; }
+    }
   </style>
 </head>
 <body>

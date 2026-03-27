@@ -305,25 +305,41 @@ img { max-width: 100%; display: block; }
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 900px) {
   .hero          { flex-direction: column; padding-top: 100px; gap: 40px; }
-  .hero-visual   { width: 100%; }
+  .hero-visual   { width: 100%; flex: none; }
   .mockup-card   { max-width: 480px; margin: 0 auto; }
   .nav-links     { display: none; }
   .nav-hamburger { display: block; }
   .footer-grid   { grid-template-columns: 1fr 1fr; }
   .steps-row     { gap: 16px; }
   .step-arrow    { display: none; }
+  .step          { max-width: none; }
+  .cta-box h2    { font-size: 1.6rem; }
 }
 
 @media (max-width: 600px) {
-  .hero h1      { font-size: 1.7rem; }
-  .section      { padding: 56px 0; }
-  .section-header h2 { font-size: 1.6rem; }
-  .form-row     { grid-template-columns: 1fr; }
-  .footer-grid  { grid-template-columns: 1fr; }
-  .stats-row    { gap: 20px; }
-  .stat-divider { display: none; }
-  .hero-cta-row { flex-direction: column; align-items: stretch; }
+  .hero          { padding: 90px 16px 48px; gap: 28px; }
+  .hero h1       { font-size: 1.7rem; }
+  .hero-sub      { font-size: 1rem; }
+  .section       { padding: 48px 0; }
+  .section-header h2 { font-size: 1.4rem; }
+  .section-header p  { font-size: .9rem; }
+  .container     { padding: 0 16px; }
+  .form-row      { grid-template-columns: 1fr; }
+  .footer-grid   { grid-template-columns: 1fr; }
+  .stats-row     { flex-direction: column; gap: 16px; }
+  .stat-divider  { display: none; }
+  .hero-cta-row  { flex-direction: column; align-items: stretch; }
   .btn-hero, .btn-hero-ghost { text-align: center; }
+  .pricing-card  { padding: 28px 20px; }
+  .price-amount  { font-size: 2.4rem; }
+  .cta-box h2    { font-size: 1.4rem; }
+  .cta-box p     { font-size: .95rem; }
+  .testimonials-grid { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .step          { min-width: unset; max-width: none; }
+  .faq-item summary { font-size: .9rem; padding: 14px 16px; }
+  .faq-item p    { padding: 0 16px 14px; }
+  .auth-card     { padding: 28px 20px; }
 }
 
 @media print { .nav, .hero-visual, .cta-section, .contact-section { display: none; } }
