@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mijn Profiel – Running Dinner Planner</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/home.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <style>
+    .profile-page {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+      font-family: 'Inter', sans-serif;
+      padding: 24px 16px;
+    }
+    .profile-container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .profile-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .profile-header h1 {
+      font-size: 24px;
+      color: #111827;
+      margin: 0;
+    }
+    .profile-nav {
+      display: flex;
+      gap: 12px;
+    }
+    .profile-nav a {
+      font-size: 14px;
+      color: #1a56db;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      transition: all 0.15s;
+    }
+    .profile-nav a:hover {
+      background: #eff6ff;
+      border-color: #1a56db;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 16px;
+      color: #374151;
+      margin: 0 0 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px 16px;
+      font-size: 14px;
+    }
+    .info-label {
+      color: #6b7280;
+      font-weight: 500;
+    }
+    .info-value {
+      color: #111827;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .badge-expired {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .badge-none {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .invoice-table th {
+      text-align: left;
+      padding: 10px 12px;
+      color: #6b7280;
+      font-weight: 500;
+      border-bottom: 2px solid #f3f4f6;
+      font-size: 13px;
+    }
+    .invoice-table td {
+      padding: 12px;
+      border-bottom: 1px solid #f3f4f6;
+      color: #374151;
+    }
+    .invoice-table tr:last-child td {
+      border-bottom: none;
+    }
+    .invoice-table tr:hover {
+      background: #f9fafb;
+    }
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: #1a56db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn-download:hover {
+      background: #1e40af;
+    }
+    .btn-download svg {
+      width: 14px;
+      height: 14px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    .password-section {
+      margin-top: 12px;
+    }
+    .password-section .form-row {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+      flex-wrap: wrap;
+    }
+    .password-section .form-group {
+      flex: 1;
+      min-width: 180px;
+    }
+    .password-section label {
+      display: block;
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    .password-section input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .password-section input:focus {
+      outline: none;
+      border-color: #1a56db;
+      box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+    }
+    .btn-save {
+      padding: 8px 20px;
+      background: #1a56db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-save:hover { background: #1e40af; }
+    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+    .msg { font-size: 13px; margin-top: 8px; }
+    .msg-ok { color: #065f46; }
+    .msg-err { color: #991b1b; }
+
+    @media (max-width: 600px) {
+      .profile-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .info-grid { grid-template-columns: 1fr; gap: 4px 0; }
+      .info-label { font-size: 12px; }
+      .invoice-table { font-size: 13px; }
+      .invoice-table th, .invoice-table td { padding: 8px 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="profile-page">
+  <div class="profile-container">
+    <div class="profile-header">
+      <h1>Mijn Profiel</h1>
+      <nav class="profile-nav">
+        <a href="/app">Naar planner</a>
+        <a href="#" id="logout-btn">Uitloggen</a>
+      </nav>
+    </div>
+
+    <!-- Account info -->
+    <div class="card">
+      <h2>Accountgegevens</h2>
+      <div class="info-grid">
+        <span class="info-label">E-mail</span>
+        <span class="info-value" id="user-email">-</span>
+        <span class="info-label">Lid sinds</span>
+        <span class="info-value" id="user-since">-</span>
+        <span class="info-label">Abonnement</span>
+        <span class="info-value" id="user-license">-</span>
+      </div>
+    </div>
+
+    <!-- Change password -->
+    <div class="card">
+      <h2>Wachtwoord wijzigen</h2>
+      <div class="password-section">
+        <form id="pw-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="current-pw">Huidig wachtwoord</label>
+              <input type="password" id="current-pw" autocomplete="current-password" required>
+            </div>
+            <div class="form-group">
+              <label for="new-pw">Nieuw wachtwoord</label>
+              <input type="password" id="new-pw" autocomplete="new-password" minlength="8" required>
+            </div>
+            <button type="submit" class="btn-save" id="pw-btn">Opslaan</button>
+          </div>
+        </form>
+        <div class="msg" id="pw-msg"></div>
+      </div>
+    </div>
+
+    <!-- Invoices -->
+    <div class="card">
+      <h2>Facturen</h2>
+      <div id="invoices-container">
+        <div class="empty-state">Facturen worden geladen...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = s => document.querySelector(s);
+
+  // Auth check
+  async function loadProfile() {
+    const r = await fetch('/api/user/profile');
+    if (!r.ok) { window.location.href = '/login.html'; return; }
+    const { user, payments } = await r.json();
+
+    // Account info
+    $('#user-email').textContent = user.email;
+    $('#user-since').textContent = new Date(user.created_at).toLocaleDateString('nl-NL', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    if (user.license_until) {
+      const expiry = new Date(user.license_until);
+      const active = expiry > new Date();
+      $('#user-license').innerHTML = `
+        <span class="badge ${active ? 'badge-active' : 'badge-expired'}">${active ? 'Actief' : 'Verlopen'}</span>
+        t/m ${expiry.toLocaleDateString('nl-NL', { year: 'numeric', month: 'long', day: 'numeric' })}
+      `;
+    } else {
+      $('#user-license').innerHTML = '<span class="badge badge-none">Geen abonnement</span>';
+    }
+
+    // Invoices
+    const container = $('#invoices-container');
+    if (!payments || payments.length === 0) {
+      container.innerHTML = '<div class="empty-state">Je hebt nog geen facturen.</div>';
+      return;
+    }
+
+    const downloadIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v7.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 10.586V3a1 1 0 011-1z"/><path d="M3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>`;
+
+    container.innerHTML = `
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>Factuurnummer</th>
+            <th>Datum</th>
+            <th>Bedrag</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${payments.map(p => `
+            <tr>
+              <td>${p.invoice_number}</td>
+              <td>${new Date(p.created_at).toLocaleDateString('nl-NL')}</td>
+              <td>${new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(p.amount_cents / 100)}</td>
+              <td>
+                <a href="/api/payments/invoice/${encodeURIComponent(p.invoice_number)}" class="btn-download" download>
+                  ${downloadIcon} PDF
+                </a>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  loadProfile();
+
+  // Change password
+  $('#pw-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = $('#pw-btn');
+    const msg = $('#pw-msg');
+    btn.disabled = true;
+    msg.textContent = '';
+
+    try {
+      const r = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: $('#current-pw').value,
+          newPassword: $('#new-pw').value,
+        }),
+      });
+      const data = await r.json();
+      if (r.ok) {
+        msg.textContent = 'Wachtwoord gewijzigd!';
+        msg.className = 'msg msg-ok';
+        $('#pw-form').reset();
+      } else {
+        msg.textContent = data.error || 'Er ging iets mis.';
+        msg.className = 'msg msg-err';
+      }
+    } catch {
+      msg.textContent = 'Verbindingsfout.';
+      msg.className = 'msg msg-err';
+    }
+    btn.disabled = false;
+  });
+
+  // Logout
+  $('#logout-btn').addEventListener('click', async e => {
+    e.preventDefault();
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login.html';
+  });
+</script>
+</body>
+</html>

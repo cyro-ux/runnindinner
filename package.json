@@ -17,6 +17,7 @@
     "jsonwebtoken": "^9.0.2",
     "@mollie/api-client": "^4.0.0",
     "nodemailer": "^6.9.13",
+    "pdfkit": "^0.15.0",
     "uuid": "^9.0.1"
   },
   "engines": {

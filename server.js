@@ -18,6 +18,7 @@ const jwt          = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const Database     = require('better-sqlite3');
 const nodemailer   = require('nodemailer');
+const PDFDocument  = require('pdfkit');
 const { createMollieClient } = require('@mollie/api-client');
 
 // ── Active sessions (in-memory, resets on server restart) ────────────────────
@@ -142,12 +143,67 @@ const mailer = nodemailer.createTransport({
   },
 });
 
-async function sendMail(to, subject, html) {
+async function sendMail(to, subject, html, { replyTo } = {}) {
   if (!process.env.SMTP_HOST) {
     console.log(`[mail] SMTP not configured – would send to ${to}: ${subject}`);
     return;
   }
-  await mailer.sendMail({ from: process.env.MAIL_FROM, to, subject, html });
+  // Strip HTML tags for plain-text alternative (improves deliverability)
+  const text = html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&bull;/g, '•').replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+
+  const mailOptions = {
+    from: process.env.MAIL_FROM,
+    to,
+    subject,
+    html: wrapHtml(html),
+    text,
+    headers: {
+      'X-Mailer': 'Running Dinner Planner',
+      'List-Unsubscribe': `<mailto:${process.env.MAIL_FROM_ADDRESS || 'noreply@runningdiner.nl'}?subject=unsubscribe>`,
+    },
+  };
+  if (replyTo) mailOptions.replyTo = replyTo;
+  await mailer.sendMail(mailOptions);
+}
+
+// Wrap HTML content in a proper email document structure
+function wrapHtml(body) {
+  return `<!DOCTYPE html>
+<html lang="nl" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Running Dinner Planner</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f5f7;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7">
+    <tr>
+      <td align="center" style="padding:24px 16px">
+        <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;max-width:520px;width:100%">
+          <tr>
+            <td style="padding:32px 24px">
+              ${body}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 24px;border-top:1px solid #e5e7eb;text-align:center">
+              <p style="margin:0;color:#9ca3af;font-size:11px;line-height:16px">
+                Running Dinner Planner &bull; runningdiner.nl<br>
+                Je ontvangt deze e-mail omdat je een account hebt of bent uitgenodigd.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -174,33 +230,32 @@ function formatEur(cents) {
 
 async function sendInvoiceMail(user, payment) {
   const html = `
-    <div style="font-family:sans-serif;max-width:520px;margin:auto">
-      <h2 style="color:#1a56db">Running Dinner Planner</h2>
-      <p>Hallo,</p>
-      <p>Bedankt voor je betaling! Je abonnement is actief t/m <strong>${new Date(user.license_until).toLocaleDateString('nl-NL')}</strong>.</p>
-      <table style="width:100%;border-collapse:collapse;margin:20px 0">
-        <tr style="background:#f3f4f6">
-          <td style="padding:8px 12px">Factuurnummer</td>
-          <td style="padding:8px 12px"><strong>${payment.invoice_number}</strong></td>
-        </tr>
-        <tr>
-          <td style="padding:8px 12px">Omschrijving</td>
-          <td style="padding:8px 12px">Running Dinner Planner – 1 jaar abonnement</td>
-        </tr>
-        <tr style="background:#f3f4f6">
-          <td style="padding:8px 12px">Bedrag</td>
-          <td style="padding:8px 12px"><strong>${formatEur(payment.amount_cents)}</strong></td>
-        </tr>
-        <tr>
-          <td style="padding:8px 12px">Datum</td>
-          <td style="padding:8px 12px">${new Date(payment.created_at).toLocaleDateString('nl-NL')}</td>
-        </tr>
-      </table>
-      <p><a href="${BASE_URL}/app" style="background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">Open de planner</a></p>
-      <p style="color:#6b7280;font-size:12px">Running Dinner Planner &bull; ${BASE_URL}</p>
-    </div>
+          <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
+          <p style="color:#374151;line-height:1.6">Hallo,</p>
+          <p style="color:#374151;line-height:1.6">Bedankt voor je betaling! Je abonnement is actief t/m <strong>${new Date(user.license_until).toLocaleDateString('nl-NL')}</strong>.</p>
+          <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px">
+            <tr style="background:#f3f4f6">
+              <td style="padding:8px 12px;color:#374151">Factuurnummer</td>
+              <td style="padding:8px 12px;color:#374151"><strong>${payment.invoice_number}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;color:#374151">Omschrijving</td>
+              <td style="padding:8px 12px;color:#374151">Running Dinner Planner - 1 jaar abonnement</td>
+            </tr>
+            <tr style="background:#f3f4f6">
+              <td style="padding:8px 12px;color:#374151">Bedrag</td>
+              <td style="padding:8px 12px;color:#374151"><strong>${formatEur(payment.amount_cents)}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;color:#374151">Datum</td>
+              <td style="padding:8px 12px;color:#374151">${new Date(payment.created_at).toLocaleDateString('nl-NL')}</td>
+            </tr>
+          </table>
+          <p style="margin:24px 0;text-align:center">
+            <a href="${BASE_URL}/app" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">Open de planner</a>
+          </p>
   `;
-  await sendMail(user.email, `Factuur ${payment.invoice_number} – Running Dinner Planner`, html);
+  await sendMail(user.email, `Factuur ${payment.invoice_number} - Running Dinner Planner`, html);
 }
 
 // ── Express app ───────────────────────────────────────────────────────────────
@@ -323,6 +378,23 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ ok: true, user });
 });
 
+// POST /api/auth/change-password
+app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Vul beide velden in' });
+  if (newPassword.length < 8) return res.status(400).json({ error: 'Nieuw wachtwoord moet minimaal 8 tekens zijn' });
+
+  const user = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(req.user.id);
+  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+
+  const ok = await bcrypt.compare(currentPassword, user.password_hash);
+  if (!ok) return res.status(401).json({ error: 'Huidig wachtwoord is onjuist' });
+
+  const hash = await bcrypt.hash(newPassword, 12);
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, req.user.id);
+  res.json({ ok: true, message: 'Wachtwoord gewijzigd' });
+});
+
 // POST /api/auth/forgot-password
 app.post('/api/auth/forgot-password', async (req, res) => {
   const { email } = req.body || {};
@@ -339,10 +411,17 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   db.prepare('INSERT INTO password_resets (token, user_id, expires_at) VALUES (?, ?, ?)').run(token, user.id, expiresAt);
 
   const link = `${BASE_URL}/reset-password.html?token=${token}`;
-  await sendMail(user.email, 'Wachtwoord opnieuw instellen – Running Dinner Planner', `
-    <p>Je hebt een wachtwoord-reset aangevraagd. Klik op de onderstaande link (geldig 2 uur):</p>
-    <p><a href="${link}">${link}</a></p>
-    <p>Heb jij dit niet aangevraagd? Negeer dan deze mail.</p>
+  await sendMail(user.email, 'Wachtwoord opnieuw instellen - Running Dinner Planner', `
+          <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
+          <p style="color:#374151;line-height:1.6">Hallo,</p>
+          <p style="color:#374151;line-height:1.6">Je hebt een wachtwoord-reset aangevraagd. Klik op onderstaande knop om een nieuw wachtwoord in te stellen. Deze link is 2 uur geldig.</p>
+          <p style="margin:24px 0;text-align:center">
+            <a href="${link}" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">
+              Nieuw wachtwoord instellen
+            </a>
+          </p>
+          <p style="color:#6b7280;font-size:13px;line-height:1.5">Werkt de knop niet? Kopieer dan deze link in je browser:<br><a href="${link}" style="color:#1a56db;word-break:break-all">${link}</a></p>
+          <p style="color:#6b7280;font-size:13px;line-height:1.5">Heb jij dit niet aangevraagd? Dan kun je deze e-mail veilig negeren.</p>
   `);
 });
 
@@ -445,6 +524,111 @@ app.get('/api/payments/my', requireAuth, (req, res) => {
     'SELECT invoice_number, amount_cents, currency, status, created_at, mollie_payment_id FROM payments WHERE user_id = ? ORDER BY created_at DESC'
   ).all(req.user.id);
   res.json({ ok: true, payments: rows });
+});
+
+// GET /api/payments/invoice/:invoiceNumber  – download invoice as PDF
+app.get('/api/payments/invoice/:invoiceNumber', requireAuth, (req, res) => {
+  const payment = db.prepare(
+    'SELECT p.*, u.email FROM payments p JOIN users u ON u.id = p.user_id WHERE p.invoice_number = ? AND p.user_id = ? AND p.status = ?'
+  ).get(req.params.invoiceNumber, req.user.id, 'paid');
+
+  if (!payment) return res.status(404).json({ error: 'Factuur niet gevonden' });
+
+  const doc = new PDFDocument({ size: 'A4', margin: 50 });
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="factuur-${payment.invoice_number}.pdf"`);
+  doc.pipe(res);
+
+  const blue = '#1a56db';
+  const gray = '#6b7280';
+  const dark = '#111827';
+  const payDate = new Date(payment.created_at);
+  const amount = formatEur(payment.amount_cents);
+  const btwRate = 21;
+  const exclBtw = payment.amount_cents / (1 + btwRate / 100);
+  const btwAmount = payment.amount_cents - exclBtw;
+
+  // Header
+  doc.fontSize(24).fillColor(blue).text('Running Dinner Planner', 50, 50);
+  doc.fontSize(10).fillColor(gray).text('runningdiner.nl', 50, 80);
+  doc.moveDown(0.5);
+  doc.fontSize(10).fillColor(gray).text('VMH BV', 50, 100);
+  doc.text('KvK: 88765432', 50, 115);
+
+  // Invoice title
+  doc.fontSize(18).fillColor(dark).text('FACTUUR', 400, 50, { align: 'right' });
+  doc.fontSize(10).fillColor(gray)
+    .text(`Factuurnummer: ${payment.invoice_number}`, 400, 78, { align: 'right' })
+    .text(`Datum: ${payDate.toLocaleDateString('nl-NL')}`, 400, 93, { align: 'right' });
+
+  // Divider
+  doc.moveTo(50, 145).lineTo(545, 145).strokeColor('#e5e7eb').stroke();
+
+  // Bill to
+  doc.fontSize(10).fillColor(gray).text('Factuur aan:', 50, 160);
+  doc.fontSize(11).fillColor(dark).text(payment.email, 50, 175);
+
+  // Table header
+  const tableTop = 220;
+  doc.rect(50, tableTop, 495, 25).fill('#f3f4f6');
+  doc.fontSize(10).fillColor(dark)
+    .text('Omschrijving', 60, tableTop + 7)
+    .text('Aantal', 340, tableTop + 7, { width: 50, align: 'center' })
+    .text('Prijs', 400, tableTop + 7, { width: 70, align: 'right' })
+    .text('Totaal', 475, tableTop + 7, { width: 70, align: 'right' });
+
+  // Table row
+  const rowY = tableTop + 30;
+  doc.fontSize(10).fillColor(dark)
+    .text('Running Dinner Planner - 1 jaar abonnement', 60, rowY)
+    .text('1', 340, rowY, { width: 50, align: 'center' })
+    .text(amount, 400, rowY, { width: 70, align: 'right' })
+    .text(amount, 475, rowY, { width: 70, align: 'right' });
+
+  // Divider
+  doc.moveTo(50, rowY + 25).lineTo(545, rowY + 25).strokeColor('#e5e7eb').stroke();
+
+  // Totals
+  const totalsY = rowY + 40;
+  doc.fontSize(10).fillColor(gray)
+    .text('Subtotaal excl. BTW', 350, totalsY, { width: 120, align: 'right' })
+    .text(formatEur(Math.round(exclBtw)), 475, totalsY, { width: 70, align: 'right' });
+  doc.text(`BTW ${btwRate}%`, 350, totalsY + 18, { width: 120, align: 'right' })
+    .text(formatEur(Math.round(btwAmount)), 475, totalsY + 18, { width: 70, align: 'right' });
+
+  doc.moveTo(350, totalsY + 38).lineTo(545, totalsY + 38).strokeColor('#e5e7eb').stroke();
+
+  doc.fontSize(12).fillColor(dark).font('Helvetica-Bold')
+    .text('Totaal incl. BTW', 350, totalsY + 45, { width: 120, align: 'right' })
+    .text(amount, 475, totalsY + 45, { width: 70, align: 'right' });
+
+  // Payment info
+  doc.font('Helvetica').fontSize(10).fillColor(gray);
+  const infoY = totalsY + 90;
+  doc.text('Betaalmethode: iDEAL via Mollie', 50, infoY);
+  doc.text(`Betaald op: ${payDate.toLocaleDateString('nl-NL')}`, 50, infoY + 15);
+  doc.text('Status: Voldaan', 50, infoY + 30);
+  if (payment.mollie_payment_id) {
+    doc.text(`Referentie: ${payment.mollie_payment_id}`, 50, infoY + 45);
+  }
+
+  // Footer
+  doc.fontSize(9).fillColor(gray)
+    .text('Running Dinner Planner is een dienst van VMH BV', 50, 750, { align: 'center', width: 495 })
+    .text('Vragen? Neem contact op via het contactformulier op runningdiner.nl', 50, 765, { align: 'center', width: 495 });
+
+  doc.end();
+});
+
+// GET /api/user/profile  – user profile data
+app.get('/api/user/profile', requireAuth, (req, res) => {
+  const user = db.prepare('SELECT id, email, role, user_type, created_at, last_login, license_until FROM users WHERE id = ?').get(req.user.id);
+  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+  const payments = db.prepare(
+    "SELECT invoice_number, amount_cents, currency, status, created_at FROM payments WHERE user_id = ? AND status = 'paid' ORDER BY created_at DESC"
+  ).all(req.user.id);
+  res.json({ ok: true, user, payments });
 });
 
 // ── CMS routes ────────────────────────────────────────────────────────────────
@@ -564,21 +748,18 @@ app.post('/api/admin/users', requireAdmin, async (req, res) => {
 
       const link = `${BASE_URL}/reset-password.html?token=${token}&invite=1`;
       const html = `
-        <div style="font-family:sans-serif;max-width:520px;margin:auto">
-          <h2 style="color:#1a56db">🍽️ Running Dinner Planner</h2>
-          <p>Hallo,</p>
-          <p>Je bent uitgenodigd om Running Dinner Planner te gebruiken! Klik op onderstaande knop om je wachtwoord in te stellen en aan de slag te gaan.</p>
-          ${licenseUntil ? `<p>Je abonnement is actief t/m <strong>${new Date(licenseUntil).toLocaleDateString('nl-NL')}</strong>.</p>` : ''}
-          <p style="margin:24px 0">
-            <a href="${link}" style="background:#1a56db;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">
-              Wachtwoord instellen &amp; starten
-            </a>
-          </p>
-          <p style="color:#6b7280;font-size:13px">Deze link is 7 dagen geldig.</p>
-          <p style="color:#6b7280;font-size:12px">Running Dinner Planner &bull; ${BASE_URL}</p>
-        </div>
+              <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
+              <p style="color:#374151;line-height:1.6">Hallo,</p>
+              <p style="color:#374151;line-height:1.6">Je bent uitgenodigd om Running Dinner Planner te gebruiken. Klik op onderstaande knop om je wachtwoord in te stellen en aan de slag te gaan.</p>
+              ${licenseUntil ? `<p style="color:#374151;line-height:1.6">Je abonnement is actief t/m <strong>${new Date(licenseUntil).toLocaleDateString('nl-NL')}</strong>.</p>` : ''}
+              <p style="margin:24px 0;text-align:center">
+                <a href="${link}" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">
+                  Wachtwoord instellen
+                </a>
+              </p>
+              <p style="color:#6b7280;font-size:13px;line-height:1.5">Deze link is 7 dagen geldig. Werkt de knop niet? Kopieer dan deze link in je browser:<br><a href="${link}" style="color:#1a56db;word-break:break-all">${link}</a></p>
       `;
-      await sendMail(email.toLowerCase(), 'Je bent uitgenodigd – Running Dinner Planner', html);
+      await sendMail(email.toLowerCase(), 'Uitnodiging Running Dinner Planner', html);
       inviteSent = true;
     } catch (err) {
       console.error('[invite] mail error:', err.message);
@@ -649,22 +830,19 @@ app.post('/api/admin/users/:id/invite', requireAdmin, async (req, res) => {
 
   const link = `${BASE_URL}/reset-password.html?token=${token}&invite=1`;
   const html = `
-    <div style="font-family:sans-serif;max-width:520px;margin:auto">
-      <h2 style="color:#1a56db">🍽️ Running Dinner Planner</h2>
-      <p>Hallo,</p>
-      <p>Je bent uitgenodigd om Running Dinner Planner te gebruiken! Klik op onderstaande knop om je wachtwoord in te stellen en aan de slag te gaan.</p>
-      <p style="margin:24px 0">
-        <a href="${link}" style="background:#1a56db;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">
-          Wachtwoord instellen &amp; starten
-        </a>
-      </p>
-      <p style="color:#6b7280;font-size:13px">Deze link is 7 dagen geldig. Heb je vragen? Neem contact op met de organisator.</p>
-      <p style="color:#6b7280;font-size:12px">Running Dinner Planner &bull; ${BASE_URL}</p>
-    </div>
+          <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
+          <p style="color:#374151;line-height:1.6">Hallo,</p>
+          <p style="color:#374151;line-height:1.6">Je bent uitgenodigd om Running Dinner Planner te gebruiken. Klik op onderstaande knop om je wachtwoord in te stellen en aan de slag te gaan.</p>
+          <p style="margin:24px 0;text-align:center">
+            <a href="${link}" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">
+              Wachtwoord instellen
+            </a>
+          </p>
+          <p style="color:#6b7280;font-size:13px;line-height:1.5">Deze link is 7 dagen geldig. Werkt de knop niet? Kopieer dan deze link in je browser:<br><a href="${link}" style="color:#1a56db;word-break:break-all">${link}</a></p>
   `;
 
   try {
-    await sendMail(user.email, 'Je bent uitgenodigd – Running Dinner Planner', html);
+    await sendMail(user.email, 'Uitnodiging Running Dinner Planner', html);
     res.json({ ok: true, message: `Uitnodiging verstuurd naar ${user.email}` });
   } catch (err) {
     console.error('[invite] mail error:', err.message);
@@ -781,15 +959,23 @@ app.post('/api/contact', async (req, res) => {
 
   const contactEmail = process.env.CONTACT_EMAIL || 'cyro@vanmalsen.net';
   const html = `
-    <h3>Nieuw contactbericht via Running Dinner Planner</h3>
-    <p><strong>Naam:</strong> ${name}</p>
-    <p><strong>E-mail:</strong> ${email}</p>
-    <p><strong>Bericht:</strong></p>
-    <blockquote style="border-left:3px solid #ccc;padding-left:12px;margin:8px 0">${message.replace(/\n/g, '<br>')}</blockquote>
+          <h2 style="color:#1a56db;margin:0 0 16px">Nieuw contactbericht</h2>
+          <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px">
+            <tr style="background:#f3f4f6">
+              <td style="padding:8px 12px;color:#374151;font-weight:bold;width:80px">Naam</td>
+              <td style="padding:8px 12px;color:#374151">${name}</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;color:#374151;font-weight:bold">E-mail</td>
+              <td style="padding:8px 12px;color:#374151"><a href="mailto:${email}" style="color:#1a56db">${email}</a></td>
+            </tr>
+          </table>
+          <p style="color:#374151;font-weight:bold;margin:16px 0 8px">Bericht:</p>
+          <div style="border-left:3px solid #1a56db;padding:12px 16px;margin:0;background:#f9fafb;color:#374151;line-height:1.6">${message.replace(/\n/g, '<br>')}</div>
   `;
 
   try {
-    await sendMail(contactEmail, `Contactformulier: ${name}`, html);
+    await sendMail(contactEmail, `Contactformulier: ${name} - Running Dinner Planner`, html, { replyTo: email });
     res.json({ ok: true, message: 'Je bericht is verzonden!' });
   } catch (err) {
     console.error('[contact] mail error:', err.message);
