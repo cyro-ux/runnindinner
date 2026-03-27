@@ -532,15 +532,20 @@ app.get('/api/admin/users', requireAdmin, (req, res) => {
   res.json({ ok: true, users });
 });
 
-// POST /api/admin/users  – manually create user
+// POST /api/admin/users  – manually create user (optionally send invite)
 app.post('/api/admin/users', requireAdmin, async (req, res) => {
-  const { email, password, user_type = 'manual', license_days } = req.body || {};
-  if (!email || !password) return res.status(400).json({ error: 'E-mail en wachtwoord verplicht' });
-  if (password.length < 8) return res.status(400).json({ error: 'Wachtwoord minimaal 8 tekens' });
+  const { email, password, user_type = 'manual', license_days, send_invite } = req.body || {};
+  if (!email) return res.status(400).json({ error: 'E-mailadres is verplicht' });
+
+  // If send_invite, password is optional (generate random one)
+  const actualPassword = send_invite ? (password || crypto.randomBytes(16).toString('hex')) : password;
+  if (!actualPassword) return res.status(400).json({ error: 'Wachtwoord verplicht (of kies uitnodigingslink)' });
+  if (!send_invite && actualPassword.length < 8) return res.status(400).json({ error: 'Wachtwoord minimaal 8 tekens' });
+
   const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
   if (exists) return res.status(409).json({ error: 'E-mailadres al in gebruik' });
 
-  const hash         = await bcrypt.hash(password, 12);
+  const hash         = await bcrypt.hash(actualPassword, 12);
   const id           = uuidv4();
   const licenseUntil = license_days ? Date.now() + parseInt(license_days, 10) * 86400000 : null;
 
@@ -549,7 +554,122 @@ app.post('/api/admin/users', requireAdmin, async (req, res) => {
     VALUES (?, ?, ?, 'user', ?, ?, ?)
   `).run(id, email.toLowerCase(), hash, user_type, Date.now(), licenseUntil);
 
-  res.json({ ok: true, message: 'Gebruiker aangemaakt.' });
+  // Send invitation email if requested
+  let inviteSent = false;
+  if (send_invite) {
+    try {
+      const token     = crypto.randomBytes(32).toString('hex');
+      const expiresAt = Date.now() + 7 * 24 * 3600 * 1000;
+      db.prepare('INSERT INTO password_resets (token, user_id, expires_at) VALUES (?, ?, ?)').run(token, id, expiresAt);
+
+      const link = `${BASE_URL}/reset-password.html?token=${token}&invite=1`;
+      const html = `
+        <div style="font-family:sans-serif;max-width:520px;margin:auto">
+          <h2 style="color:#1a56db">🍽️ Running Dinner Planner</h2>
+          <p>Hallo,</p>
+          <p>Je bent uitgenodigd om Running Dinner Planner te gebruiken! Klik op onderstaande knop om je wachtwoord in te stellen en aan de slag te gaan.</p>
+          ${licenseUntil ? `<p>Je abonnement is actief t/m <strong>${new Date(licenseUntil).toLocaleDateString('nl-NL')}</strong>.</p>` : ''}
+          <p style="margin:24px 0">
+            <a href="${link}" style="background:#1a56db;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">
+              Wachtwoord instellen &amp; starten
+            </a>
+          </p>
+          <p style="color:#6b7280;font-size:13px">Deze link is 7 dagen geldig.</p>
+          <p style="color:#6b7280;font-size:12px">Running Dinner Planner &bull; ${BASE_URL}</p>
+        </div>
+      `;
+      await sendMail(email.toLowerCase(), 'Je bent uitgenodigd – Running Dinner Planner', html);
+      inviteSent = true;
+    } catch (err) {
+      console.error('[invite] mail error:', err.message);
+    }
+  }
+
+  const msg = inviteSent
+    ? `Gebruiker aangemaakt en uitnodiging verstuurd naar ${email}`
+    : send_invite
+      ? 'Gebruiker aangemaakt, maar uitnodigingsmail kon niet verstuurd worden'
+      : 'Gebruiker aangemaakt.';
+
+  res.json({ ok: true, message: msg, user_id: id });
+});
+
+// PUT /api/admin/users/:id  – edit user (license, type, email)
+app.put('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  const { email, user_type, license_days, license_until, password } = req.body || {};
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+  if (user.role === 'admin' && req.user.id !== user.id) return res.status(403).json({ error: 'Kan andere admin niet bewerken' });
+
+  // Update email if changed
+  if (email && email.toLowerCase() !== user.email) {
+    const exists = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email.toLowerCase(), user.id);
+    if (exists) return res.status(409).json({ error: 'E-mailadres al in gebruik' });
+    db.prepare('UPDATE users SET email = ? WHERE id = ?').run(email.toLowerCase(), user.id);
+  }
+
+  // Update type
+  if (user_type && ['paid', 'manual', 'test'].includes(user_type)) {
+    db.prepare('UPDATE users SET user_type = ? WHERE id = ?').run(user_type, user.id);
+  }
+
+  // Update license: license_days takes priority, then license_until, then 'remove' to clear
+  if (license_days !== undefined && license_days !== null && license_days !== '') {
+    const days = parseInt(license_days, 10);
+    if (days > 0) {
+      const newUntil = Date.now() + days * 86400000;
+      db.prepare('UPDATE users SET license_until = ? WHERE id = ?').run(newUntil, user.id);
+    }
+  } else if (license_until === 'remove') {
+    db.prepare('UPDATE users SET license_until = NULL WHERE id = ?').run(user.id);
+  } else if (license_until && typeof license_until === 'number') {
+    db.prepare('UPDATE users SET license_until = ? WHERE id = ?').run(license_until, user.id);
+  }
+
+  // Update password if provided
+  if (password && password.length >= 8) {
+    const hash = await bcrypt.hash(password, 12);
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, user.id);
+  }
+
+  const updated = db.prepare('SELECT id, email, role, user_type, license_until FROM users WHERE id = ?').get(user.id);
+  res.json({ ok: true, message: 'Gebruiker bijgewerkt', user: updated });
+});
+
+// POST /api/admin/users/:id/invite  – send invitation email with password-set link
+app.post('/api/admin/users/:id/invite', requireAdmin, async (req, res) => {
+  const user = db.prepare('SELECT id, email FROM users WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+
+  // Generate password reset token (used as invite link)
+  const token     = crypto.randomBytes(32).toString('hex');
+  const expiresAt = Date.now() + 7 * 24 * 3600 * 1000; // 7 days for invites
+  db.prepare('DELETE FROM password_resets WHERE user_id = ?').run(user.id);
+  db.prepare('INSERT INTO password_resets (token, user_id, expires_at) VALUES (?, ?, ?)').run(token, user.id, expiresAt);
+
+  const link = `${BASE_URL}/reset-password.html?token=${token}&invite=1`;
+  const html = `
+    <div style="font-family:sans-serif;max-width:520px;margin:auto">
+      <h2 style="color:#1a56db">🍽️ Running Dinner Planner</h2>
+      <p>Hallo,</p>
+      <p>Je bent uitgenodigd om Running Dinner Planner te gebruiken! Klik op onderstaande knop om je wachtwoord in te stellen en aan de slag te gaan.</p>
+      <p style="margin:24px 0">
+        <a href="${link}" style="background:#1a56db;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">
+          Wachtwoord instellen &amp; starten
+        </a>
+      </p>
+      <p style="color:#6b7280;font-size:13px">Deze link is 7 dagen geldig. Heb je vragen? Neem contact op met de organisator.</p>
+      <p style="color:#6b7280;font-size:12px">Running Dinner Planner &bull; ${BASE_URL}</p>
+    </div>
+  `;
+
+  try {
+    await sendMail(user.email, 'Je bent uitgenodigd – Running Dinner Planner', html);
+    res.json({ ok: true, message: `Uitnodiging verstuurd naar ${user.email}` });
+  } catch (err) {
+    console.error('[invite] mail error:', err.message);
+    res.status(500).json({ error: 'E-mail kon niet worden verstuurd' });
+  }
 });
 
 // DELETE /api/admin/users/:id

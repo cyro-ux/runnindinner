@@ -153,6 +153,27 @@
     .empty-row td { color: var(--muted); text-align: center; padding: 20px; }
     .load-row  td { color: var(--muted); text-align: center; padding: 12px; font-style: italic; }
 
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 12px; padding: 24px; width: 95%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,.2); }
+    .modal-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+    .modal-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--muted); padding: 4px 8px; border-radius: 6px; }
+    .modal-close:hover { background: var(--bg); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+    /* Action buttons in table */
+    .btn-edit { background: var(--blue-light); color: var(--blue); border-color: #bfdbfe; }
+    .btn-edit:hover { background: #dbeafe; }
+    .btn-invite { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+    .btn-invite:hover { background: #dcfce7; }
+    .action-btns { display: flex; gap: 4px; }
+
+    /* Checkbox toggle */
+    .toggle-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--blue); }
+    .toggle-row label { font-size: .85rem; font-weight: 500; cursor: pointer; }
+
     /* Responsive admin */
     @media (max-width: 768px) {
       .layout { flex-direction: column; }
@@ -288,7 +309,13 @@
             <span class="form-hint">Leeglaten = geen actief abonnement</span>
           </div>
         </div>
-        <button class="btn btn-blue" id="create-user-btn">Gebruiker aanmaken</button>
+        <div class="toggle-row">
+          <input type="checkbox" id="nu-invite" checked>
+          <label for="nu-invite">📧 Uitnodigingslink mailen (wachtwoord niet nodig)</label>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-blue" id="create-user-btn">Gebruiker aanmaken</button>
+        </div>
       </div>
 
       <div class="card">
@@ -426,6 +453,60 @@
     </div>
 
   </main>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Gebruiker bewerken</span>
+      <button class="modal-close" id="edit-modal-close">&times;</button>
+    </div>
+    <div class="alert" id="edit-user-alert"></div>
+    <input type="hidden" id="edit-user-id">
+    <div class="form-group">
+      <label>E-mailadres</label>
+      <input type="email" id="edit-email">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Type</label>
+        <select id="edit-type">
+          <option value="manual">✍️ Handmatig</option>
+          <option value="test">🧪 Test</option>
+          <option value="paid">💳 Betaald</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Huidig abonnement</label>
+        <input type="text" id="edit-license-display" disabled style="background:#f9fafb">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Licentie verlengen (dagen)</label>
+        <input type="number" id="edit-license-days" placeholder="365" min="1">
+        <span class="form-hint">Voeg dagen toe vanaf nu</span>
+      </div>
+      <div class="form-group">
+        <label>Of licentie intrekken</label>
+        <div class="toggle-row" style="margin-top:6px">
+          <input type="checkbox" id="edit-remove-license">
+          <label for="edit-remove-license">Licentie verwijderen</label>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Nieuw wachtwoord (leeg = ongewijzigd)</label>
+      <input type="password" id="edit-password" placeholder="Min. 8 tekens">
+      <span class="form-hint">Alleen invullen als je het wachtwoord wilt wijzigen</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-blue" id="edit-save-btn">💾 Opslaan</button>
+      <button class="btn btn-invite btn-sm" id="edit-invite-btn" style="padding:8px 16px;font-size:.86rem;border-radius:7px">📧 Uitnodigingslink sturen</button>
+      <button class="btn btn-outline" id="edit-cancel-btn">Annuleren</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -574,6 +655,9 @@ async function loadUsers() {
     const data = await res.json();
     if (!data.users.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Geen gebruikers</td></tr>'; return; }
     const now = Date.now();
+    // Store users data for edit modal
+    window._usersData = {};
+    data.users.forEach(u => window._usersData[u.id] = u);
     tbody.innerHTML = data.users.map(u => {
       const active  = u.license_until && u.license_until > now;
       const typeMap = { paid: '💳 Betaald', manual: '✍️ Handmatig', test: '🧪 Test' };
@@ -587,7 +671,11 @@ async function loadUsers() {
         <td>${u.license_until ? fmtDate(u.license_until) : '–'}</td>
         <td style="text-align:center">${u.payment_count||0}</td>
         <td><span class="badge ${active?'active':'expired'}">${active?'Actief':'Verlopen'}</span></td>
-        <td>${u.role!=='admin' ? `<button class="btn-sm btn-del" onclick="deleteUser('${u.id}','${escH(u.email)}')">✕</button>` : ''}</td>
+        <td>${u.role!=='admin' ? `<div class="action-btns">
+          <button class="btn-sm btn-edit" onclick="openEditUser('${u.id}')" title="Bewerken">✎</button>
+          <button class="btn-sm btn-invite" onclick="sendInvite('${u.id}','${escH(u.email)}')" title="Uitnodigingslink sturen">📧</button>
+          <button class="btn-sm btn-del" onclick="deleteUser('${u.id}','${escH(u.email)}')" title="Verwijderen">✕</button>
+        </div>` : ''}</td>
       </tr>`;
     }).join('');
   } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Laden mislukt</td></tr>'; }
@@ -599,20 +687,36 @@ async function deleteUser(id, email) {
   loadUsers(); loadDashboard();
 }
 
+// Toggle password field based on invite checkbox
+document.getElementById('nu-invite').addEventListener('change', e => {
+  const pwField = document.getElementById('nu-password');
+  if (e.target.checked) {
+    pwField.disabled = true; pwField.placeholder = 'Wordt via e-mail ingesteld'; pwField.value = '';
+  } else {
+    pwField.disabled = false; pwField.placeholder = 'Min. 8 tekens';
+  }
+});
+// Initial state (invite checked by default)
+document.getElementById('nu-password').disabled = true;
+document.getElementById('nu-password').placeholder = 'Wordt via e-mail ingesteld';
+
 // Create user
 document.getElementById('create-user-btn').addEventListener('click', async () => {
   const btn  = document.getElementById('create-user-btn');
   btn.disabled = true;
+  const sendInvite = document.getElementById('nu-invite').checked;
   try {
+    const body = {
+      email:        document.getElementById('nu-email').value,
+      user_type:    document.getElementById('nu-type').value,
+      license_days: document.getElementById('nu-days').value || undefined,
+      send_invite:  sendInvite,
+    };
+    if (!sendInvite) body.password = document.getElementById('nu-password').value;
     const res = await fetch('/api/admin/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email:      document.getElementById('nu-email').value,
-        password:   document.getElementById('nu-password').value,
-        user_type:  document.getElementById('nu-type').value,
-        license_days: document.getElementById('nu-days').value || undefined,
-      }),
+      body: JSON.stringify(body),
     });
     const data = await res.json();
     if (res.ok) {
@@ -620,13 +724,89 @@ document.getElementById('create-user-btn').addEventListener('click', async () =>
       document.getElementById('nu-email').value = '';
       document.getElementById('nu-password').value = '';
       document.getElementById('nu-days').value = '';
-      loadUsers();
+      loadUsers(); loadDashboard();
     } else {
       showAlert('create-user-alert', data.error, 'err');
     }
   } catch { showAlert('create-user-alert', 'Netwerkfout', 'err'); }
   btn.disabled = false;
 });
+
+// ── EDIT USER MODAL ─────────────────────────────────────────────────────
+function openEditUser(id) {
+  const u = window._usersData?.[id];
+  if (!u) return;
+  document.getElementById('edit-user-id').value = id;
+  document.getElementById('edit-email').value = u.email;
+  document.getElementById('edit-type').value = u.user_type || 'manual';
+  document.getElementById('edit-license-display').value = u.license_until
+    ? (u.license_until > Date.now() ? `Actief t/m ${fmtDate(u.license_until)}` : `Verlopen op ${fmtDate(u.license_until)}`)
+    : 'Geen licentie';
+  document.getElementById('edit-license-days').value = '';
+  document.getElementById('edit-remove-license').checked = false;
+  document.getElementById('edit-password').value = '';
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEditModal() { document.getElementById('edit-modal').classList.remove('open'); }
+document.getElementById('edit-modal-close').addEventListener('click', closeEditModal);
+document.getElementById('edit-cancel-btn').addEventListener('click', closeEditModal);
+document.getElementById('edit-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEditModal(); });
+
+// Save edit
+document.getElementById('edit-save-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('edit-save-btn');
+  btn.disabled = true;
+  const id = document.getElementById('edit-user-id').value;
+  const body = {
+    email:     document.getElementById('edit-email').value,
+    user_type: document.getElementById('edit-type').value,
+  };
+  const days = document.getElementById('edit-license-days').value;
+  if (days) body.license_days = days;
+  else if (document.getElementById('edit-remove-license').checked) body.license_until = 'remove';
+  const pw = document.getElementById('edit-password').value;
+  if (pw) body.password = pw;
+  try {
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert('edit-user-alert', data.message, 'ok');
+      setTimeout(() => { closeEditModal(); loadUsers(); loadDashboard(); }, 800);
+    } else {
+      showAlert('edit-user-alert', data.error, 'err');
+    }
+  } catch { showAlert('edit-user-alert', 'Netwerkfout', 'err'); }
+  btn.disabled = false;
+});
+
+// Send invite from edit modal
+document.getElementById('edit-invite-btn').addEventListener('click', async () => {
+  const id = document.getElementById('edit-user-id').value;
+  const email = document.getElementById('edit-email').value;
+  if (!confirm(`Uitnodigingslink sturen naar ${email}?`)) return;
+  const btn = document.getElementById('edit-invite-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/api/admin/users/${id}/invite`, { method: 'POST' });
+    const data = await res.json();
+    showAlert('edit-user-alert', res.ok ? data.message : (data.error||'Mislukt'), res.ok ? 'ok' : 'err');
+  } catch { showAlert('edit-user-alert', 'Netwerkfout', 'err'); }
+  btn.disabled = false;
+});
+
+// Send invite from table
+async function sendInvite(id, email) {
+  if (!confirm(`Uitnodigingslink sturen naar ${email}?`)) return;
+  try {
+    const res = await fetch(`/api/admin/users/${id}/invite`, { method: 'POST' });
+    const data = await res.json();
+    showAlert('create-user-alert', res.ok ? data.message : (data.error||'Mislukt'), res.ok ? 'ok' : 'err');
+  } catch { showAlert('create-user-alert', 'Netwerkfout', 'err'); }
+}
 
 // ── BESTELLINGEN ───────────────────────────────────────────────────────────
 async function loadOrders() {
