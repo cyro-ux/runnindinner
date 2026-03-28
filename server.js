@@ -96,8 +96,12 @@ const userCols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
 if (!userCols.includes('user_type'))       db.exec("ALTER TABLE users ADD COLUMN user_type TEXT NOT NULL DEFAULT 'paid'");
 if (!userCols.includes('last_login'))      db.exec("ALTER TABLE users ADD COLUMN last_login INTEGER");
 if (!userCols.includes('mollie_customer_id')) db.exec("ALTER TABLE users ADD COLUMN mollie_customer_id TEXT");
+if (!userCols.includes('auto_renew'))         db.exec("ALTER TABLE users ADD COLUMN auto_renew INTEGER NOT NULL DEFAULT 0");
+if (!userCols.includes('mollie_mandate_id'))  db.exec("ALTER TABLE users ADD COLUMN mollie_mandate_id TEXT");
+if (!userCols.includes('renewal_reminder_sent')) db.exec("ALTER TABLE users ADD COLUMN renewal_reminder_sent INTEGER");
 const paymentCols = db.prepare("PRAGMA table_info(payments)").all().map(c => c.name);
 if (!paymentCols.includes('mollie_payment_id')) db.exec("ALTER TABLE payments ADD COLUMN mollie_payment_id TEXT");
+if (!paymentCols.includes('payment_type'))      db.exec("ALTER TABLE payments ADD COLUMN payment_type TEXT NOT NULL DEFAULT 'one-time'");
 
 // Seed default settings
 const setDefault = db.prepare(
@@ -395,6 +399,41 @@ app.post('/api/auth/change-password', requireAuth, async (req, res) => {
   res.json({ ok: true, message: 'Wachtwoord gewijzigd' });
 });
 
+// PUT /api/user/auto-renew  – toggle automatic renewal
+app.put('/api/user/auto-renew', requireAuth, (req, res) => {
+  const { enabled } = req.body || {};
+  if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'Geef { enabled: true/false } mee' });
+
+  const user = db.prepare('SELECT mollie_mandate_id, auto_renew FROM users WHERE id = ?').get(req.user.id);
+  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+
+  if (enabled && !user.mollie_mandate_id) {
+    return res.status(400).json({
+      error: 'Geen machtiging gevonden. Doe eerst een betaling met automatische verlenging ingeschakeld.',
+      needsMandate: true,
+    });
+  }
+
+  db.prepare('UPDATE users SET auto_renew = ? WHERE id = ?').run(enabled ? 1 : 0, req.user.id);
+  res.json({ ok: true, auto_renew: enabled, message: enabled ? 'Automatische verlenging ingeschakeld' : 'Automatische verlenging uitgeschakeld' });
+});
+
+// DELETE /api/user/mandate  – revoke Mollie mandate
+app.delete('/api/user/mandate', requireAuth, async (req, res) => {
+  const user = db.prepare('SELECT mollie_customer_id, mollie_mandate_id FROM users WHERE id = ?').get(req.user.id);
+  if (!user || !user.mollie_mandate_id) return res.status(404).json({ error: 'Geen machtiging gevonden' });
+
+  try {
+    await mollie.customerMandates.revoke({ customerId: user.mollie_customer_id, id: user.mollie_mandate_id });
+  } catch (err) {
+    console.error('[mandate] revoke error:', err.message);
+    // Continue anyway — mandate may already be revoked at Mollie
+  }
+
+  db.prepare('UPDATE users SET mollie_mandate_id = NULL, auto_renew = 0 WHERE id = ?').run(req.user.id);
+  res.json({ ok: true, message: 'Machtiging ingetrokken en automatische verlenging uitgeschakeld' });
+});
+
 // POST /api/auth/forgot-password
 app.post('/api/auth/forgot-password', async (req, res) => {
   const { email } = req.body || {};
@@ -623,7 +662,7 @@ app.get('/api/payments/invoice/:invoiceNumber', requireAuth, (req, res) => {
 
 // GET /api/user/profile  – user profile data
 app.get('/api/user/profile', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, email, role, user_type, created_at, last_login, license_until FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, email, role, user_type, created_at, last_login, license_until, auto_renew, mollie_mandate_id FROM users WHERE id = ?').get(req.user.id);
   if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
   const payments = db.prepare(
     "SELECT invoice_number, amount_cents, currency, status, created_at FROM payments WHERE user_id = ? AND status = 'paid' ORDER BY created_at DESC"
@@ -692,6 +731,9 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
   // Planning counter
   const planningCount = parseInt(getSetting('planning_counter') || '0', 10);
 
+  // Auto-renewal stats
+  const autoRenewCount = db.prepare("SELECT COUNT(*) as c FROM users WHERE auto_renew = 1").get().c;
+
   res.json({ ok: true, stats: {
     totalUsers, activeUsers, expiredUsers,
     paidUsers, manualUsers, testUsers,
@@ -700,6 +742,7 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
     serverLoad: loadPct,
     memoryUsed: memPct,
     planningCount,
+    autoRenewCount,
   }});
 });
 
@@ -707,6 +750,7 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
 app.get('/api/admin/users', requireAdmin, (req, res) => {
   const users = db.prepare(`
     SELECT u.id, u.email, u.role, u.user_type, u.created_at, u.last_login, u.license_until,
+           u.auto_renew, u.mollie_mandate_id,
            COUNT(p.id) as payment_count
     FROM users u
     LEFT JOIN payments p ON p.user_id = u.id AND p.status = 'paid'
