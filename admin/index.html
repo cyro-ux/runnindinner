@@ -228,6 +228,7 @@
         <div class="stat"><div class="stat-label">Actieve sessies</div><div class="stat-val purple" id="st-sessions">–</div><div class="stat-sub">Afgelopen 30 minuten</div></div>
         <div class="stat"><div class="stat-label">Totale omzet</div><div class="stat-val blue" id="st-revenue">–</div><div class="stat-sub" id="st-rev-month-label">–</div></div>
         <div class="stat"><div class="stat-label">Planningen gemaakt</div><div class="stat-val amber" id="st-plannings">–</div><div class="stat-sub">Website-teller</div></div>
+        <div class="stat"><div class="stat-label">Auto-renewal</div><div class="stat-val green" id="st-autorenew">–</div><div class="stat-sub">Automatische verlenging</div></div>
       </div>
 
       <!-- Server load -->
@@ -593,6 +594,7 @@ async function loadDashboard() {
     document.getElementById('st-revenue').textContent  = fmtEur(s.totalRevenue);
     document.getElementById('st-rev-month-label').textContent = `Deze maand: ${fmtEur(s.revenueMonth)}`;
     document.getElementById('st-plannings').textContent = s.planningCount.toLocaleString('nl-NL');
+    document.getElementById('st-autorenew').textContent = s.autoRenewCount || 0;
 
     document.getElementById('ty-paid').textContent   = s.paidUsers;
     document.getElementById('ty-manual').textContent = s.manualUsers;
@@ -670,7 +672,7 @@ async function loadUsers() {
         <td>${fmtAgo(u.last_login)}</td>
         <td>${u.license_until ? fmtDate(u.license_until) : '–'}</td>
         <td style="text-align:center">${u.payment_count||0}</td>
-        <td><span class="badge ${active?'active':'expired'}">${active?'Actief':'Verlopen'}</span></td>
+        <td><span class="badge ${active?'active':'expired'}">${active?'Actief':'Verlopen'}</span>${u.auto_renew ? ' <span class="badge active" style="font-size:10px">Auto</span>' : ''}</td>
         <td>${u.role!=='admin' ? `<div class="action-btns">
           <button class="btn-sm btn-edit" onclick="openEditUser('${u.id}')" title="Bewerken">✎</button>
           <button class="btn-sm btn-invite" onclick="sendInvite('${u.id}','${escH(u.email)}')" title="Uitnodigingslink sturen">📧</button>

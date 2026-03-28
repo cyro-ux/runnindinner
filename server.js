@@ -9,6 +9,8 @@ require('dotenv').config();
 
 const express      = require('express');
 const cookieParser = require('cookie-parser');
+const helmet       = require('helmet');
+const rateLimit    = require('express-rate-limit');
 const path         = require('path');
 const fs           = require('fs');
 const os           = require('os');
@@ -211,6 +213,10 @@ function wrapHtml(body) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function getSetting(key) {
   const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key);
   return row ? row.value : null;
@@ -265,9 +271,67 @@ async function sendInvoiceMail(user, payment) {
 // ── Express app ───────────────────────────────────────────────────────────────
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false })); // Mollie webhook sends urlencoded body
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: '1mb' })); // Mollie webhook sends urlencoded body
 app.use(cookieParser());
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.mollie.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      frameSrc: ["https://js.mollie.com"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // allow fonts from Google
+}));
+
+// Rate limiting: auth endpoints (login, register, forgot-password)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15, // max 15 attempts per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Te veel pogingen. Probeer het over 15 minuten opnieuw.' },
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+
+// Rate limiting: payment creation
+const paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Te veel betalingsverzoeken. Probeer het later opnieuw.' },
+});
+app.use('/api/mollie/create-payment', paymentLimiter);
+
+// Rate limiting: contact form
+const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Te veel berichten verstuurd. Probeer het later opnieuw.' },
+});
+app.use('/api/contact', contactLimiter);
+
+// General API rate limit
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Te veel verzoeken. Probeer het later opnieuw.' },
+});
+app.use('/api/', apiLimiter);
 
 // Serve static files
 // The running dinner planner app lives at the repo root (index.html, app.js, style.css)
@@ -304,8 +368,13 @@ function requireAdmin(req, res, next) {
 
 function requireLicense(req, res, next) {
   requireAuth(req, res, () => {
-    const user = db.prepare('SELECT license_until FROM users WHERE id = ?').get(req.user.id);
+    const user = db.prepare('SELECT license_until, auto_renew FROM users WHERE id = ?').get(req.user.id);
     if (!user || !user.license_until || user.license_until < Date.now()) {
+      // Grace period: 7 days extra access if auto-renew is on (payment may be processing)
+      const gracePeriod = 7 * 86400000;
+      if (user?.auto_renew && user.license_until && user.license_until + gracePeriod > Date.now()) {
+        return next();
+      }
       return res.status(402).json({ error: 'Geen actief abonnement', redirect: '/subscribe.html' });
     }
     next();
@@ -487,16 +556,30 @@ app.post('/api/mollie/create-payment', requireAuth, async (req, res) => {
   const user       = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
   const priceCents = parseInt(getSetting('subscription_price_cents') || '500', 10);
   const amountValue = (priceCents / 100).toFixed(2); // Mollie expects string like "5.00"
+  const autoRenew  = req.body?.autoRenew === true;
 
   try {
-    const payment = await mollie.payments.create({
+    const paymentOpts = {
       amount:      { currency: 'EUR', value: amountValue },
-      description: 'Running Dinner Planner – 1 jaar abonnement',
+      description: 'Running Dinner Planner - 1 jaar abonnement',
       redirectUrl: `${BASE_URL}/payment-success.html`,
       webhookUrl:  `${BASE_URL}/api/mollie/webhook`,
-      metadata:    { user_id: user.id },
-      // No 'method' specified → Mollie shows all payment methods enabled in dashboard
-    });
+      metadata:    { user_id: user.id, autoRenew },
+    };
+
+    // If auto-renew requested: create/reuse Mollie Customer and use sequenceType 'first'
+    if (autoRenew) {
+      let customerId = user.mollie_customer_id;
+      if (!customerId) {
+        const customer = await mollie.customers.create({ name: user.email, email: user.email });
+        customerId = customer.id;
+        db.prepare('UPDATE users SET mollie_customer_id = ? WHERE id = ?').run(customerId, user.id);
+      }
+      paymentOpts.customerId = customerId;
+      paymentOpts.sequenceType = 'first';
+    }
+
+    const payment = await mollie.payments.create(paymentOpts);
 
     res.json({ ok: true, url: payment.getCheckoutUrl() });
   } catch (err) {
@@ -517,36 +600,94 @@ app.post('/api/mollie/webhook', async (req, res) => {
   if (!id) return res.status(400).send('Missing id');
 
   try {
-    // Verify payment status by fetching from Mollie (no signature needed)
     const payment = await mollie.payments.get(id);
-
-    if (payment.status !== 'paid') return res.send('ok');
-
-    const userId = payment.metadata?.user_id;
+    const userId  = payment.metadata?.user_id;
     if (!userId) return res.send('ok');
 
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
     if (!user) return res.send('ok');
 
+    // Handle failed recurring payments
+    if (payment.status === 'failed' && payment.sequenceType === 'recurring') {
+      console.log(`[mollie] recurring payment failed for user ${userId}`);
+      const failCount = db.prepare(
+        "SELECT COUNT(*) as c FROM payments WHERE user_id = ? AND status = 'failed' AND payment_type = 'recurring' AND created_at > ?"
+      ).get(userId, Date.now() - 30 * 86400000).c;
+
+      if (failCount >= 2) {
+        // 3rd failure (including this one) → disable auto-renewal
+        db.prepare('UPDATE users SET auto_renew = 0 WHERE id = ?').run(userId);
+        sendMail(user.email, 'Automatische verlenging uitgeschakeld - Running Dinner Planner', `
+          <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
+          <p style="color:#374151;line-height:1.6">Hallo,</p>
+          <p style="color:#374151;line-height:1.6">Je automatische verlenging is uitgeschakeld omdat de betaling meerdere keren niet gelukt is.</p>
+          <p style="color:#374151;line-height:1.6">Je kunt je abonnement handmatig verlengen via onderstaande knop.</p>
+          <p style="margin:24px 0;text-align:center">
+            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">Abonnement verlengen</a>
+          </p>
+        `).catch(console.error);
+      } else {
+        sendMail(user.email, 'Automatische verlenging mislukt - Running Dinner Planner', `
+          <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
+          <p style="color:#374151;line-height:1.6">Hallo,</p>
+          <p style="color:#374151;line-height:1.6">De automatische verlenging van je abonnement is niet gelukt. We proberen het binnenkort opnieuw.</p>
+          <p style="color:#374151;line-height:1.6">Wil je het zelf regelen? Verleng dan handmatig:</p>
+          <p style="margin:24px 0;text-align:center">
+            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">Handmatig verlengen</a>
+          </p>
+        `).catch(console.error);
+      }
+
+      // Record failed payment
+      db.prepare(`
+        INSERT INTO payments (id, user_id, mollie_payment_id, amount_cents, currency, status, payment_type, created_at)
+        VALUES (?, ?, ?, ?, ?, 'failed', 'recurring', ?)
+      `).run(uuidv4(), userId, payment.id, Math.round(parseFloat(payment.amount.value) * 100),
+        payment.amount.currency.toLowerCase(), Date.now());
+
+      return res.send('ok');
+    }
+
+    if (payment.status !== 'paid') return res.send('ok');
+
     // Idempotency: skip if already recorded
     const existing = db.prepare('SELECT id FROM payments WHERE mollie_payment_id = ?').get(payment.id);
     if (existing) return res.send('ok');
 
+    // Determine payment type
+    const seqType    = payment.sequenceType || 'oneoff';
+    const payType    = seqType === 'first' ? 'first' : seqType === 'recurring' ? 'recurring' : 'one-time';
+    const autoRenew  = payment.metadata?.autoRenew === true || payment.metadata?.autoRenew === 'true';
+
     const days         = parseInt(getSetting('subscription_duration_days') || '365', 10);
     const now          = Date.now();
     const licenseUntil = (user.license_until && user.license_until > now)
-      ? user.license_until + days * 86400000   // extend existing subscription
+      ? user.license_until + days * 86400000
       : now + days * 86400000;
 
     db.prepare('UPDATE users SET license_until = ? WHERE id = ?').run(licenseUntil, userId);
+
+    // After first payment: retrieve and store mandate for future recurring payments
+    if (seqType === 'first' && user.mollie_customer_id) {
+      try {
+        const mandates = await mollie.customerMandates.list({ customerId: user.mollie_customer_id });
+        const validMandate = mandates.find(m => m.status === 'valid' || m.status === 'pending');
+        if (validMandate) {
+          db.prepare('UPDATE users SET mollie_mandate_id = ?, auto_renew = ? WHERE id = ?')
+            .run(validMandate.id, autoRenew ? 1 : 0, userId);
+        }
+      } catch (mandateErr) {
+        console.error('[mollie] mandate fetch error:', mandateErr.message);
+      }
+    }
 
     const priceCents = Math.round(parseFloat(payment.amount.value) * 100);
     const invNr      = invoiceNumber();
     const payId      = uuidv4();
     db.prepare(`
-      INSERT INTO payments (id, user_id, mollie_payment_id, amount_cents, currency, status, invoice_number, created_at)
-      VALUES (?, ?, ?, ?, ?, 'paid', ?, ?)
-    `).run(payId, userId, payment.id, priceCents, payment.amount.currency.toLowerCase(), invNr, now);
+      INSERT INTO payments (id, user_id, mollie_payment_id, amount_cents, currency, status, invoice_number, payment_type, created_at)
+      VALUES (?, ?, ?, ?, ?, 'paid', ?, ?, ?)
+    `).run(payId, userId, payment.id, priceCents, payment.amount.currency.toLowerCase(), invNr, payType, now);
 
     const updatedUser = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
     sendInvoiceMail(updatedUser, { invoice_number: invNr, amount_cents: priceCents, created_at: now }).catch(console.error);
@@ -554,7 +695,7 @@ app.post('/api/mollie/webhook', async (req, res) => {
     console.error('[mollie] webhook error:', err.message);
   }
 
-  res.send('ok'); // Always respond 200 so Mollie doesn't retry unnecessarily
+  res.send('ok');
 });
 
 // GET /api/payments/my  – current user's payment history
@@ -1002,20 +1143,23 @@ app.post('/api/contact', async (req, res) => {
   if (!name || !email || !message) return res.status(400).json({ error: 'Alle velden zijn verplicht' });
 
   const contactEmail = process.env.CONTACT_EMAIL || 'cyro@vanmalsen.net';
+  const safeName = escHtml(name);
+  const safeEmail = escHtml(email);
+  const safeMessage = escHtml(message).replace(/\n/g, '<br>');
   const html = `
           <h2 style="color:#1a56db;margin:0 0 16px">Nieuw contactbericht</h2>
           <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px">
             <tr style="background:#f3f4f6">
               <td style="padding:8px 12px;color:#374151;font-weight:bold;width:80px">Naam</td>
-              <td style="padding:8px 12px;color:#374151">${name}</td>
+              <td style="padding:8px 12px;color:#374151">${safeName}</td>
             </tr>
             <tr>
               <td style="padding:8px 12px;color:#374151;font-weight:bold">E-mail</td>
-              <td style="padding:8px 12px;color:#374151"><a href="mailto:${email}" style="color:#1a56db">${email}</a></td>
+              <td style="padding:8px 12px;color:#374151"><a href="mailto:${safeEmail}" style="color:#1a56db">${safeEmail}</a></td>
             </tr>
           </table>
           <p style="color:#374151;font-weight:bold;margin:16px 0 8px">Bericht:</p>
-          <div style="border-left:3px solid #1a56db;padding:12px 16px;margin:0;background:#f9fafb;color:#374151;line-height:1.6">${message.replace(/\n/g, '<br>')}</div>
+          <div style="border-left:3px solid #1a56db;padding:12px 16px;margin:0;background:#f9fafb;color:#374151;line-height:1.6">${safeMessage}</div>
   `;
 
   try {
@@ -1031,18 +1175,119 @@ app.post('/api/contact', async (req, res) => {
 
 // GET /api/app/access  – check if user may use the planner
 app.get('/api/app/access', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT license_until, role FROM users WHERE id = ?').get(req.user.id);
-  const hasAccess = user && (user.role === 'admin' || (user.license_until && user.license_until > Date.now()));
+  const user = db.prepare('SELECT license_until, role, auto_renew FROM users WHERE id = ?').get(req.user.id);
+  const now = Date.now();
+  const gracePeriod = 7 * 86400000;
+  const licenseActive = user?.license_until && user.license_until > now;
+  const graceActive   = user?.auto_renew && user?.license_until && user.license_until + gracePeriod > now;
+  const hasAccess = user && (user.role === 'admin' || licenseActive || graceActive);
   res.json({
     ok: true,
     access: hasAccess,
     license_until: user?.license_until || null,
+    auto_renew: !!user?.auto_renew,
   });
 });
 
 // ── SPA fallbacks ─────────────────────────────────────────────────────────────
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
+
+// ── Auto-renewal scheduler ────────────────────────────────────────────────────
+
+async function processAutoRenewals() {
+  const now  = Date.now();
+  const soon = now + 1 * 86400000; // license expires within 1 day
+  const grace = now - 7 * 86400000; // or expired up to 7 days ago
+
+  const users = db.prepare(`
+    SELECT id, email, mollie_customer_id, mollie_mandate_id, license_until
+    FROM users
+    WHERE auto_renew = 1
+      AND mollie_mandate_id IS NOT NULL
+      AND mollie_customer_id IS NOT NULL
+      AND license_until BETWEEN ? AND ?
+  `).all(grace, soon);
+
+  for (const user of users) {
+    // Idempotency: skip if we already created a payment in the last 14 days for this user
+    const recent = db.prepare(
+      "SELECT id FROM payments WHERE user_id = ? AND payment_type = 'recurring' AND created_at > ?"
+    ).get(user.id, now - 14 * 86400000);
+    if (recent) continue;
+
+    const priceCents  = parseInt(getSetting('subscription_price_cents') || '500', 10);
+    const amountValue = (priceCents / 100).toFixed(2);
+
+    try {
+      await mollie.payments.create({
+        amount:       { currency: 'EUR', value: amountValue },
+        description:  'Running Dinner Planner - automatische verlenging',
+        sequenceType: 'recurring',
+        customerId:   user.mollie_customer_id,
+        mandateId:    user.mollie_mandate_id,
+        webhookUrl:   `${BASE_URL}/api/mollie/webhook`,
+        metadata:     { user_id: user.id, autoRenew: true },
+      });
+      console.log(`[scheduler] recurring payment created for ${user.email}`);
+    } catch (err) {
+      console.error(`[scheduler] recurring payment failed for ${user.email}:`, err.message);
+    }
+  }
+}
+
+async function checkRenewalReminders() {
+  const now = Date.now();
+  const reminderWindow = now + 14 * 86400000; // 14 days from now
+  const reminderCooldown = now - 13 * 86400000;
+
+  const users = db.prepare(`
+    SELECT id, email, license_until
+    FROM users
+    WHERE auto_renew = 1
+      AND license_until BETWEEN ? AND ?
+      AND (renewal_reminder_sent IS NULL OR renewal_reminder_sent < ?)
+  `).all(now, reminderWindow, reminderCooldown);
+
+  const priceCents = parseInt(getSetting('subscription_price_cents') || '500', 10);
+
+  for (const user of users) {
+    const renewDate = new Date(user.license_until).toLocaleDateString('nl-NL', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    try {
+      await sendMail(user.email, 'Je abonnement wordt binnenkort verlengd - Running Dinner Planner', `
+        <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
+        <p style="color:#374151;line-height:1.6">Hallo,</p>
+        <p style="color:#374151;line-height:1.6">Je abonnement wordt automatisch verlengd op <strong>${renewDate}</strong> voor <strong>${formatEur(priceCents)}</strong>.</p>
+        <p style="color:#374151;line-height:1.6">Je hoeft niets te doen. Wil je de automatische verlenging uitschakelen? Dat kan in je profiel.</p>
+        <p style="margin:24px 0;text-align:center">
+          <a href="${BASE_URL}/profile.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">Naar mijn profiel</a>
+        </p>
+        <p style="color:#6b7280;font-size:13px;line-height:1.5">Je ontvangt na verlenging automatisch een factuur per e-mail.</p>
+      `);
+      db.prepare('UPDATE users SET renewal_reminder_sent = ? WHERE id = ?').run(now, user.id);
+      console.log(`[scheduler] renewal reminder sent to ${user.email}`);
+    } catch (err) {
+      console.error(`[scheduler] reminder mail failed for ${user.email}:`, err.message);
+    }
+  }
+}
+
+// Run scheduler every hour (only in production to avoid double runs during dev)
+if (ENV === 'production') {
+  const SCHEDULER_INTERVAL = 60 * 60 * 1000; // 1 hour
+  setInterval(async () => {
+    try { await checkRenewalReminders(); } catch (e) { console.error('[scheduler] reminder error:', e.message); }
+    try { await processAutoRenewals(); } catch (e) { console.error('[scheduler] renewal error:', e.message); }
+  }, SCHEDULER_INTERVAL);
+  // Also run once 30 seconds after startup
+  setTimeout(async () => {
+    try { await checkRenewalReminders(); } catch (e) { console.error('[scheduler] reminder error:', e.message); }
+    try { await processAutoRenewals(); } catch (e) { console.error('[scheduler] renewal error:', e.message); }
+  }, 30000);
+}
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {

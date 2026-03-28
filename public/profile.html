@@ -251,6 +251,21 @@
       </div>
     </div>
 
+    <!-- Auto-renewal -->
+    <div class="card">
+      <h2>Automatische verlenging</h2>
+      <div id="auto-renew-container">
+        <div class="info-grid">
+          <span class="info-label">Status</span>
+          <span class="info-value" id="ar-status">Laden...</span>
+          <span class="info-label" id="ar-next-label" style="display:none">Volgende verlenging</span>
+          <span class="info-value" id="ar-next" style="display:none"></span>
+        </div>
+        <div style="margin-top:16px" id="ar-actions"></div>
+        <div class="msg" id="ar-msg"></div>
+      </div>
+    </div>
+
     <!-- Invoices -->
     <div class="card">
       <h2>Facturen</h2>
@@ -284,6 +299,9 @@
     } else {
       $('#user-license').innerHTML = '<span class="badge badge-none">Geen abonnement</span>';
     }
+
+    // Auto-renewal
+    renderAutoRenew(user);
 
     // Invoices
     const container = $('#invoices-container');
@@ -320,6 +338,59 @@
         </tbody>
       </table>
     `;
+  }
+
+  function renderAutoRenew(user) {
+    const status = $('#ar-status');
+    const actions = $('#ar-actions');
+    const hasMandate = !!user.mollie_mandate_id;
+    const isOn = !!user.auto_renew;
+
+    if (isOn) {
+      status.innerHTML = '<span class="badge badge-active">Ingeschakeld</span>';
+      if (user.license_until) {
+        $('#ar-next-label').style.display = '';
+        $('#ar-next').style.display = '';
+        $('#ar-next').textContent = new Date(user.license_until).toLocaleDateString('nl-NL', { year: 'numeric', month: 'long', day: 'numeric' });
+      }
+      actions.innerHTML = '<button class="btn-save" id="ar-toggle-btn" style="background:#dc2626">Uitschakelen</button>';
+    } else if (hasMandate) {
+      status.innerHTML = '<span class="badge badge-expired">Uitgeschakeld</span> <span style="color:#6b7280;font-size:13px">(machtiging actief)</span>';
+      actions.innerHTML = '<button class="btn-save" id="ar-toggle-btn">Inschakelen</button>';
+    } else {
+      status.innerHTML = '<span class="badge badge-none">Niet beschikbaar</span>';
+      actions.innerHTML = '<p style="font-size:13px;color:#6b7280;margin:0">Activeer automatische verlenging bij je <a href="/subscribe.html" style="color:#1a56db">volgende betaling</a>.</p>';
+      return;
+    }
+
+    $('#ar-toggle-btn').addEventListener('click', async () => {
+      const btn = $('#ar-toggle-btn');
+      const msg = $('#ar-msg');
+      btn.disabled = true;
+      msg.textContent = '';
+      try {
+        const r = await fetch('/api/user/auto-renew', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: !isOn }),
+        });
+        const data = await r.json();
+        if (r.ok) {
+          msg.textContent = data.message;
+          msg.className = 'msg msg-ok';
+          // Reload to refresh state
+          setTimeout(() => loadProfile(), 800);
+        } else {
+          msg.textContent = data.error || 'Er ging iets mis.';
+          msg.className = 'msg msg-err';
+          btn.disabled = false;
+        }
+      } catch {
+        msg.textContent = 'Verbindingsfout.';
+        msg.className = 'msg msg-err';
+        btn.disabled = false;
+      }
+    });
   }
 
   loadProfile();

@@ -39,18 +39,19 @@
   </div>
 </div>
 <script>
-  // Fetch updated user info to display license date
-  fetch('/api/auth/me')
+  // Fetch updated user info to display license date + auto-renew status
+  fetch('/api/app/access')
     .then(r => r.ok ? r.json() : null)
     .then(data => {
       const info = document.getElementById('info-block');
-      if (data?.user?.license_until) {
-        const until = new Date(data.user.license_until).toLocaleDateString('nl-NL');
-        info.innerHTML = `
-          <p>✓ <strong>Abonnement actief</strong></p>
-          <p>Geldig tot: <strong>${until}</strong></p>
-          <p>Account: ${data.user.email}</p>
-        `;
+      if (data?.license_until) {
+        const until = new Date(data.license_until).toLocaleDateString('nl-NL');
+        let html = '<p>&#10003; <strong>Abonnement actief</strong></p>';
+        html += '<p>Geldig tot: <strong>' + until + '</strong></p>';
+        if (data.auto_renew) {
+          html += '<p>&#10003; <strong>Automatische verlenging ingeschakeld</strong></p>';
+        }
+        info.innerHTML = html;
       } else {
         info.innerHTML = '<p>Abonnement wordt verwerkt. Dit kan een moment duren.</p>';
       }

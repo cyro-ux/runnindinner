@@ -18,7 +18,7 @@
     .sub-price span { font-size: 1rem; font-weight: 400; color: #6b7280; }
     .sub-features { list-style: none; text-align: left; margin: 24px 0; display: flex; flex-direction: column; gap: 10px; }
     .sub-features li { font-size: .9rem; color: #374151; }
-    .sub-features li::before { content: "✓ "; color: #16a34a; font-weight: 700; }
+    .sub-features li::before { content: "\2713  "; color: #16a34a; font-weight: 700; }
     .btn-subscribe { display: block; width: 100%; background: #1a56db; color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px; transition: background .15s; }
     .btn-subscribe:hover { background: #1343b0; }
     .btn-subscribe:disabled { opacity: .6; cursor: not-allowed; }
@@ -28,6 +28,10 @@
     .sub-already { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; border-radius: 8px; padding: 12px 16px; font-size: .9rem; margin-bottom: 20px; display: none; }
     .payment-methods { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
     .pm-badge { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px 10px; font-size: .75rem; color: #374151; font-weight: 600; }
+    .auto-renew-toggle { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 20px 0 8px; cursor: pointer; user-select: none; }
+    .auto-renew-toggle input { width: 18px; height: 18px; accent-color: #1a56db; cursor: pointer; }
+    .auto-renew-toggle label { font-size: .9rem; color: #374151; cursor: pointer; }
+    .auto-renew-info { font-size: .78rem; color: #6b7280; margin: 0 0 8px; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -35,13 +39,13 @@
   <div class="subscribe-card">
     <div class="sub-icon">🍽️</div>
     <h1 class="sub-title">Jaarabonnement</h1>
-    <p class="sub-subtitle">Eenmalig €5 betalen · Daarna direct toegang voor 1 jaar.</p>
+    <p class="sub-subtitle">Eenmalig betalen, daarna direct toegang voor 1 jaar.</p>
 
     <div class="sub-cancelled" id="cancelled-msg">Betaling geannuleerd. Je kunt het opnieuw proberen.</div>
     <div class="sub-error"     id="error-msg"></div>
     <div class="sub-already"   id="already-msg"></div>
 
-    <div class="sub-price" id="price-display">€5 <span>/ jaar</span></div>
+    <div class="sub-price" id="price-display">&#8364;5 <span>/ jaar</span></div>
 
     <ul class="sub-features">
       <li>Onbeperkt evenementen organiseren</li>
@@ -52,15 +56,23 @@
       <li>Factuur per e-mail</li>
     </ul>
 
+    <div class="auto-renew-toggle">
+      <input type="checkbox" id="auto-renew-cb">
+      <label for="auto-renew-cb">Automatisch jaarlijks verlengen</label>
+    </div>
+    <p class="auto-renew-info" id="auto-renew-info" style="display:none">
+      14 dagen voor verlenging ontvang je een herinnering. Je kunt dit altijd uitschakelen in je profiel.
+    </p>
+
     <button class="btn-subscribe" id="pay-btn">Nu betalen &amp; direct toegang</button>
     <div class="payment-methods">
-      <span class="pm-badge" title="Nederland">🇳🇱 iDEAL</span>
-      <span class="pm-badge" title="België">🇧🇪 Bancontact</span>
+      <span class="pm-badge" title="Nederland">iDEAL</span>
+      <span class="pm-badge" title="Belgie">Bancontact</span>
       <span class="pm-badge">PayPal</span>
       <span class="pm-badge">Visa / Mastercard</span>
       <span class="pm-badge">SEPA</span>
     </div>
-    <p class="sub-note">Veilige betaling via Mollie &bull; Factuur direct per e-mail &bull; Geen automatische verlenging</p>
+    <p class="sub-note" id="sub-note">Veilige betaling via Mollie &bull; Factuur direct per e-mail</p>
   </div>
 </div>
 <script>
@@ -68,6 +80,13 @@
   if (params.get('cancelled')) {
     document.getElementById('cancelled-msg').style.display = 'block';
   }
+
+  const autoRenewCb = document.getElementById('auto-renew-cb');
+  const autoRenewInfo = document.getElementById('auto-renew-info');
+
+  autoRenewCb.addEventListener('change', () => {
+    autoRenewInfo.style.display = autoRenewCb.checked ? 'block' : 'none';
+  });
 
   // Check auth + existing license
   fetch('/api/auth/me')
@@ -78,7 +97,7 @@
       if (user.license_until && user.license_until > Date.now()) {
         const until = new Date(user.license_until).toLocaleDateString('nl-NL');
         const alr   = document.getElementById('already-msg');
-        alr.textContent = `Je hebt al een actief abonnement t/m ${until}. Betalen verlengt je abonnement met 1 jaar.`;
+        alr.textContent = 'Je hebt al een actief abonnement t/m ' + until + '. Betalen verlengt je abonnement met 1 jaar.';
         alr.style.display = 'block';
       }
     })
@@ -88,7 +107,7 @@
   fetch('/api/mollie/price')
     .then(r => r.ok ? r.json() : null)
     .then(data => {
-      if (data) document.getElementById('price-display').innerHTML = `${data.formatted} <span>/ jaar</span>`;
+      if (data) document.getElementById('price-display').innerHTML = data.formatted + ' <span>/ jaar</span>';
     })
     .catch(() => {});
 
@@ -101,7 +120,11 @@
     err.style.display = 'none';
 
     try {
-      const res  = await fetch('/api/mollie/create-payment', { method: 'POST' });
+      const res  = await fetch('/api/mollie/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ autoRenew: autoRenewCb.checked }),
+      });
       const data = await res.json();
       if (res.ok && data.url) {
         window.location.href = data.url;
