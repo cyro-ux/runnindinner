@@ -135,7 +135,7 @@ const I18n = (() => {
     return _lang;
   }
 
-  // Switch language and reload
+  // Switch language and navigate
   function switchTo(lang) {
     setCookie('lang', lang, 365);
     const path = location.pathname;
@@ -145,15 +145,17 @@ const I18n = (() => {
       if (!path.startsWith('/en/') && path !== '/en') {
         const newPath = '/en' + (path === '/' ? '/' : path);
         location.href = newPath + location.search + location.hash;
+        return;
       }
     } else {
       // Remove /en/ prefix
       if (path.startsWith('/en/') || path === '/en') {
         const newPath = path.replace(/^\/en\/?/, '/') || '/';
         location.href = newPath + location.search + location.hash;
+        return;
       }
     }
-    // If no URL change needed, just reload
+    // If no URL change needed (already on correct prefix), just reload
     location.reload();
   }
 
