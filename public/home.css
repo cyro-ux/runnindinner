@@ -290,61 +290,80 @@ img { max-width: 100%; display: block; }
   animation: fadeInUp .8s ease-out .15s both;
 }
 
-.mockup-card {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: var(--shadow-xl);
+/* Screenshot carousel */
+.screenshot-carousel {
+  position: relative;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: var(--shadow-xl);
   border: 1px solid rgba(0,0,0,.06);
   transition: transform .4s ease, box-shadow .4s ease;
 }
-.mockup-card:hover {
+.screenshot-carousel:hover {
   transform: translateY(-4px);
   box-shadow: 0 24px 72px rgba(0,0,0,.14);
 }
 
-.mockup-header {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--slate); padding: 12px 18px;
+.screenshot-slides {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 14/9;
+  background: #f8fafc;
 }
-.mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
-.mockup-dot.red    { background: #FF5F57; }
-.mockup-dot.yellow { background: #FEBC2E; }
-.mockup-dot.green  { background: #28C840; }
-.mockup-title { font-size: .78rem; font-weight: 500; color: rgba(255,255,255,.6); margin-left: 8px; }
 
-.mockup-body { padding: 22px; display: flex; flex-direction: column; gap: 8px; }
-
-.mockup-step {
-  font-size: .84rem; color: var(--muted);
-  padding: 8px 12px; border-radius: var(--radius-xs);
-  transition: all .2s;
+.screenshot-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .5s ease;
 }
-.mockup-step.active {
-  background: var(--green-light); color: var(--green);
+.screenshot-slide.active {
+  opacity: 1;
+}
+.screenshot-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.screenshot-label {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(30,41,59,.85);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: .78rem;
   font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 100px;
+  letter-spacing: -.01em;
 }
 
-.mockup-table-preview {
-  margin-top: 10px; border: 1px solid var(--border);
-  border-radius: var(--radius-sm); overflow: hidden;
+.screenshot-dots {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  gap: 8px;
 }
-.mockup-table-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: .82rem;
+.screenshot-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.7);
+  background: transparent;
+  cursor: pointer;
+  transition: all .2s;
+  padding: 0;
 }
-.mockup-table-row:last-child { border-bottom: none; }
-.mt-label { font-weight: 700; color: var(--text); min-width: 90px; }
-.mt-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip {
-  background: var(--bg-alt); color: var(--text-light);
-  padding: 3px 10px; border-radius: 100px;
-  font-size: .74rem; font-weight: 600;
-  border: 1px solid var(--border);
+.screenshot-dot.active {
+  background: #fff;
+  border-color: #fff;
 }
-.chip.host {
-  background: var(--amber-light); color: #92400E;
-  border-color: rgba(245,158,11,.2);
+.screenshot-dot:hover {
+  background: rgba(255,255,255,.5);
 }
 
 /* ── Social proof ────────────────────────────────────────── */
@@ -753,7 +772,7 @@ img { max-width: 100%; display: block; }
 @media (max-width: 900px) {
   .hero          { flex-direction: column; padding-top: 110px; gap: 40px; }
   .hero-visual   { width: 100%; flex: none; }
-  .mockup-card   { max-width: 480px; margin: 0 auto; }
+  .screenshot-carousel { max-width: 520px; margin: 0 auto; }
   .nav-links     { display: none; }
   .nav-hamburger { display: block; }
   .footer-grid   { grid-template-columns: 1fr 1fr; }

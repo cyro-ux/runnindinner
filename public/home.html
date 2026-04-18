@@ -128,36 +128,25 @@
     <p class="hero-hint">Betaal eenmalig <span id="price-display">€5</span>/jaar &bull; Direct toegang &bull; Geen automatische verlenging &bull; iDEAL &amp; Bancontact</p>
   </div>
   <div class="hero-visual">
-    <div class="mockup-card">
-      <div class="mockup-header">
-        <span class="mockup-dot red"></span>
-        <span class="mockup-dot yellow"></span>
-        <span class="mockup-dot green"></span>
-        <span class="mockup-title">Running Dinner Planner</span>
-      </div>
-      <div class="mockup-body">
-        <div class="mockup-step active">✓ Stap 1: Configuratie</div>
-        <div class="mockup-step active">✓ Stap 2: Deelnemers (12)</div>
-        <div class="mockup-step active">✓ Stap 3: Planning gegenereerd</div>
-        <div class="mockup-step">→ Stap 4: Afdrukken</div>
-        <div class="mockup-table-preview">
-          <div class="mockup-table-row">
-            <span class="mt-label">Voorgerecht</span>
-            <span class="mt-chips">
-              <span class="chip host">Tafel A</span>
-              <span class="chip">Tafel B</span>
-              <span class="chip">Tafel C</span>
-            </span>
-          </div>
-          <div class="mockup-table-row">
-            <span class="mt-label">Hoofdgerecht</span>
-            <span class="mt-chips">
-              <span class="chip host">Tafel D</span>
-              <span class="chip">Tafel E</span>
-              <span class="chip">Tafel F</span>
-            </span>
-          </div>
+    <div class="screenshot-carousel">
+      <div class="screenshot-slides" id="screenshot-slides">
+        <div class="screenshot-slide active">
+          <img src="/images/screenshot-deelnemers.jpg" alt="Deelnemers beheren met dieetwensen en beschikbaarheid" loading="lazy">
+          <span class="screenshot-label">Deelnemers beheren</span>
         </div>
+        <div class="screenshot-slide">
+          <img src="/images/screenshot-planning.jpg" alt="Automatische tafelindeling met drag &amp; drop" loading="lazy">
+          <span class="screenshot-label">Slimme planning</span>
+        </div>
+        <div class="screenshot-slide">
+          <img src="/images/screenshot-envelop.jpg" alt="Printbare envelop-kaartjes per tafel" loading="lazy">
+          <span class="screenshot-label">Envelop-kaartjes</span>
+        </div>
+      </div>
+      <div class="screenshot-dots">
+        <button class="screenshot-dot active" data-slide="0" aria-label="Deelnemers"></button>
+        <button class="screenshot-dot" data-slide="1" aria-label="Planning"></button>
+        <button class="screenshot-dot" data-slide="2" aria-label="Envelop-kaartjes"></button>
       </div>
     </div>
   </div>
@@ -468,6 +457,35 @@
 </footer>
 
 <script>
+  // ── Screenshot carousel
+  (function() {
+    const slides = document.querySelectorAll('.screenshot-slide');
+    const dots = document.querySelectorAll('.screenshot-dot');
+    let current = 0;
+    let timer;
+
+    function goTo(i) {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = i;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+    }
+
+    function next() { goTo((current + 1) % slides.length); }
+
+    function startAuto() { timer = setInterval(next, 4000); }
+    function stopAuto() { clearInterval(timer); }
+
+    dots.forEach(d => d.addEventListener('click', () => {
+      stopAuto();
+      goTo(+d.dataset.slide);
+      startAuto();
+    }));
+
+    startAuto();
+  })();
+
   // ── Nav scroll effect
   const nav = document.getElementById('nav');
   window.addEventListener('scroll', () => {
