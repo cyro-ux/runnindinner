@@ -1365,6 +1365,111 @@ app.put('/api/admin/planning-count', requireAdmin, (req, res) => {
   res.json({ ok: true, count: n });
 });
 
+// ── Analytics (Plausible proxy) ──────────────────────────────────────────────
+
+const PLAUSIBLE_API_KEY = process.env.PLAUSIBLE_API_KEY || '';
+const PLAUSIBLE_BASE    = process.env.PLAUSIBLE_BASE_URL || 'http://127.0.0.1:8000';
+const PLAUSIBLE_SITE_ID = process.env.PLAUSIBLE_SITE_ID || 'runningdiner.nl';
+
+function plausibleFetch(apiPath) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(apiPath, PLAUSIBLE_BASE);
+    const http = require('http');
+    const req = http.get(url, {
+      headers: { 'Authorization': `Bearer ${PLAUSIBLE_API_KEY}` },
+      timeout: 8000,
+    }, (resp) => {
+      let data = '';
+      resp.on('data', chunk => { data += chunk; });
+      resp.on('end', () => {
+        try { resolve({ status: resp.statusCode, body: JSON.parse(data) }); }
+        catch { resolve({ status: resp.statusCode, body: data }); }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+  });
+}
+
+// GET /api/admin/analytics/realtime
+app.get('/api/admin/analytics/realtime', requireAdmin, async (req, res) => {
+  try {
+    const r = await plausibleFetch(`/api/v1/stats/realtime/visitors?site_id=${PLAUSIBLE_SITE_ID}`);
+    res.json({ ok: true, visitors: r.body });
+  } catch { res.json({ ok: false, visitors: 0 }); }
+});
+
+// GET /api/admin/analytics/aggregate?period=30d
+app.get('/api/admin/analytics/aggregate', requireAdmin, async (req, res) => {
+  try {
+    const period = req.query.period || '30d';
+    const metrics = 'visitors,pageviews,bounce_rate,visit_duration';
+    const r = await plausibleFetch(`/api/v1/stats/aggregate?site_id=${PLAUSIBLE_SITE_ID}&period=${encodeURIComponent(period)}&metrics=${metrics}`);
+    res.json({ ok: true, results: r.body.results || {} });
+  } catch { res.json({ ok: false, results: {} }); }
+});
+
+// GET /api/admin/analytics/timeseries?period=30d&interval=date
+app.get('/api/admin/analytics/timeseries', requireAdmin, async (req, res) => {
+  try {
+    const period = req.query.period || '30d';
+    const interval = req.query.interval || 'date';
+    const metrics = req.query.metrics || 'visitors';
+    const r = await plausibleFetch(`/api/v1/stats/timeseries?site_id=${PLAUSIBLE_SITE_ID}&period=${encodeURIComponent(period)}&interval=${interval}&metrics=${metrics}`);
+    res.json({ ok: true, results: r.body.results || [] });
+  } catch { res.json({ ok: false, results: [] }); }
+});
+
+// GET /api/admin/analytics/pages?period=30d&limit=10
+app.get('/api/admin/analytics/pages', requireAdmin, async (req, res) => {
+  try {
+    const period = req.query.period || '30d';
+    const limit  = Math.min(parseInt(req.query.limit || '10', 10), 50);
+    const r = await plausibleFetch(`/api/v1/stats/breakdown?site_id=${PLAUSIBLE_SITE_ID}&period=${encodeURIComponent(period)}&property=event:page&metrics=visitors,pageviews&limit=${limit}`);
+    res.json({ ok: true, results: r.body.results || [] });
+  } catch { res.json({ ok: false, results: [] }); }
+});
+
+// GET /api/admin/analytics/sources?period=30d&limit=10
+app.get('/api/admin/analytics/sources', requireAdmin, async (req, res) => {
+  try {
+    const period = req.query.period || '30d';
+    const limit  = Math.min(parseInt(req.query.limit || '10', 10), 50);
+    const r = await plausibleFetch(`/api/v1/stats/breakdown?site_id=${PLAUSIBLE_SITE_ID}&period=${encodeURIComponent(period)}&property=visit:source&metrics=visitors&limit=${limit}`);
+    res.json({ ok: true, results: r.body.results || [] });
+  } catch { res.json({ ok: false, results: [] }); }
+});
+
+// GET /api/admin/analytics/countries?period=30d&limit=10
+app.get('/api/admin/analytics/countries', requireAdmin, async (req, res) => {
+  try {
+    const period = req.query.period || '30d';
+    const limit  = Math.min(parseInt(req.query.limit || '10', 10), 50);
+    const r = await plausibleFetch(`/api/v1/stats/breakdown?site_id=${PLAUSIBLE_SITE_ID}&period=${encodeURIComponent(period)}&property=visit:country&metrics=visitors&limit=${limit}`);
+    res.json({ ok: true, results: r.body.results || [] });
+  } catch { res.json({ ok: false, results: [] }); }
+});
+
+// GET /api/admin/analytics/devices?period=30d
+app.get('/api/admin/analytics/devices', requireAdmin, async (req, res) => {
+  try {
+    const period = req.query.period || '30d';
+    const r = await plausibleFetch(`/api/v1/stats/breakdown?site_id=${PLAUSIBLE_SITE_ID}&period=${encodeURIComponent(period)}&property=visit:device&metrics=visitors&limit=5`);
+    res.json({ ok: true, results: r.body.results || [] });
+  } catch { res.json({ ok: false, results: [] }); }
+});
+
+// GET /api/admin/analytics/events?period=30d
+app.get('/api/admin/analytics/events', requireAdmin, async (req, res) => {
+  try {
+    const period = req.query.period || '30d';
+    const r = await plausibleFetch(`/api/v1/stats/breakdown?site_id=${PLAUSIBLE_SITE_ID}&period=${encodeURIComponent(period)}&property=event:name&metrics=visitors&limit=20`);
+    // Filter out 'pageview' — only custom events
+    const custom = (r.body.results || []).filter(e => e.name !== 'pageview');
+    res.json({ ok: true, results: custom });
+  } catch { res.json({ ok: false, results: [] }); }
+});
+
 // ── Public stats (for homepage) ──────────────────────────────────────────────
 
 // GET /api/public/stats  (no auth – cached data for homepage social proof bar)

@@ -151,6 +151,12 @@
     .cms-prev-sub { font-size: .82rem; color: var(--muted); }
     .cms-prev-btn { display: inline-block; background: var(--blue); color: #fff; border-radius: 7px; padding: 6px 14px; font-size: .8rem; font-weight: 700; margin-top: 8px; }
 
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+    .an-bar { background: var(--blue-light); border-radius: 2px 2px 0 0; flex: 1; min-width: 2px; transition: height .3s; position: relative; cursor: pointer; }
+    .an-bar:hover { background: var(--blue); }
+    .an-bar-tip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1E293B; color: #fff; font-size: .68rem; padding: 3px 7px; border-radius: 4px; white-space: nowrap; margin-bottom: 4px; pointer-events: none; }
+    .an-bar:hover .an-bar-tip { display: block; }
+
     .empty-row td { color: var(--muted); text-align: center; padding: 20px; }
     .load-row  td { color: var(--muted); text-align: center; padding: 12px; font-style: italic; }
 
@@ -213,6 +219,7 @@
     <div class="nav-sep"></div>
     <button class="nav-item" data-page="settings"><span class="icon">⚙️</span>Instellingen</button>
     <button class="nav-item" data-page="cms"><span class="icon">✏️</span>Paginabeheer</button>
+    <button class="nav-item" data-page="analytics"><span class="icon">📈</span>Analytics</button>
     <button class="nav-item" data-page="deploy"><span class="icon">🚀</span>Deployment</button>
   </nav>
 
@@ -432,6 +439,96 @@
       </div>
     </div>
 
+    <!-- ANALYTICS -->
+    <div class="page" id="page-analytics">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <h1 class="page-title" style="margin-bottom:0">Analytics</h1>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="analytics-realtime" style="display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:6px 14px;font-size:.82rem;font-weight:600;color:#166534">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;animation:pulse 2s infinite"></span>
+            <span id="rt-count">0</span> nu online
+          </div>
+          <select id="analytics-period" style="border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:.84rem;font-family:inherit;background:#fff;cursor:pointer">
+            <option value="day">Vandaag</option>
+            <option value="7d">Afgelopen 7 dagen</option>
+            <option value="30d" selected>Afgelopen 30 dagen</option>
+            <option value="6mo">6 maanden</option>
+            <option value="12mo">12 maanden</option>
+          </select>
+          <button class="btn btn-outline" id="refresh-analytics-btn" style="font-size:.8rem;padding:6px 12px">↻</button>
+        </div>
+      </div>
+
+      <!-- Aggregate stats -->
+      <div class="stats-grid" id="analytics-stats">
+        <div class="stat"><div class="stat-label">Bezoekers</div><div class="stat-val blue" id="an-visitors">–</div></div>
+        <div class="stat"><div class="stat-label">Paginaweergaven</div><div class="stat-val purple" id="an-pageviews">–</div></div>
+        <div class="stat"><div class="stat-label">Bouncepercentage</div><div class="stat-val amber" id="an-bounce">–</div></div>
+        <div class="stat"><div class="stat-label">Gem. bezoekduur</div><div class="stat-val green" id="an-duration">–</div></div>
+      </div>
+
+      <!-- Timeseries chart -->
+      <div class="card">
+        <div class="card-title">Bezoekers over tijd</div>
+        <div id="analytics-chart" style="display:flex;align-items:flex-end;gap:2px;height:120px;padding:8px 0"></div>
+        <div id="analytics-chart-labels" style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-top:6px;overflow:hidden"></div>
+      </div>
+
+      <!-- Breakdown tables -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div class="card">
+          <div class="card-title">Populaire pagina's</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Pagina</th><th style="text-align:right">Bezoekers</th><th style="text-align:right">Weergaven</th></tr></thead>
+              <tbody id="an-pages-tbody"><tr class="load-row"><td colspan="3">Laden…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Verkeersbronnen</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Bron</th><th style="text-align:right">Bezoekers</th></tr></thead>
+              <tbody id="an-sources-tbody"><tr class="load-row"><td colspan="2">Laden…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px">
+        <div class="card">
+          <div class="card-title">Landen</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Land</th><th style="text-align:right">Bezoekers</th></tr></thead>
+              <tbody id="an-countries-tbody"><tr class="load-row"><td colspan="2">Laden…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Apparaten</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Type</th><th style="text-align:right">Bezoekers</th></tr></thead>
+              <tbody id="an-devices-tbody"><tr class="load-row"><td colspan="2">Laden…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom events -->
+      <div class="card" style="margin-top:18px">
+        <div class="card-title">Conversie-events</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Event</th><th style="text-align:right">Bezoekers</th></tr></thead>
+            <tbody id="an-events-tbody"><tr class="load-row"><td colspan="2">Laden…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- DEPLOYMENT -->
     <div class="page" id="page-deploy">
       <h1 class="page-title">Deployment</h1>
@@ -541,7 +638,7 @@ function showPage(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelector(`.nav-item[data-page="${name}"]`).classList.add('active');
-  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, deploy: loadDeploy };
+  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, deploy: loadDeploy };
   loaders[name]?.();
 }
 document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
@@ -1005,6 +1102,148 @@ async function triggerDeploy(env) {
 }
 document.getElementById('deploy-prod-btn').addEventListener('click', () => triggerDeploy('production'));
 document.getElementById('deploy-staging-btn').addEventListener('click', () => triggerDeploy('staging'));
+
+// ── ANALYTICS ─────────────────────────────────────────────────────────────
+const COUNTRY_NAMES = {
+  NL:'Nederland',BE:'België',DE:'Duitsland',FR:'Frankrijk',GB:'Verenigd Koninkrijk',
+  US:'Verenigde Staten',CA:'Canada',AU:'Australië',AT:'Oostenrijk',CH:'Zwitserland',
+  ES:'Spanje',IT:'Italië',SE:'Zweden',NO:'Noorwegen',DK:'Denemarken',
+  FI:'Finland',PL:'Polen',PT:'Portugal',IE:'Ierland',CZ:'Tsjechië',
+  LU:'Luxemburg',SR:'Suriname',CW:'Curaçao',AW:'Aruba',ID:'Indonesië',
+  ZA:'Zuid-Afrika',JP:'Japan',CN:'China',IN:'India',BR:'Brazilië',
+  MX:'Mexico',RU:'Rusland',TR:'Turkije',KR:'Zuid-Korea',TH:'Thailand',
+};
+function countryName(code) { return COUNTRY_NAMES[code] || code || 'Direct / onbekend'; }
+function fmtDuration(sec) {
+  if (!sec || sec < 1) return '0s';
+  if (sec < 60) return `${Math.round(sec)}s`;
+  const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+  return s > 0 ? `${m}m ${s}s` : `${m}m`;
+}
+
+let _analyticsInterval = null;
+
+async function loadAnalytics() {
+  const period = document.getElementById('analytics-period').value;
+
+  // Clear and restart realtime polling
+  if (_analyticsInterval) clearInterval(_analyticsInterval);
+  async function pollRealtime() {
+    try {
+      const r = await fetch('/api/admin/analytics/realtime');
+      const d = await r.json();
+      document.getElementById('rt-count').textContent = d.visitors ?? 0;
+    } catch {}
+  }
+  pollRealtime();
+  _analyticsInterval = setInterval(pollRealtime, 15000);
+
+  // Aggregate stats
+  try {
+    const r = await fetch(`/api/admin/analytics/aggregate?period=${period}`);
+    const d = await r.json();
+    const s = d.results || {};
+    document.getElementById('an-visitors').textContent   = s.visitors?.value?.toLocaleString('nl-NL')   ?? '–';
+    document.getElementById('an-pageviews').textContent  = s.pageviews?.value?.toLocaleString('nl-NL')  ?? '–';
+    document.getElementById('an-bounce').textContent     = s.bounce_rate?.value != null ? s.bounce_rate.value + '%' : '–';
+    document.getElementById('an-duration').textContent   = fmtDuration(s.visit_duration?.value);
+  } catch { /* silently fail */ }
+
+  // Timeseries chart
+  try {
+    const interval = (period === 'day') ? 'hour' : (period === '12mo' || period === '6mo') ? 'month' : 'date';
+    const r = await fetch(`/api/admin/analytics/timeseries?period=${period}&interval=${interval}`);
+    const d = await r.json();
+    const pts = d.results || [];
+    const chart = document.getElementById('analytics-chart');
+    const labels = document.getElementById('analytics-chart-labels');
+    if (!pts.length) {
+      chart.innerHTML = '<span style="color:var(--muted);font-size:.85rem">Nog geen data beschikbaar</span>';
+      labels.innerHTML = '';
+    } else {
+      const max = Math.max(...pts.map(p => p.visitors), 1);
+      chart.innerHTML = pts.map((p, i) => {
+        const h = Math.max(Math.round((p.visitors / max) * 100), 2);
+        const lbl = interval === 'hour'
+          ? new Date(p.date).getHours() + ':00'
+          : interval === 'month'
+            ? new Date(p.date + 'T00:00').toLocaleDateString('nl-NL', { month: 'short' })
+            : new Date(p.date + 'T00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+        return `<div class="an-bar" style="height:${h}%"><div class="an-bar-tip">${lbl}: ${p.visitors}</div></div>`;
+      }).join('');
+      // Show ~6 evenly spaced labels
+      const step = Math.max(1, Math.floor(pts.length / 6));
+      labels.innerHTML = pts.filter((_, i) => i % step === 0 || i === pts.length - 1).map(p => {
+        const lbl = interval === 'hour'
+          ? new Date(p.date).getHours() + ':00'
+          : interval === 'month'
+            ? new Date(p.date + 'T00:00').toLocaleDateString('nl-NL', { month: 'short' })
+            : new Date(p.date + 'T00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+        return `<span>${lbl}</span>`;
+      }).join('');
+    }
+  } catch {}
+
+  // Top pages
+  try {
+    const r = await fetch(`/api/admin/analytics/pages?period=${period}&limit=10`);
+    const d = await r.json();
+    const tbody = document.getElementById('an-pages-tbody');
+    const rows = d.results || [];
+    tbody.innerHTML = rows.length
+      ? rows.map(p => `<tr><td>${escH(p.page)}</td><td style="text-align:right">${p.visitors}</td><td style="text-align:right">${p.pageviews}</td></tr>`).join('')
+      : '<tr class="empty-row"><td colspan="3">Geen data</td></tr>';
+  } catch {}
+
+  // Sources
+  try {
+    const r = await fetch(`/api/admin/analytics/sources?period=${period}&limit=10`);
+    const d = await r.json();
+    const tbody = document.getElementById('an-sources-tbody');
+    const rows = d.results || [];
+    tbody.innerHTML = rows.length
+      ? rows.map(s => `<tr><td>${escH(s.source || 'Direct / onbekend')}</td><td style="text-align:right">${s.visitors}</td></tr>`).join('')
+      : '<tr class="empty-row"><td colspan="2">Geen data</td></tr>';
+  } catch {}
+
+  // Countries
+  try {
+    const r = await fetch(`/api/admin/analytics/countries?period=${period}&limit=10`);
+    const d = await r.json();
+    const tbody = document.getElementById('an-countries-tbody');
+    const rows = d.results || [];
+    tbody.innerHTML = rows.length
+      ? rows.map(c => `<tr><td>${countryName(c.country)}</td><td style="text-align:right">${c.visitors}</td></tr>`).join('')
+      : '<tr class="empty-row"><td colspan="2">Geen data</td></tr>';
+  } catch {}
+
+  // Devices
+  try {
+    const r = await fetch(`/api/admin/analytics/devices?period=${period}`);
+    const d = await r.json();
+    const tbody = document.getElementById('an-devices-tbody');
+    const rows = d.results || [];
+    const deviceLabels = { Desktop: '🖥️ Desktop', Mobile: '📱 Mobiel', Tablet: '📟 Tablet' };
+    tbody.innerHTML = rows.length
+      ? rows.map(v => `<tr><td>${deviceLabels[v.device] || v.device}</td><td style="text-align:right">${v.visitors}</td></tr>`).join('')
+      : '<tr class="empty-row"><td colspan="2">Geen data</td></tr>';
+  } catch {}
+
+  // Custom events
+  try {
+    const r = await fetch(`/api/admin/analytics/events?period=${period}`);
+    const d = await r.json();
+    const tbody = document.getElementById('an-events-tbody');
+    const rows = d.results || [];
+    const eventLabels = { 'Signup': '📝 Registratie', 'Payment-Start': '💳 Betaling gestart', 'Payment-Complete': '✅ Betaling voltooid', 'Contact-Form': '📧 Contactformulier' };
+    tbody.innerHTML = rows.length
+      ? rows.map(e => `<tr><td>${eventLabels[e.name] || e.name}</td><td style="text-align:right">${e.visitors}</td></tr>`).join('')
+      : '<tr class="empty-row"><td colspan="2">Geen events geregistreerd</td></tr>';
+  } catch {}
+}
+
+document.getElementById('analytics-period').addEventListener('change', loadAnalytics);
+document.getElementById('refresh-analytics-btn').addEventListener('click', loadAnalytics);
 
 // ── Init ───────────────────────────────────────────────────────────────────
 (async () => {
