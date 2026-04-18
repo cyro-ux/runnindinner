@@ -40,8 +40,9 @@
     },
     "aggregateRating": {
       "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "reviewCount": "47"
+      "ratingValue": "5.0",
+      "reviewCount": "1",
+      "bestRating": "5"
     }
   }
   </script>
@@ -167,17 +168,17 @@
     <p class="social-proof-label">Vertrouwd door organisatoren door heel Nederland</p>
     <div class="stats-row">
       <div class="stat-item">
-        <span class="stat-num">500+</span>
+        <span class="stat-num" id="sp-dinners">–</span>
         <span class="stat-label">Running dinners gepland</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <span class="stat-num">12.000+</span>
+        <span class="stat-num" id="sp-participants">–</span>
         <span class="stat-label">Deelnemers verwerkt</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <span class="stat-num">4.9 ★</span>
+        <span class="stat-num" id="sp-rating">–</span>
         <span class="stat-label">Gemiddelde beoordeling</span>
       </div>
     </div>
@@ -481,6 +482,21 @@
   document.querySelectorAll('#nav-mobile a').forEach(a => {
     a.addEventListener('click', () => document.getElementById('nav-mobile').classList.remove('open'));
   });
+
+  // ── Load real stats for social proof bar
+  fetch('/api/public/stats')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data) return;
+      const fmt = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', '.') + 'k' : String(n);
+      const dinEl = document.getElementById('sp-dinners');
+      const partEl = document.getElementById('sp-participants');
+      const ratEl = document.getElementById('sp-rating');
+      if (dinEl)  dinEl.textContent  = data.dinners > 0 ? fmt(data.dinners) + '+' : '0';
+      if (partEl) partEl.textContent = data.participants > 0 ? fmt(data.participants) + '+' : '0';
+      if (ratEl)  ratEl.textContent  = data.ratingCount > 0 ? data.avgRating.toFixed(1) + ' \u2605' : 'Nieuw';
+    })
+    .catch(() => {});
 
   // ── Load CMS content + price
   fetch('/api/cms')

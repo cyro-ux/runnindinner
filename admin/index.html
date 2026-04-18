@@ -483,11 +483,16 @@
         <input type="text" id="edit-license-display" disabled style="background:#f9fafb">
       </div>
     </div>
+    <div class="form-group">
+      <label>Licentie geldig t/m (datum)</label>
+      <input type="date" id="edit-license-date">
+      <span class="form-hint">Stel de exacte einddatum in voor het abonnement</span>
+    </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Licentie verlengen (dagen)</label>
+        <label>Of: verlengen met dagen (vanaf nu)</label>
         <input type="number" id="edit-license-days" placeholder="365" min="1">
-        <span class="form-hint">Voeg dagen toe vanaf nu</span>
+        <span class="form-hint">Voeg dagen toe vanaf vandaag</span>
       </div>
       <div class="form-group">
         <label>Of licentie intrekken</label>
@@ -736,18 +741,37 @@ document.getElementById('create-user-btn').addEventListener('click', async () =>
 
 // ── EDIT USER MODAL ─────────────────────────────────────────────────────
 function openEditUser(id) {
+  console.log('[admin] openEditUser called with id:', id);
   const u = window._usersData?.[id];
-  if (!u) return;
-  document.getElementById('edit-user-id').value = id;
-  document.getElementById('edit-email').value = u.email;
-  document.getElementById('edit-type').value = u.user_type || 'manual';
-  document.getElementById('edit-license-display').value = u.license_until
-    ? (u.license_until > Date.now() ? `Actief t/m ${fmtDate(u.license_until)}` : `Verlopen op ${fmtDate(u.license_until)}`)
-    : 'Geen licentie';
-  document.getElementById('edit-license-days').value = '';
-  document.getElementById('edit-remove-license').checked = false;
-  document.getElementById('edit-password').value = '';
-  document.getElementById('edit-modal').classList.add('open');
+  if (!u) {
+    console.error('[admin] User not found in _usersData for id:', id, 'Available:', Object.keys(window._usersData || {}));
+    alert('Gebruiker niet gevonden. Probeer de pagina te verversen.');
+    return;
+  }
+  try {
+    document.getElementById('edit-user-id').value = id;
+    document.getElementById('edit-email').value = u.email;
+    document.getElementById('edit-type').value = u.user_type || 'manual';
+    document.getElementById('edit-license-display').value = u.license_until
+      ? (u.license_until > Date.now() ? `Actief t/m ${fmtDate(u.license_until)}` : `Verlopen op ${fmtDate(u.license_until)}`)
+      : 'Geen licentie';
+    // Set date picker to current license date
+    const dateInput = document.getElementById('edit-license-date');
+    if (u.license_until) {
+      const d = new Date(u.license_until);
+      dateInput.value = d.toISOString().split('T')[0]; // YYYY-MM-DD format
+    } else {
+      dateInput.value = '';
+    }
+    document.getElementById('edit-license-days').value = '';
+    document.getElementById('edit-remove-license').checked = false;
+    document.getElementById('edit-password').value = '';
+    document.getElementById('edit-modal').classList.add('open');
+    console.log('[admin] Edit modal opened for:', u.email);
+  } catch (err) {
+    console.error('[admin] Error opening edit modal:', err);
+    alert('Fout bij openen bewerkvenster: ' + err.message);
+  }
 }
 function closeEditModal() { document.getElementById('edit-modal').classList.remove('open'); }
 document.getElementById('edit-modal-close').addEventListener('click', closeEditModal);
@@ -764,8 +788,16 @@ document.getElementById('edit-save-btn').addEventListener('click', async () => {
     user_type: document.getElementById('edit-type').value,
   };
   const days = document.getElementById('edit-license-days').value;
-  if (days) body.license_days = days;
-  else if (document.getElementById('edit-remove-license').checked) body.license_until = 'remove';
+  const dateVal = document.getElementById('edit-license-date').value;
+  if (days) {
+    body.license_days = days;
+  } else if (dateVal) {
+    // Convert date string to timestamp (end of day)
+    const d = new Date(dateVal + 'T23:59:59');
+    body.license_until = d.getTime();
+  } else if (document.getElementById('edit-remove-license').checked) {
+    body.license_until = 'remove';
+  }
   const pw = document.getElementById('edit-password').value;
   if (pw) body.password = pw;
   try {

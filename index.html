@@ -271,6 +271,18 @@
     </section>
   </div>
 
+  <!-- Rating modal -->
+  <div id="rating-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeRatingModal()"></div>
+    <div class="modal-content" style="max-width:440px">
+      <div class="modal-header">
+        <h3>Beoordeling</h3>
+        <button class="modal-close" onclick="closeRatingModal()">×</button>
+      </div>
+      <div class="modal-body" id="rating-modal-body"></div>
+    </div>
+  </div>
+
   <!-- Generic list modal (groups + snapshots) -->
   <div id="list-modal" class="modal" style="display:none">
     <div class="modal-backdrop" onclick="closeListModal()"></div>

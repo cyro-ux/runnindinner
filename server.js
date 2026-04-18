@@ -91,6 +91,14 @@ db.exec(`
     note        TEXT,
     created_at  INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS ratings (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL,
+    score       INTEGER NOT NULL CHECK(score BETWEEN 1 AND 5),
+    comment     TEXT,
+    created_at  INTEGER NOT NULL
+  );
 `);
 
 // Migrate existing DB: add columns if missing (SQLite has limited ALTER TABLE)
@@ -112,6 +120,7 @@ const setDefault = db.prepare(
 setDefault.run('subscription_price_cents', String(process.env.SUBSCRIPTION_PRICE_CENTS || '500'));
 setDefault.run('subscription_duration_days', '365');
 setDefault.run('planning_counter', '0');
+setDefault.run('participant_counter', '0');
 
 // Seed default CMS content
 const cmsDefault = db.prepare(
@@ -281,6 +290,7 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://js.mollie.com"],
+      scriptSrcAttr: ["'unsafe-inline'"],  // allow onclick handlers in admin panel
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:"],
@@ -1122,6 +1132,15 @@ app.post('/api/planning-count/increment', requireAuth, (req, res) => {
   const current = parseInt(getSetting('planning_counter') || '0', 10);
   db.prepare("INSERT INTO settings (key, value) VALUES ('planning_counter', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
     .run(String(current + 1));
+
+  // Also track participant count if provided
+  const { participantCount } = req.body || {};
+  if (participantCount && parseInt(participantCount, 10) > 0) {
+    const currentParticipants = parseInt(getSetting('participant_counter') || '0', 10);
+    db.prepare("INSERT INTO settings (key, value) VALUES ('participant_counter', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+      .run(String(currentParticipants + parseInt(participantCount, 10)));
+  }
+
   res.json({ ok: true, count: current + 1 });
 });
 
@@ -1133,6 +1152,59 @@ app.put('/api/admin/planning-count', requireAdmin, (req, res) => {
   db.prepare("INSERT INTO settings (key, value) VALUES ('planning_counter', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
     .run(String(n));
   res.json({ ok: true, count: n });
+});
+
+// ── Public stats (for homepage) ──────────────────────────────────────────────
+
+// GET /api/public/stats  (no auth – cached data for homepage social proof bar)
+app.get('/api/public/stats', (req, res) => {
+  const dinners   = parseInt(getSetting('planning_counter') || '0', 10);
+  const participants = parseInt(getSetting('participant_counter') || '0', 10);
+
+  const ratingRow = db.prepare(
+    "SELECT COALESCE(AVG(score), 0) as avg, COUNT(*) as cnt FROM ratings"
+  ).get();
+
+  const avgRating  = ratingRow.cnt > 0 ? Math.round(ratingRow.avg * 10) / 10 : 0;
+  const ratingCount = ratingRow.cnt;
+
+  res.json({
+    ok: true,
+    dinners,
+    participants,
+    avgRating,
+    ratingCount,
+  });
+});
+
+// ── Ratings ──────────────────────────────────────────────────────────────────
+
+// POST /api/ratings  (authenticated – submit a rating)
+app.post('/api/ratings', requireAuth, (req, res) => {
+  const { score, comment } = req.body || {};
+  const s = parseInt(score, 10);
+  if (!s || s < 1 || s > 5) return res.status(400).json({ error: 'Score moet 1-5 zijn' });
+
+  // Check if user already rated (allow max 1 per user to keep it fair)
+  const existing = db.prepare('SELECT id FROM ratings WHERE user_id = ?').get(req.user.id);
+  if (existing) {
+    // Update existing rating
+    db.prepare('UPDATE ratings SET score = ?, comment = ?, created_at = ? WHERE user_id = ?')
+      .run(s, comment || null, Date.now(), req.user.id);
+    return res.json({ ok: true, message: 'Beoordeling bijgewerkt', updated: true });
+  }
+
+  const id = uuidv4();
+  db.prepare('INSERT INTO ratings (id, user_id, score, comment, created_at) VALUES (?, ?, ?, ?, ?)')
+    .run(id, req.user.id, s, comment || null, Date.now());
+
+  res.json({ ok: true, message: 'Bedankt voor je beoordeling!' });
+});
+
+// GET /api/ratings/mine  (authenticated – get own rating)
+app.get('/api/ratings/mine', requireAuth, (req, res) => {
+  const rating = db.prepare('SELECT score, comment, created_at FROM ratings WHERE user_id = ?').get(req.user.id);
+  res.json({ ok: true, rating: rating || null });
 });
 
 // ── Contact form ──────────────────────────────────────────────────────────────

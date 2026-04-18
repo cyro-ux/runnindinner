@@ -74,7 +74,7 @@ function goToStep(n) {
 
   if (n === 2) renderParticipantsList();
   if (n === 3) renderSocialLocationConfig();
-  if (n === 4) renderOverview();
+  if (n === 4) { renderOverview(); maybeShowRatingPrompt(); }
 }
 
 document.querySelectorAll('.step-btn').forEach(btn => {
@@ -423,6 +423,13 @@ function generatePlanning() {
   renderPlanningResult();
   document.getElementById('btn-regenerate').style.display = 'inline-block';
   document.getElementById('btn-to-overview').style.display = 'inline-block';
+
+  // Track planning + participants count on server (fire & forget)
+  fetch('/api/planning-count/increment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantCount: participants.length }),
+  }).catch(() => {});
 }
 
 function regeneratePlanning() {
@@ -1642,10 +1649,125 @@ function loadSampleData() {
   renderParticipantsList();
 }
 
+// ---- Rating System ----
+function showRatingModal() {
+  // Check if user already rated
+  fetch('/api/ratings/mine')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      const existing = data?.rating;
+      const modal = document.getElementById('rating-modal');
+      if (!modal) return;
+      const currentScore = existing?.score || 0;
+      const currentComment = existing?.comment || '';
+      document.getElementById('rating-modal-body').innerHTML = `
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:2rem;margin-bottom:8px">🍽️</div>
+          <h3 style="margin:0 0 6px;font-size:1.15rem;color:var(--secondary)">${existing ? 'Jouw beoordeling bijwerken' : 'Hoe vind je de planner?'}</h3>
+          <p style="color:var(--text-light);font-size:.88rem;margin:0">Jouw feedback helpt ons de tool te verbeteren</p>
+        </div>
+        <div id="rating-stars" style="display:flex;justify-content:center;gap:8px;margin:20px 0;font-size:2.2rem;cursor:pointer">
+          ${[1,2,3,4,5].map(n =>
+            `<span class="rating-star" data-score="${n}" style="color:${n <= currentScore ? '#f59e0b' : '#d1d5db'};transition:color .15s" onmouseenter="hoverStars(${n})" onmouseleave="resetStars()" onclick="selectStar(${n})">${n <= currentScore ? '★' : '☆'}</span>`
+          ).join('')}
+        </div>
+        <input type="hidden" id="rating-score" value="${currentScore}">
+        <div style="margin-bottom:16px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--secondary);display:block;margin-bottom:6px">Opmerking (optioneel)</label>
+          <textarea id="rating-comment" rows="3" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:.9rem;resize:vertical"
+            placeholder="Wat vind je goed? Wat kan beter?">${escapeHtml(currentComment)}</textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button class="btn-secondary" onclick="closeRatingModal()">Later</button>
+          <button class="btn-primary" id="rating-submit-btn" onclick="submitRating()">Verstuur beoordeling</button>
+        </div>
+        <p id="rating-status" style="font-size:.85rem;margin-top:10px;text-align:center"></p>`;
+      modal.style.display = 'flex';
+    })
+    .catch(() => {});
+}
+
+let _selectedStar = 0;
+
+function hoverStars(n) {
+  document.querySelectorAll('.rating-star').forEach(s => {
+    const score = parseInt(s.dataset.score);
+    s.style.color = score <= n ? '#f59e0b' : '#d1d5db';
+    s.textContent = score <= n ? '★' : '☆';
+  });
+}
+
+function resetStars() {
+  const current = parseInt(document.getElementById('rating-score')?.value || '0');
+  hoverStars(current);
+}
+
+function selectStar(n) {
+  _selectedStar = n;
+  document.getElementById('rating-score').value = n;
+  hoverStars(n);
+}
+
+async function submitRating() {
+  const score = parseInt(document.getElementById('rating-score').value);
+  const comment = document.getElementById('rating-comment').value.trim();
+  const status = document.getElementById('rating-status');
+  const btn = document.getElementById('rating-submit-btn');
+
+  if (!score || score < 1) {
+    status.textContent = 'Selecteer minimaal 1 ster';
+    status.style.color = 'var(--danger)';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Versturen...';
+
+  try {
+    const res = await fetch('/api/ratings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score, comment }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      status.textContent = data.message || 'Bedankt!';
+      status.style.color = 'var(--success)';
+      setTimeout(() => closeRatingModal(), 1500);
+    } else {
+      status.textContent = data.error || 'Er ging iets mis';
+      status.style.color = 'var(--danger)';
+    }
+  } catch {
+    status.textContent = 'Netwerkfout';
+    status.style.color = 'var(--danger)';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Verstuur beoordeling';
+}
+
+function closeRatingModal() {
+  const m = document.getElementById('rating-modal');
+  if (m) m.style.display = 'none';
+}
+
+// Show rating prompt when user first visits step 4
+let _ratingPromptShown = false;
+function maybeShowRatingPrompt() {
+  if (_ratingPromptShown) return;
+  _ratingPromptShown = true;
+  // Wait a moment so user sees the overview first
+  setTimeout(() => showRatingModal(), 3000);
+}
+
 // ---- Keyboard: Escape closes modals ----
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    if (document.getElementById('participant-modal').style.display === 'flex') {
+    const ratingModal = document.getElementById('rating-modal');
+    if (ratingModal && ratingModal.style.display === 'flex') {
+      closeRatingModal();
+    } else if (document.getElementById('participant-modal').style.display === 'flex') {
       closeParticipantModal();
     } else if (document.getElementById('list-modal').style.display === 'flex') {
       closeListModal();
