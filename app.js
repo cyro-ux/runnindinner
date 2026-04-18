@@ -42,13 +42,16 @@ const state = {
   manualChanges: []
 };
 
-const COURSE_LABELS = {
-  voorborrel: 'Voorborrel',
-  voorgerecht: 'Voorgerecht',
-  hoofdgerecht: 'Hoofdgerecht',
-  nagerecht: 'Nagerecht',
-  naborrel: 'Naborrel'
-};
+function getCourseLabel(key) {
+  const labels = {
+    voorborrel: I18n.t('app.courses.voorborrel', 'Voorborrel'),
+    voorgerecht: I18n.t('app.courses.voorgerecht', 'Voorgerecht'),
+    hoofdgerecht: I18n.t('app.courses.hoofdgerecht', 'Hoofdgerecht'),
+    nagerecht: I18n.t('app.courses.nagerecht', 'Nagerecht'),
+    naborrel: I18n.t('app.courses.naborrel', 'Naborrel'),
+  };
+  return labels[key] || key;
+}
 const COURSE_ICONS = {
   voorborrel: '🥂',
   voorgerecht: '🥗',
@@ -130,11 +133,11 @@ function updateHostPreferenceOptions() {
   if (!sel) return;
   const courses = getActiveCourses();
   const cur = sel.value;
-  sel.innerHTML = '<option value="">Geen voorkeur</option>';
+  sel.innerHTML = `<option value="">${I18n.t('app.modal.no_preference', 'Geen voorkeur')}</option>`;
   courses.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c;
-    opt.textContent = COURSE_ICONS[c] + ' ' + COURSE_LABELS[c];
+    opt.textContent = COURSE_ICONS[c] + ' ' + getCourseLabel(c);
     sel.appendChild(opt);
   });
   if (cur) sel.value = cur;
@@ -154,13 +157,13 @@ function buildAvailabilityGrid(participant) {
     const p2avail = participant ? participant.availability[course]?.person2 !== false : true;
 
     row.innerHTML = `
-      <span class="availability-course-name">${COURSE_ICONS[course]} ${COURSE_LABELS[course]}</span>
+      <span class="availability-course-name">${COURSE_ICONS[course]} ${getCourseLabel(course)}</span>
       <div class="availability-checks">
         <label class="availability-check">
-          <input type="checkbox" name="avail-${course}-p1" ${p1avail ? 'checked' : ''}> Persoon 1
+          <input type="checkbox" name="avail-${course}-p1" ${p1avail ? 'checked' : ''}> ${I18n.t('app.modal.person1', 'Persoon 1')}
         </label>
         <label class="availability-check" id="avail-partner-${course}">
-          <input type="checkbox" name="avail-${course}-p2" ${p2avail ? 'checked' : ''}> Partner
+          <input type="checkbox" name="avail-${course}-p2" ${p2avail ? 'checked' : ''}> ${I18n.t('app.modal.partner', 'Partner')}
         </label>
       </div>`;
     grid.appendChild(row);
@@ -190,7 +193,7 @@ function openAddParticipant(id) {
   let participant = null;
   if (id !== undefined) {
     participant = state.participants.find(p => p.id === id);
-    document.getElementById('modal-title').textContent = 'Deelnemer bewerken';
+    document.getElementById('modal-title').textContent = I18n.t('app.modal.edit_participant', 'Deelnemer bewerken');
     document.getElementById('participant-id').value = id;
     document.getElementById('p-name1').value = participant.name1;
     document.getElementById('p-name2').value = participant.name2 || '';
@@ -204,7 +207,7 @@ function openAddParticipant(id) {
     document.getElementById('p-prefer-with').value = (participant.preferWith || []).join(', ');
     document.getElementById('p-avoid').value = (participant.avoid || []).join(', ');
   } else {
-    document.getElementById('modal-title').textContent = 'Deelnemer toevoegen';
+    document.getElementById('modal-title').textContent = I18n.t('app.modal.add_participant', 'Deelnemer toevoegen');
     document.getElementById('participant-id').value = '';
   }
 
@@ -276,7 +279,7 @@ function saveParticipant(event) {
 }
 
 function deleteParticipant(id) {
-  if (!confirm('Deelnemer verwijderen?')) return;
+  if (!confirm(I18n.t('app.confirm.delete_participant', 'Deelnemer verwijderen?'))) return;
   state.participants = state.participants.filter(p => p.id !== id);
   renderParticipantsList();
   state.planning = null;
@@ -288,7 +291,7 @@ function renderParticipantsList() {
   count.textContent = state.participants.length;
 
   if (state.participants.length === 0) {
-    list.innerHTML = '<p class="empty-state">Nog geen deelnemers toegevoegd. Klik op "+ Deelnemer toevoegen" om te beginnen.</p>';
+    list.innerHTML = `<p class="empty-state">${I18n.t('app.participants.empty_state', 'Nog geen deelnemers toegevoegd. Klik op "+ Deelnemer toevoegen" om te beginnen.')}</p>`;
     return;
   }
 
@@ -296,7 +299,7 @@ function renderParticipantsList() {
     const initials = escapeHtml((p.name1[0] + (p.name2 ? p.name2[0] : '')).toUpperCase());
     const fullName = p.name2 ? `${escapeHtml(p.name1)} &amp; ${escapeHtml(p.name2)}` : escapeHtml(p.name1);
     const tags = [];
-    if (p.hostPreference) tags.push(`<span class="tag tag-host">${COURSE_ICONS[p.hostPreference]} Host: ${COURSE_LABELS[p.hostPreference]}</span>`);
+    if (p.hostPreference) tags.push(`<span class="tag tag-host">${COURSE_ICONS[p.hostPreference]} ${I18n.t('app.participants.host_label', 'Host')}: ${getCourseLabel(p.hostPreference)}</span>`);
     if (p.diet1) tags.push(`<span class="tag tag-diet">🥦 ${escapeHtml(p.diet1)}${p.diet2 ? ' / ' + escapeHtml(p.diet2) : ''}</span>`);
 
     const courses = getActiveCourses();
@@ -305,7 +308,7 @@ function renderParticipantsList() {
       if (!av) return false;
       return !av.person1 || (p.name2 && !av.person2);
     });
-    if (unavailable.length) tags.push(`<span class="tag tag-unavailable">⚠ Niet: ${unavailable.map(c => COURSE_LABELS[c]).join(', ')}</span>`);
+    if (unavailable.length) tags.push(`<span class="tag tag-unavailable">⚠ ${I18n.t('app.participants.unavailable', 'Niet')}: ${unavailable.map(c => getCourseLabel(c)).join(', ')}</span>`);
 
     return `
       <div class="participant-card">
@@ -316,7 +319,7 @@ function renderParticipantsList() {
           <div class="participant-meta">${tags.join('')}</div>
         </div>
         <div class="participant-actions">
-          <button class="btn-secondary btn-small" onclick="openAddParticipant(${p.id})">✏️ Bewerken</button>
+          <button class="btn-secondary btn-small" onclick="openAddParticipant(${p.id})">✏️ ${I18n.t('app.participants.edit_btn', 'Bewerken')}</button>
           <button class="btn-danger btn-small" onclick="deleteParticipant(${p.id})">🗑️</button>
         </div>
       </div>`;
@@ -347,12 +350,12 @@ function renderForcedCombos() {
   list.innerHTML = state.forcedCombos.map(fc => `
     <div class="forced-combo-item">
       <select onchange="updateForcedCombo(${fc.id}, 'person1', this.value)">
-        <option value="">Selecteer persoon 1...</option>
+        <option value="">${I18n.t('app.participants.select_person1', 'Selecteer persoon 1...')}</option>
         ${names.map(n => `<option value="${escapeHtml(n)}" ${fc.person1 === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
       </select>
-      <span>altijd samen met</span>
+      <span>${I18n.t('app.participants.always_together', 'altijd samen met')}</span>
       <select onchange="updateForcedCombo(${fc.id}, 'person2', this.value)">
-        <option value="">Selecteer persoon 2...</option>
+        <option value="">${I18n.t('app.participants.select_person2', 'Selecteer persoon 2...')}</option>
         ${names.map(n => `<option value="${escapeHtml(n)}" ${fc.person2 === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
       </select>
       <button class="btn-danger btn-small" onclick="removeForcedCombo(${fc.id})">✕</button>
@@ -377,7 +380,7 @@ function generatePlanning() {
   const participants = state.participants;
 
   if (participants.length < 3) {
-    alert('Voeg minimaal 3 deelnemers toe om een planning te maken.');
+    alert(I18n.t('app.alert.min_participants', 'Voeg minimaal 3 deelnemers toe om een planning te maken.'));
     return;
   }
 
@@ -474,7 +477,7 @@ function assignHosts(participants, hostCourses, warnings) {
     }
 
     if (hosts.length < numTables) {
-      warnings.push(`Te weinig beschikbare gastheren voor ${COURSE_LABELS[course]}. Overweeg meer deelnemers toe te voegen.`);
+      warnings.push(I18n.t('app.warning.not_enough_hosts', 'Te weinig beschikbare gastheren voor') + ` ${getCourseLabel(course)}. ` + I18n.t('app.warning.consider_more_participants', 'Overweeg meer deelnemers toe te voegen.'));
     }
 
     assignments[course] = hosts;
@@ -530,7 +533,7 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
       const candidates = tables.filter(t => guestSeats(t) + seats <= maxGuests);
 
       if (candidates.length === 0) {
-        warnings.push(`Tafel vol bij ${COURSE_LABELS[course]}. Vergroot het maximum aantal gasten per tafel of voeg een extra gastheer toe.`);
+        warnings.push(I18n.t('app.warning.table_full', 'Tafel vol bij') + ` ${getCourseLabel(course)}. ` + I18n.t('app.warning.increase_max', 'Vergroot het maximum aantal gasten per tafel of voeg een extra gastheer toe.'));
         // Fallback: least-full table
         targetTable = tables.reduce((a, b) => guestSeats(a) <= guestSeats(b) ? a : b);
       } else {
@@ -567,7 +570,7 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
   tables.forEach(t => {
     const count = guestSeats(t);
     if (count < minGuests) {
-      warnings.push(`Tafel van ${t.hostName} bij ${COURSE_LABELS[course]} heeft slechts ${count} gast(en) (richtlijn minimum: ${minGuests}).`);
+      warnings.push(I18n.t('app.warning.table_underfilled_prefix', 'Tafel van') + ` ${t.hostName} ` + I18n.t('app.warning.table_underfilled_at', 'bij') + ` ${getCourseLabel(course)} ` + I18n.t('app.warning.table_underfilled_suffix', 'heeft slechts') + ` ${count} ` + I18n.t('app.warning.guests', 'gast(en)') + ` (${I18n.t('app.warning.guideline_min', 'richtlijn minimum')}: ${minGuests}).`);
     }
   });
 
@@ -658,16 +661,16 @@ function renderPlanningResult() {
   const statsEl = document.getElementById('planning-stats');
   statsEl.style.display = 'flex';
   statsEl.innerHTML = `
-    <div class="stat-box"><div class="stat-number">${participants.length}</div><div class="stat-label">Deelnemers</div></div>
-    <div class="stat-box"><div class="stat-number">${participants.filter(p => p.name2).length}</div><div class="stat-label">Koppels</div></div>
-    <div class="stat-box"><div class="stat-number">${diversityScore}</div><div class="stat-label">Gem. nieuwe tafelgenoten</div></div>
-    <div class="stat-box"><div class="stat-number">${courses.length}</div><div class="stat-label">Gangen</div></div>`;
+    <div class="stat-box"><div class="stat-number">${participants.length}</div><div class="stat-label">${I18n.t('app.stats.participants', 'Deelnemers')}</div></div>
+    <div class="stat-box"><div class="stat-number">${participants.filter(p => p.name2).length}</div><div class="stat-label">${I18n.t('app.stats.couples', 'Koppels')}</div></div>
+    <div class="stat-box"><div class="stat-number">${diversityScore}</div><div class="stat-label">${I18n.t('app.stats.avg_new_tablemates', 'Gem. nieuwe tafelgenoten')}</div></div>
+    <div class="stat-box"><div class="stat-number">${courses.length}</div><div class="stat-label">${I18n.t('app.stats.courses', 'Gangen')}</div></div>`;
 
   // Warnings
   const warnEl = document.getElementById('planning-warnings');
   if (warnings.length) {
     warnEl.style.display = 'block';
-    warnEl.innerHTML = `<h4>⚠️ Aandachtspunten</h4><ul>${warnings.map(w => `<li>${w}</li>`).join('')}</ul>`;
+    warnEl.innerHTML = `<h4>⚠️ ${I18n.t('app.planning.attention_points', 'Aandachtspunten')}</h4><ul>${warnings.map(w => `<li>${w}</li>`).join('')}</ul>`;
   } else {
     warnEl.style.display = 'none';
   }
@@ -693,7 +696,7 @@ function renderDraggablePlanning() {
       <div class="course-block">
         <div class="course-block-header">
           <span>${COURSE_ICONS[course]}</span>
-          <h4>${COURSE_LABELS[course]}</h4>
+          <h4>${getCourseLabel(course)}</h4>
           <span class="course-block-time">${timeInfo.start} – ${endTime}</span>
         </div>
         <div class="tables-grid">
@@ -707,7 +710,7 @@ function renderDraggableTableCard(table, i, participants, course) {
   if (table.isSocial) {
     return `
       <div class="table-card">
-        <div class="table-card-header">Iedereen bijeen <span>👥 ${table.guestIds.length}</span></div>
+        <div class="table-card-header">${I18n.t('app.planning.everyone_together', 'Iedereen bijeen')} <span>👥 ${table.guestIds.length}</span></div>
         <div class="table-card-body">
           ${table.guestNames.map(n => `<div class="table-guest">👤 ${escapeHtml(n)}</div>`).join('')}
         </div>
@@ -727,7 +730,7 @@ function renderDraggableTableCard(table, i, participants, course) {
          ondragleave="onDragLeave(event)"
          ondrop="onDrop(event,'${table.id}','${course}')">
       <div class="table-card-header">
-        Tafel ${i + 1} – ${escapeHtml(table.address?.city || '')}
+        ${I18n.t('app.planning.table', 'Tafel')} ${i + 1} – ${escapeHtml(table.address?.city || '')}
         <span>🪑 ${seats}</span>
       </div>
       <div class="table-card-body">
@@ -744,13 +747,13 @@ function renderDraggableTableCard(table, i, participants, course) {
                  draggable="true"
                  ondragstart="onDragStart(event,${gid},'${table.id}','${course}')"
                  ondragend="onDragEnd(event)">
-              <span class="drag-handle" title="Sleep om te verplaatsen">⠿</span>
+              <span class="drag-handle" title="${I18n.t('app.planning.drag_to_move', 'Sleep om te verplaatsen')}">⠿</span>
               👤 ${escapeHtml(table.guestNames[gi])}
               ${diet ? `<span class="diet-icon" title="${escapeHtml(diet)}">🥦</span>` : ''}
             </div>`;
         }).join('')}
         ${table.guestIds.length === 0
-          ? '<div class="dnd-empty-slot">Sleep een gast hierheen</div>' : ''}
+          ? `<div class="dnd-empty-slot">${I18n.t('app.planning.drag_guest_here', 'Sleep een gast hierheen')}</div>` : ''}
         ${addr ? `<div class="dnd-addr">📍 ${addr}</div>` : ''}
       </div>
     </div>`;
@@ -788,7 +791,7 @@ function onDrop(event, targetTableId, targetCourse) {
 
   if (fromTableId === targetTableId) return;
   if (course !== targetCourse) {
-    alert('Gasten kunnen alleen worden verplaatst binnen dezelfde gang.');
+    alert(I18n.t('app.alert.same_course_only', 'Gasten kunnen alleen worden verplaatst binnen dezelfde gang.'));
     return;
   }
 
@@ -840,7 +843,7 @@ function undoChange(changeId) {
 }
 
 function undoAllChanges() {
-  if (!confirm('Alle handmatige wijzigingen ongedaan maken?')) return;
+  if (!confirm(I18n.t('app.confirm.undo_all', 'Alle handmatige wijzigingen ongedaan maken?'))) return;
   // Undo in reverse order so earlier moves are reversed correctly
   while (state.manualChanges.length > 0) {
     const last = state.manualChanges[state.manualChanges.length - 1];
@@ -852,26 +855,26 @@ function renderChangeLog() {
   const el = document.getElementById('manual-adjustment-area');
   if (!el) return;
   if (state.manualChanges.length === 0) {
-    el.innerHTML = '<p class="hint">Nog geen handmatige wijzigingen. Sleep gasten (⠿) tussen tafels om te wisselen.</p>';
+    el.innerHTML = `<p class="hint">${I18n.t('app.planning.no_changes', 'Nog geen handmatige wijzigingen. Sleep gasten (⠿) tussen tafels om te wisselen.')}</p>`;
     return;
   }
   el.innerHTML = `
     <div class="change-log">
       <div class="change-log-header">
-        <span>${state.manualChanges.length} wijziging(en)</span>
-        <button class="btn-danger btn-small" onclick="undoAllChanges()">↩ Alle ongedaan maken</button>
+        <span>${state.manualChanges.length} ${I18n.t('app.planning.changes', 'wijziging(en)')}</span>
+        <button class="btn-danger btn-small" onclick="undoAllChanges()">↩ ${I18n.t('app.planning.undo_all', 'Alle ongedaan maken')}</button>
       </div>
       ${state.manualChanges.map((c, i) => `
         <div class="change-item">
           <div class="change-info">
             <span class="change-num">${i + 1}</span>
             <div class="change-desc">
-              <strong>${escapeHtml(c.personName)}</strong> verplaatst van
+              <strong>${escapeHtml(c.personName)}</strong> ${I18n.t('app.planning.moved_from', 'verplaatst van')}
               <em>${escapeHtml(c.fromHostName)}</em> → <em>${escapeHtml(c.toHostName)}</em>
-              <span class="change-course">${COURSE_ICONS[c.course]} ${COURSE_LABELS[c.course]}</span>
+              <span class="change-course">${COURSE_ICONS[c.course]} ${getCourseLabel(c.course)}</span>
             </div>
           </div>
-          <button class="btn-secondary btn-small" onclick="undoChange(${c.id})">↩ Ongedaan</button>
+          <button class="btn-secondary btn-small" onclick="undoChange(${c.id})">↩ ${I18n.t('app.planning.undo', 'Ongedaan')}</button>
         </div>`).join('')}
     </div>`;
 }
@@ -886,7 +889,7 @@ function switchTab(name) {
 
 function renderOverview() {
   if (!state.planning) {
-    document.getElementById('per-person-content').innerHTML = '<p class="hint">Ga eerst naar stap 3 en genereer een planning.</p>';
+    document.getElementById('per-person-content').innerHTML = `<p class="hint">${I18n.t('app.overview.no_planning', 'Ga eerst naar stap 3 en genereer een planning.')}</p>`;
     return;
   }
 
@@ -926,7 +929,7 @@ function getPersonRoute(participant) {
       endTime,
       isHost,
       address: table.isSocial ? null : table.address,
-      hostName: table.isSocial ? null : (isHost ? 'u zelf' : table.hostName),
+      hostName: table.isSocial ? null : (isHost ? I18n.t('app.overview.yourself', 'u zelf') : table.hostName),
       companions,
       isSocial: table.isSocial
     });
@@ -956,13 +959,13 @@ function renderPerPerson() {
               <div class="route-icon">${COURSE_ICONS[r.course]}</div>
               <div class="route-detail">
                 <div class="route-course">
-                  ${COURSE_LABELS[r.course]}
-                  ${r.isHost ? '<span class="hosting-badge">🏠 U bent gastheer/vrouw</span>' : ''}
+                  ${getCourseLabel(r.course)}
+                  ${r.isHost ? `<span class="hosting-badge">🏠 ${I18n.t('app.overview.you_are_host', 'U bent gastheer/vrouw')}</span>` : ''}
                 </div>
-                ${r.isSocial ? '<div class="route-address">Iedereen bijeen</div>' : `
+                ${r.isSocial ? `<div class="route-address">${I18n.t('app.planning.everyone_together', 'Iedereen bijeen')}</div>` : `
                   <div class="route-address">📍 ${escapeHtml(r.address?.street)}, ${escapeHtml(r.address?.postcode)} ${escapeHtml(r.address?.city)}</div>
-                  ${!r.isHost ? `<div class="route-companions">Gastheer/vrouw: <span>${escapeHtml(r.hostName)}</span></div>` : ''}
-                  <div class="route-companions">Tafelgenoten: <span>${r.companions.length ? r.companions.map(c => escapeHtml(c)).join(', ') : '–'}</span></div>
+                  ${!r.isHost ? `<div class="route-companions">${I18n.t('app.overview.host', 'Gastheer/vrouw')}: <span>${escapeHtml(r.hostName)}</span></div>` : ''}
+                  <div class="route-companions">${I18n.t('app.overview.tablemates', 'Tafelgenoten')}: <span>${r.companions.length ? r.companions.map(c => escapeHtml(c)).join(', ') : '–'}</span></div>
                 `}
               </div>
             </div>`).join('')}
@@ -986,12 +989,12 @@ function renderPerLocation() {
         locationSections.push(`
           <div class="location-card">
             <div class="location-header">
-              <h3>${COURSE_ICONS[course]} ${COURSE_LABELS[course]} – Sociaal moment</h3>
-              <p>Alle deelnemers bijeen • ${state.config.times[course].start} – ${addMinutes(state.config.times[course].start, state.config.times[course].duration)}</p>
+              <h3>${COURSE_ICONS[course]} ${getCourseLabel(course)} – ${I18n.t('app.overview.social_moment', 'Sociaal moment')}</h3>
+              <p>${I18n.t('app.overview.all_together', 'Alle deelnemers bijeen')} • ${state.config.times[course].start} – ${addMinutes(state.config.times[course].start, state.config.times[course].duration)}</p>
             </div>
             <div class="location-body">
               <table class="guests-table">
-                <thead><tr><th>Naam</th><th>Dieetwensen</th></tr></thead>
+                <thead><tr><th>${I18n.t('app.overview.name', 'Naam')}</th><th>${I18n.t('app.overview.dietary', 'Dieetwensen')}</th></tr></thead>
                 <tbody>${table.guestIds.map(gid => {
                   const g = participants.find(p => p.id === gid);
                   const diet = [g?.diet1, g?.diet2].filter(Boolean).join(', ');
@@ -1010,22 +1013,22 @@ function renderPerLocation() {
       locationSections.push(`
         <div class="location-card">
           <div class="location-header">
-            <h3>${COURSE_ICONS[course]} ${COURSE_LABELS[course]} – Tafel ${i + 1}</h3>
+            <h3>${COURSE_ICONS[course]} ${getCourseLabel(course)} – ${I18n.t('app.planning.table', 'Tafel')} ${i + 1}</h3>
             <p>🏠 ${escapeHtml(table.hostName)} · 📍 ${escapeHtml(host.address.full)} · ⏰ ${timeStr}</p>
           </div>
           <div class="location-body">
             <table class="guests-table">
-              <thead><tr><th>Naam</th><th>Rol</th><th>Dieetwensen</th></tr></thead>
+              <thead><tr><th>${I18n.t('app.overview.name', 'Naam')}</th><th>${I18n.t('app.overview.role', 'Rol')}</th><th>${I18n.t('app.overview.dietary', 'Dieetwensen')}</th></tr></thead>
               <tbody>
                 <tr style="background:#fff8f8">
                   <td><strong>${escapeHtml(table.hostName)}</strong></td>
-                  <td><span class="host-badge" style="font-size:0.75rem;background:var(--primary);color:white;padding:2px 6px;border-radius:8px">Gastheer/vrouw</span></td>
+                  <td><span class="host-badge" style="font-size:0.75rem;background:var(--primary);color:white;padding:2px 6px;border-radius:8px">${I18n.t('app.overview.host', 'Gastheer/vrouw')}</span></td>
                   <td>${escapeHtml([host.diet1, host.diet2].filter(Boolean).join(', ')) || '–'}</td>
                 </tr>
                 ${table.guestIds.map((gid, gi) => {
                   const g = participants.find(p => p.id === gid);
                   const diet = [g?.diet1, g?.diet2].filter(Boolean).join(', ');
-                  return `<tr><td>${escapeHtml(table.guestNames[gi])}</td><td>Gast</td><td>${escapeHtml(diet) || '–'}</td></tr>`;
+                  return `<tr><td>${escapeHtml(table.guestNames[gi])}</td><td>${I18n.t('app.overview.guest', 'Gast')}</td><td>${escapeHtml(diet) || '–'}</td></tr>`;
                 }).join('')}
               </tbody>
             </table>
@@ -1052,12 +1055,12 @@ function renderEnvelopes() {
   });
 
   if (cardCourses.length === 0) {
-    el.innerHTML = '<p class="hint">Geen envelop-kaartjes beschikbaar voor de huidige planning.</p>';
+    el.innerHTML = `<p class="hint">${I18n.t('app.envelope.no_cards', 'Geen envelop-kaartjes beschikbaar voor de huidige planning.')}</p>`;
     return;
   }
 
   function addrStr(address) {
-    if (!address) return 'Locatie onbekend';
+    if (!address) return I18n.t('app.envelope.location_unknown', 'Locatie onbekend');
     return `${escapeHtml(address.street)}${address.housenumber ? ' ' + escapeHtml(address.housenumber) : ''}, ${escapeHtml(address.postcode)} ${escapeHtml(address.city)}`;
   }
 
@@ -1071,8 +1074,8 @@ function renderEnvelopes() {
     return `
       <div class="env-course-section">
         <div class="env-course-section-title">
-          ${COURSE_ICONS[course]} ${COURSE_LABELS[course]}
-          <span class="env-next-arrow">→ volgende: ${COURSE_ICONS[nextCourse]} ${COURSE_LABELS[nextCourse]}</span>
+          ${COURSE_ICONS[course]} ${getCourseLabel(course)}
+          <span class="env-next-arrow">→ ${I18n.t('app.envelope.next', 'volgende')}: ${COURSE_ICONS[nextCourse]} ${getCourseLabel(nextCourse)}</span>
         </div>
         ${courseTables.map(table => {
           const tableAddr = addrStr(table.address);
@@ -1080,7 +1083,7 @@ function renderEnvelopes() {
 
           return `
             <div class="env-table-group">
-              <div class="env-table-location">📍 Tafel bij: ${escapeHtml(table.hostName) || tableAddr} &nbsp;—&nbsp; ${tableAddr}</div>
+              <div class="env-table-location">📍 ${I18n.t('app.envelope.table_at', 'Tafel bij')}: ${escapeHtml(table.hostName) || tableAddr} &nbsp;—&nbsp; ${tableAddr}</div>
               <div class="env-cards-row">
                 ${allIds.map(pid => {
                   const person = participants.find(p => p.id === pid);
@@ -1106,18 +1109,18 @@ function renderEnvelopes() {
                       <div class="env-card-top">
                         <div class="env-card-event">${escapeHtml(state.config.eventName)}</div>
                         <div class="env-card-person">${personName}</div>
-                        <div class="env-card-current-course">${COURSE_ICONS[course]} ${COURSE_LABELS[course]} — open aan het einde van dit gerecht</div>
+                        <div class="env-card-current-course">${COURSE_ICONS[course]} ${getCourseLabel(course)} — ${I18n.t('app.envelope.open_at_end', 'open aan het einde van dit gerecht')}</div>
                       </div>
-                      <div class="env-card-divider">✦ Jouw volgende bestemming ✦</div>
+                      <div class="env-card-divider">✦ ${I18n.t('app.envelope.your_next_destination', 'Jouw volgende bestemming')} ✦</div>
                       <div class="env-card-bottom">
-                        <div class="env-card-next-course">${COURSE_ICONS[nextCourse]} ${COURSE_LABELS[nextCourse]}</div>
+                        <div class="env-card-next-course">${COURSE_ICONS[nextCourse]} ${getCourseLabel(nextCourse)}</div>
                         ${nextIsSocial
-                          ? `<div class="env-card-next-host">Iedereen bijeen</div>
+                          ? `<div class="env-card-next-host">${I18n.t('app.planning.everyone_together', 'Iedereen bijeen')}</div>
                              ${nextAddr ? `<div class="env-card-next-addr">📍 ${nextAddr}</div>` : ''}`
                           : nextIsHost
-                            ? `<div class="env-card-next-host hosting">🏠 U bent gastheer/vrouw</div>
+                            ? `<div class="env-card-next-host hosting">🏠 ${I18n.t('app.overview.you_are_host', 'U bent gastheer/vrouw')}</div>
                                <div class="env-card-next-addr">📍 ${nextAddr}</div>`
-                            : `<div class="env-card-next-host">Bij: ${nextHostName}</div>
+                            : `<div class="env-card-next-host">${I18n.t('app.envelope.at', 'Bij')}: ${nextHostName}</div>
                                <div class="env-card-next-addr">📍 ${nextAddr}</div>`
                         }
                       </div>
@@ -1186,7 +1189,7 @@ async function lookupPostcode() {
   const status = document.getElementById('postcode-status');
   btn.disabled = true;
   btn.textContent = '⏳';
-  if (status) { status.className = 'postcode-status loading'; status.textContent = 'Ophalen…'; }
+  if (status) { status.className = 'postcode-status loading'; status.textContent = I18n.t('app.postcode.loading', 'Ophalen…'); }
 
   try {
     const url = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=${encodeURIComponent(pc)}+${encodeURIComponent(nr)}&fq=type:adres&fl=straatnaam,woonplaatsnaam&rows=1`;
@@ -1196,16 +1199,16 @@ async function lookupPostcode() {
     if (doc?.straatnaam) {
       document.getElementById('p-street').value = doc.straatnaam;
       document.getElementById('p-city').value = doc.woonplaatsnaam || '';
-      if (status) { status.className = 'postcode-status ok'; status.textContent = '✓ Adres gevonden'; }
+      if (status) { status.className = 'postcode-status ok'; status.textContent = I18n.t('app.postcode.found', '✓ Adres gevonden'); }
     } else {
-      if (status) { status.className = 'postcode-status err'; status.textContent = 'Adres niet gevonden. Vul handmatig in.'; }
+      if (status) { status.className = 'postcode-status err'; status.textContent = I18n.t('app.postcode.not_found', 'Adres niet gevonden. Vul handmatig in.'); }
     }
   } catch {
-    if (status) { status.className = 'postcode-status err'; status.textContent = 'Ophalen mislukt. Vul handmatig in.'; }
+    if (status) { status.className = 'postcode-status err'; status.textContent = I18n.t('app.postcode.failed', 'Ophalen mislukt. Vul handmatig in.'); }
   }
 
   btn.disabled = false;
-  btn.textContent = '🔍 Opzoeken';
+  btn.textContent = I18n.t('app.modal.lookup_btn', '🔍 Opzoeken');
 }
 
 // ---- Social Location Config (Step 3) ----
@@ -1231,26 +1234,26 @@ function renderSocialLocationConfig() {
 
     return `
       <div class="social-location-row">
-        <div class="social-location-label">${COURSE_ICONS[course]} ${COURSE_LABELS[course]}</div>
+        <div class="social-location-label">${COURSE_ICONS[course]} ${getCourseLabel(course)}</div>
         <div class="social-location-fields">
           <select onchange="onSocialHostTypeChange('${course}', this.value)">
-            <option value="">– Locatie onbekend / later invullen –</option>
-            <option value="participant" ${!isCustom && selectedId ? 'selected' : ''}>Deelnemer als gastheer</option>
-            <option value="custom" ${isCustom ? 'selected' : ''}>Aangepast adres</option>
+            <option value="">– ${I18n.t('app.social.unknown_location', 'Locatie onbekend / later invullen')} –</option>
+            <option value="participant" ${!isCustom && selectedId ? 'selected' : ''}>${I18n.t('app.social.participant_host', 'Deelnemer als gastheer')}</option>
+            <option value="custom" ${isCustom ? 'selected' : ''}>${I18n.t('app.social.custom_address', 'Aangepast adres')}</option>
           </select>
           <select id="social-participant-${course}" style="display:${!isCustom && selectedId ? 'block' : 'none'}"
             onchange="onSocialParticipantChange('${course}', this.value)">
-            <option value="">Selecteer deelnemer…</option>
+            <option value="">${I18n.t('app.social.select_participant', 'Selecteer deelnemer…')}</option>
             ${participantOptions}
           </select>
           <div class="social-location-addr ${isCustom ? 'visible' : ''}" id="social-custom-${course}">
-            <input type="text" placeholder="Naam / omschrijving" value="${current?.customName || ''}"
+            <input type="text" placeholder="${I18n.t('app.social.name_desc', 'Naam / omschrijving')}" value="${current?.customName || ''}"
               oninput="onSocialCustomChange('${course}', 'customName', this.value)">
-            <input type="text" placeholder="Straat + nr" value="${current?.customAddress?.street || ''}"
+            <input type="text" placeholder="${I18n.t('app.social.street_nr', 'Straat + nr')}" value="${current?.customAddress?.street || ''}"
               oninput="onSocialCustomChange('${course}', 'street', this.value)">
-            <input type="text" placeholder="Postcode" value="${current?.customAddress?.postcode || ''}"
+            <input type="text" placeholder="${I18n.t('app.social.postcode', 'Postcode')}" value="${current?.customAddress?.postcode || ''}"
               oninput="onSocialCustomChange('${course}', 'postcode', this.value)" style="max-width:90px">
-            <input type="text" placeholder="Woonplaats" value="${current?.customAddress?.city || ''}"
+            <input type="text" placeholder="${I18n.t('app.social.city', 'Woonplaats')}" value="${current?.customAddress?.city || ''}"
               oninput="onSocialCustomChange('${course}', 'city', this.value)">
           </div>
         </div>
@@ -1304,35 +1307,35 @@ function getStoredSnapshots() {
 
 function showSaveGroupModal() {
   const groups = getStoredGroups();
-  document.getElementById('list-modal-title').textContent = '💾 Deelnemersgroep opslaan';
+  document.getElementById('list-modal-title').textContent = I18n.t('app.groups.save_title', '💾 Deelnemersgroep opslaan');
   document.getElementById('list-modal-body').innerHTML = `
     <div class="list-modal-save-row">
-      <input type="text" id="save-group-name" placeholder="Naam voor deze groep (bijv. 'Editie 2026')" value="">
-      <button class="btn-primary" onclick="confirmSaveGroup()">Opslaan</button>
+      <input type="text" id="save-group-name" placeholder="${I18n.t('app.groups.save_placeholder', "Naam voor deze groep (bijv. 'Editie 2026')")}" value="">
+      <button class="btn-primary" onclick="confirmSaveGroup()">${I18n.t('app.modal.save', 'Opslaan')}</button>
     </div>
-    <p class="hint">Bestaande groepen (klik om naam over te nemen):</p>
+    <p class="hint">${I18n.t('app.groups.existing_groups', 'Bestaande groepen (klik om naam over te nemen)')}:</p>
     ${Object.keys(groups).length ? Object.entries(groups).map(([name, g]) => `
       <div class="list-modal-item" data-group-name="${escapeHtml(name)}" onclick="document.getElementById('save-group-name').value=this.dataset.groupName">
         <div class="list-modal-item-name">${escapeHtml(name)}</div>
-        <div class="list-modal-item-meta">${g.participants?.length || 0} deelnemers · ${escapeHtml(g.savedAt || '')}</div>
+        <div class="list-modal-item-meta">${g.participants?.length || 0} ${I18n.t('app.stats.participants', 'deelnemers')} · ${escapeHtml(g.savedAt || '')}</div>
         <button class="btn-danger btn-small" onclick="event.stopPropagation();deleteGroup(this.closest('[data-group-name]').dataset.groupName)">🗑️</button>
-      </div>`).join('') : '<p class="list-modal-empty">Geen opgeslagen groepen.</p>'}`;
+      </div>`).join('') : `<p class="list-modal-empty">${I18n.t('app.groups.no_groups', 'Geen opgeslagen groepen.')}</p>`}`;
   document.getElementById('list-modal').style.display = 'flex';
   setTimeout(() => document.getElementById('save-group-name').focus(), 50);
 }
 
 function confirmSaveGroup() {
   const name = document.getElementById('save-group-name').value.trim();
-  if (!name) { alert('Voer een naam in.'); return; }
+  if (!name) { alert(I18n.t('app.alert.enter_name', 'Voer een naam in.')); return; }
   const groups = getStoredGroups();
   groups[name] = { participants: state.participants, savedAt: new Date().toLocaleDateString('nl-NL') };
   localStorage.setItem(STORAGE_GROUPS, JSON.stringify(groups));
   closeListModal();
-  alert(`Groep "${name}" opgeslagen!`);
+  alert(I18n.t('app.alert.group_saved_prefix', 'Groep') + ` "${name}" ` + I18n.t('app.alert.saved', 'opgeslagen!'));
 }
 
 function deleteGroup(name) {
-  if (!confirm(`Groep "${name}" verwijderen?`)) return;
+  if (!confirm(I18n.t('app.confirm.delete_group', 'Groep') + ` "${name}" ` + I18n.t('app.confirm.delete_suffix', 'verwijderen?'))) return;
   const groups = getStoredGroups();
   delete groups[name];
   localStorage.setItem(STORAGE_GROUPS, JSON.stringify(groups));
@@ -1341,23 +1344,23 @@ function deleteGroup(name) {
 
 function showLoadGroupModal() {
   const groups = getStoredGroups();
-  document.getElementById('list-modal-title').textContent = '📂 Deelnemersgroep laden';
+  document.getElementById('list-modal-title').textContent = I18n.t('app.groups.load_title', '📂 Deelnemersgroep laden');
   document.getElementById('list-modal-body').innerHTML = Object.keys(groups).length
     ? Object.entries(groups).map(([name, g]) => `
         <div class="list-modal-item" data-group-name="${escapeHtml(name)}">
           <div>
             <div class="list-modal-item-name">${escapeHtml(name)}</div>
-            <div class="list-modal-item-meta">${g.participants?.length || 0} deelnemers · opgeslagen ${escapeHtml(g.savedAt || '')}</div>
+            <div class="list-modal-item-meta">${g.participants?.length || 0} ${I18n.t('app.stats.participants', 'deelnemers')} · ${I18n.t('app.groups.saved_at', 'opgeslagen')} ${escapeHtml(g.savedAt || '')}</div>
           </div>
-          <button class="btn-primary btn-small" onclick="confirmLoadGroup(this.closest('[data-group-name]').dataset.groupName)">Laden</button>
+          <button class="btn-primary btn-small" onclick="confirmLoadGroup(this.closest('[data-group-name]').dataset.groupName)">${I18n.t('app.groups.load_btn', 'Laden')}</button>
           <button class="btn-danger btn-small" onclick="deleteGroup(this.closest('[data-group-name]').dataset.groupName);showLoadGroupModal()">🗑️</button>
         </div>`).join('')
-    : '<p class="list-modal-empty">Geen opgeslagen groepen. Sla eerst een groep op via "Groep opslaan".</p>';
+    : `<p class="list-modal-empty">${I18n.t('app.groups.no_groups_hint', 'Geen opgeslagen groepen. Sla eerst een groep op via "Groep opslaan".')}</p>`;
   document.getElementById('list-modal').style.display = 'flex';
 }
 
 function confirmLoadGroup(name) {
-  if (!confirm(`Groep "${name}" laden? De huidige deelnemers worden vervangen.`)) return;
+  if (!confirm(I18n.t('app.confirm.load_group_prefix', 'Groep') + ` "${name}" ` + I18n.t('app.confirm.load_group_suffix', 'laden? De huidige deelnemers worden vervangen.'))) return;
   const groups = getStoredGroups();
   const g = groups[name];
   if (!g) return;
@@ -1369,7 +1372,7 @@ function confirmLoadGroup(name) {
 }
 
 function deleteAllParticipants() {
-  if (!confirm(`Alle ${state.participants.length} deelnemers verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return;
+  if (!confirm(I18n.t('app.confirm.delete_all_prefix', 'Alle') + ` ${state.participants.length} ` + I18n.t('app.confirm.delete_all_suffix', 'deelnemers verwijderen? Dit kan niet ongedaan worden gemaakt.'))) return;
   state.participants = [];
   state.planning = null;
   state.nextId = 1;
@@ -1378,8 +1381,8 @@ function deleteAllParticipants() {
 
 // ---- Planning Snapshots ----
 function savePlanningSnapshot() {
-  if (!state.planning) { alert('Genereer eerst een planning in stap 3.'); return; }
-  const name = prompt('Naam voor deze momentopname:', `Planning ${new Date().toLocaleDateString('nl-NL')}`);
+  if (!state.planning) { alert(I18n.t('app.alert.generate_first', 'Genereer eerst een planning in stap 3.')); return; }
+  const name = prompt(I18n.t('app.snapshots.name_prompt', 'Naam voor deze momentopname:'), `Planning ${new Date().toLocaleDateString(I18n.getLang() === 'en' ? 'en-GB' : 'nl-NL')}`);
   if (!name) return;
   const snapshots = getStoredSnapshots();
   snapshots[name] = {
@@ -1391,28 +1394,28 @@ function savePlanningSnapshot() {
     savedAt: new Date().toLocaleString('nl-NL')
   };
   localStorage.setItem(STORAGE_SNAPSHOTS, JSON.stringify(snapshots));
-  alert(`Momentopname "${name}" opgeslagen!`);
+  alert(I18n.t('app.alert.snapshot_prefix', 'Momentopname') + ` "${name}" ` + I18n.t('app.alert.saved', 'opgeslagen!'));
 }
 
 function showLoadSnapshotModal() {
   const snapshots = getStoredSnapshots();
-  document.getElementById('list-modal-title').textContent = '📂 Momentopname laden';
+  document.getElementById('list-modal-title').textContent = I18n.t('app.snapshots.load_title', '📂 Momentopname laden');
   document.getElementById('list-modal-body').innerHTML = Object.keys(snapshots).length
     ? Object.entries(snapshots).map(([name, s]) => `
         <div class="list-modal-item" data-snapshot-name="${escapeHtml(name)}">
           <div>
             <div class="list-modal-item-name">${escapeHtml(name)}</div>
-            <div class="list-modal-item-meta">${s.participants?.length || 0} deelnemers · ${escapeHtml(s.savedAt || '')}</div>
+            <div class="list-modal-item-meta">${s.participants?.length || 0} ${I18n.t('app.stats.participants', 'deelnemers')} · ${escapeHtml(s.savedAt || '')}</div>
           </div>
-          <button class="btn-primary btn-small" onclick="confirmLoadSnapshot(this.closest('[data-snapshot-name]').dataset.snapshotName)">Laden</button>
+          <button class="btn-primary btn-small" onclick="confirmLoadSnapshot(this.closest('[data-snapshot-name]').dataset.snapshotName)">${I18n.t('app.groups.load_btn', 'Laden')}</button>
           <button class="btn-danger btn-small" onclick="deleteSnapshot(this.closest('[data-snapshot-name]').dataset.snapshotName)">🗑️</button>
         </div>`).join('')
-    : '<p class="list-modal-empty">Geen opgeslagen momentopnames.</p>';
+    : `<p class="list-modal-empty">${I18n.t('app.snapshots.no_snapshots', 'Geen opgeslagen momentopnames.')}</p>`;
   document.getElementById('list-modal').style.display = 'flex';
 }
 
 function deleteSnapshot(name) {
-  if (!confirm(`Momentopname "${name}" verwijderen?`)) return;
+  if (!confirm(I18n.t('app.alert.snapshot_prefix', 'Momentopname') + ` "${name}" ` + I18n.t('app.confirm.delete_suffix', 'verwijderen?'))) return;
   const snapshots = getStoredSnapshots();
   delete snapshots[name];
   localStorage.setItem(STORAGE_SNAPSHOTS, JSON.stringify(snapshots));
@@ -1420,7 +1423,7 @@ function deleteSnapshot(name) {
 }
 
 function confirmLoadSnapshot(name) {
-  if (!confirm(`Momentopname "${name}" laden? De huidige staat wordt overschreven.`)) return;
+  if (!confirm(I18n.t('app.alert.snapshot_prefix', 'Momentopname') + ` "${name}" ` + I18n.t('app.confirm.load_snapshot_suffix', 'laden? De huidige staat wordt overschreven.'))) return;
   const snapshots = getStoredSnapshots();
   const s = snapshots[name];
   if (!s) return;
@@ -1439,54 +1442,81 @@ function closeListModal() {
 }
 
 // ---- Excel Import / Export ----
-const TEMPLATE_HEADERS = [
-  'Naam persoon 1*', 'Naam partner', 'Postcode*', 'Huisnummer*', 'Straatnaam', 'Woonplaats',
-  'Gastrol voorkeur',
-  'Beschikb. P1: voorborrel', 'Beschikb. P1: voorgerecht', 'Beschikb. P1: hoofdgerecht', 'Beschikb. P1: nagerecht', 'Beschikb. P1: naborrel',
-  'Beschikb. partner: voorborrel', 'Beschikb. partner: voorgerecht', 'Beschikb. partner: hoofdgerecht', 'Beschikb. partner: nagerecht', 'Beschikb. partner: naborrel',
-  'Dieetwensen persoon 1', 'Dieetwensen partner',
-  'Wil graag samen met', 'Wil NIET samen met'
-];
+function getTemplateHeaders() {
+  return [
+    I18n.t('app.excel.name_person1', 'Naam persoon 1*'),
+    I18n.t('app.excel.name_partner', 'Naam partner'),
+    I18n.t('app.excel.postcode', 'Postcode*'),
+    I18n.t('app.excel.housenumber', 'Huisnummer*'),
+    I18n.t('app.excel.street', 'Straatnaam'),
+    I18n.t('app.excel.city', 'Woonplaats'),
+    I18n.t('app.excel.host_preference', 'Gastrol voorkeur'),
+    I18n.t('app.excel.avail_p1_voorborrel', 'Beschikb. P1: voorborrel'),
+    I18n.t('app.excel.avail_p1_voorgerecht', 'Beschikb. P1: voorgerecht'),
+    I18n.t('app.excel.avail_p1_hoofdgerecht', 'Beschikb. P1: hoofdgerecht'),
+    I18n.t('app.excel.avail_p1_nagerecht', 'Beschikb. P1: nagerecht'),
+    I18n.t('app.excel.avail_p1_naborrel', 'Beschikb. P1: naborrel'),
+    I18n.t('app.excel.avail_partner_voorborrel', 'Beschikb. partner: voorborrel'),
+    I18n.t('app.excel.avail_partner_voorgerecht', 'Beschikb. partner: voorgerecht'),
+    I18n.t('app.excel.avail_partner_hoofdgerecht', 'Beschikb. partner: hoofdgerecht'),
+    I18n.t('app.excel.avail_partner_nagerecht', 'Beschikb. partner: nagerecht'),
+    I18n.t('app.excel.avail_partner_naborrel', 'Beschikb. partner: naborrel'),
+    I18n.t('app.excel.diet_person1', 'Dieetwensen persoon 1'),
+    I18n.t('app.excel.diet_partner', 'Dieetwensen partner'),
+    I18n.t('app.excel.prefer_with', 'Wil graag samen met'),
+    I18n.t('app.excel.avoid', 'Wil NIET samen met')
+  ];
+}
 
-const TEMPLATE_EXAMPLE = [
-  'Jan de Vries', 'Marie de Vries', '1015AB', '45', 'Keizersgracht', 'Amsterdam',
-  'voorgerecht',
-  'ja', 'ja', 'ja', 'ja', 'ja',
-  'ja', 'ja', 'ja', 'nee', 'nee',
-  '', 'vegetarisch',
-  '', ''
-];
+function getTemplateExample() {
+  const yes = I18n.t('app.excel.yes', 'ja');
+  const no = I18n.t('app.excel.no', 'nee');
+  return [
+    'Jan de Vries', 'Marie de Vries', '1015AB', '45', 'Keizersgracht', 'Amsterdam',
+    'voorgerecht',
+    yes, yes, yes, yes, yes,
+    yes, yes, yes, no, no,
+    '', I18n.t('app.excel.example_vegetarian', 'vegetarisch'),
+    '', ''
+  ];
+}
 
-const INSTRUCTIES_ROWS = [
-  ['Kolom', 'Verplicht', 'Uitleg', 'Geldige waarden'],
-  ['Naam persoon 1', 'Ja', 'Volledige naam van de eerste persoon', ''],
-  ['Naam partner', 'Nee', 'Volledige naam van de partner (leeglaten indien geen partner)', ''],
-  ['Postcode', 'Ja', 'Postcode zonder spatie', 'bijv. 1015AB'],
-  ['Huisnummer', 'Ja', 'Alleen het huisnummer (inclusief toevoeging)', 'bijv. 45 of 45A'],
-  ['Straatnaam', 'Nee', 'Wordt automatisch gevuld via postcode indien leeg', ''],
-  ['Woonplaats', 'Nee', 'Wordt automatisch gevuld via postcode indien leeg', ''],
-  ['Gastrol voorkeur', 'Nee', 'Bij welk gerecht wil de persoon gastheer/vrouw zijn?', 'voorborrel / voorgerecht / hoofdgerecht / nagerecht / naborrel / leeg'],
-  ['Beschikb. P1: *', 'Nee', 'Is persoon 1 aanwezig bij dit onderdeel?', 'ja / nee  (leeg = ja)'],
-  ['Beschikb. partner: *', 'Nee', 'Is de partner aanwezig bij dit onderdeel?', 'ja / nee  (leeg = ja)'],
-  ['Dieetwensen persoon 1', 'Nee', 'Allergieën of dieetwensen van persoon 1', 'Vrije tekst'],
-  ['Dieetwensen partner', 'Nee', 'Allergieën of dieetwensen van de partner', 'Vrije tekst'],
-  ['Wil graag samen met', 'Nee', 'Namen van personen waarmee men graag aan tafel zit (komma-gescheiden)', 'bijv. Lisa Jansen, Thomas Smit'],
-  ['Wil NIET samen met', 'Nee', 'Namen van personen waarmee men NIET aan tafel wil (komma-gescheiden)', 'bijv. Kevin Peters'],
-  [],
-  ['LET OP: Verwijder de voorbeeldrij (rij 2 in het Deelnemers-tabblad) vóór het importeren!'],
-];
+function getInstructiesRows() {
+  const yes = I18n.t('app.excel.instr_yes', 'Ja');
+  const no = I18n.t('app.excel.instr_no', 'Nee');
+  return [
+    [I18n.t('app.excel.instr_column', 'Kolom'), I18n.t('app.excel.instr_required', 'Verplicht'), I18n.t('app.excel.instr_explanation', 'Uitleg'), I18n.t('app.excel.instr_valid_values', 'Geldige waarden')],
+    [I18n.t('app.excel.instr_name1', 'Naam persoon 1'), yes, I18n.t('app.excel.instr_name1_desc', 'Volledige naam van de eerste persoon'), ''],
+    [I18n.t('app.excel.instr_partner', 'Naam partner'), no, I18n.t('app.excel.instr_partner_desc', 'Volledige naam van de partner (leeglaten indien geen partner)'), ''],
+    [I18n.t('app.excel.instr_postcode', 'Postcode'), yes, I18n.t('app.excel.instr_postcode_desc', 'Postcode zonder spatie'), I18n.t('app.excel.instr_postcode_eg', 'bijv. 1015AB')],
+    [I18n.t('app.excel.instr_housenr', 'Huisnummer'), yes, I18n.t('app.excel.instr_housenr_desc', 'Alleen het huisnummer (inclusief toevoeging)'), I18n.t('app.excel.instr_housenr_eg', 'bijv. 45 of 45A')],
+    [I18n.t('app.excel.instr_street', 'Straatnaam'), no, I18n.t('app.excel.instr_street_desc', 'Wordt automatisch gevuld via postcode indien leeg'), ''],
+    [I18n.t('app.excel.instr_city', 'Woonplaats'), no, I18n.t('app.excel.instr_city_desc', 'Wordt automatisch gevuld via postcode indien leeg'), ''],
+    [I18n.t('app.excel.instr_host', 'Gastrol voorkeur'), no, I18n.t('app.excel.instr_host_desc', 'Bij welk gerecht wil de persoon gastheer/vrouw zijn?'), 'voorborrel / voorgerecht / hoofdgerecht / nagerecht / naborrel / ' + I18n.t('app.excel.instr_empty', 'leeg')],
+    [I18n.t('app.excel.instr_avail_p1', 'Beschikb. P1: *'), no, I18n.t('app.excel.instr_avail_p1_desc', 'Is persoon 1 aanwezig bij dit onderdeel?'), I18n.t('app.excel.instr_yes_no', 'ja / nee  (leeg = ja)')],
+    [I18n.t('app.excel.instr_avail_partner', 'Beschikb. partner: *'), no, I18n.t('app.excel.instr_avail_partner_desc', 'Is de partner aanwezig bij dit onderdeel?'), I18n.t('app.excel.instr_yes_no', 'ja / nee  (leeg = ja)')],
+    [I18n.t('app.excel.instr_diet1', 'Dieetwensen persoon 1'), no, I18n.t('app.excel.instr_diet1_desc', 'Allergieën of dieetwensen van persoon 1'), I18n.t('app.excel.instr_free_text', 'Vrije tekst')],
+    [I18n.t('app.excel.instr_diet2', 'Dieetwensen partner'), no, I18n.t('app.excel.instr_diet2_desc', 'Allergieën of dieetwensen van de partner'), I18n.t('app.excel.instr_free_text', 'Vrije tekst')],
+    [I18n.t('app.excel.instr_prefer', 'Wil graag samen met'), no, I18n.t('app.excel.instr_prefer_desc', 'Namen van personen waarmee men graag aan tafel zit (komma-gescheiden)'), I18n.t('app.excel.instr_prefer_eg', 'bijv. Lisa Jansen, Thomas Smit')],
+    [I18n.t('app.excel.instr_avoid', 'Wil NIET samen met'), no, I18n.t('app.excel.instr_avoid_desc', 'Namen van personen waarmee men NIET aan tafel wil (komma-gescheiden)'), I18n.t('app.excel.instr_avoid_eg', 'bijv. Kevin Peters')],
+    [],
+    [I18n.t('app.excel.instr_warning', 'LET OP: Verwijder de voorbeeldrij (rij 2 in het Deelnemers-tabblad) vóór het importeren!')],
+  ];
+}
 
 function downloadTemplate() {
   if (typeof XLSX === 'undefined') {
-    alert('Excel-bibliotheek nog niet geladen. Controleer de internetverbinding en probeer opnieuw.');
+    alert(I18n.t('app.alert.xlsx_not_loaded', 'Excel-bibliotheek nog niet geladen. Controleer de internetverbinding en probeer opnieuw.'));
     return;
   }
 
   const wb = XLSX.utils.book_new();
+  const headers = getTemplateHeaders();
+  const example = getTemplateExample();
 
-  // Sheet 1: Deelnemers
-  const ws = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, TEMPLATE_EXAMPLE]);
-  ws['!cols'] = TEMPLATE_HEADERS.map(h => ({ wch: Math.max(h.length + 2, 14) }));
+  // Sheet 1: Deelnemers / Participants
+  const ws = XLSX.utils.aoa_to_sheet([headers, example]);
+  ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 14) }));
 
   // Style header row (bold + blue background) – basic cell metadata
   const headerRange = XLSX.utils.decode_range(ws['!ref']);
@@ -1496,14 +1526,15 @@ function downloadTemplate() {
     ws[cellRef].s = { font: { bold: true }, fill: { fgColor: { rgb: 'C7D9F0' } } };
   }
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Deelnemers');
+  const sheetNameParticipants = I18n.t('app.excel.sheet_participants', 'Deelnemers');
+  XLSX.utils.book_append_sheet(wb, ws, sheetNameParticipants);
 
-  // Sheet 2: Instructies
-  const wsI = XLSX.utils.aoa_to_sheet(INSTRUCTIES_ROWS);
+  // Sheet 2: Instructies / Instructions
+  const wsI = XLSX.utils.aoa_to_sheet(getInstructiesRows());
   wsI['!cols'] = [{ wch: 30 }, { wch: 10 }, { wch: 55 }, { wch: 55 }];
-  XLSX.utils.book_append_sheet(wb, wsI, 'Instructies');
+  XLSX.utils.book_append_sheet(wb, wsI, I18n.t('app.excel.sheet_instructions', 'Instructies'));
 
-  XLSX.writeFile(wb, 'running-dinner-deelnemers-sjabloon.xlsx');
+  XLSX.writeFile(wb, I18n.t('app.excel.filename', 'running-dinner-deelnemers-sjabloon.xlsx'));
 }
 
 function importParticipantsFromFile(event) {
@@ -1511,7 +1542,7 @@ function importParticipantsFromFile(event) {
   if (!file) return;
 
   if (typeof XLSX === 'undefined') {
-    showImportStatus('error', 'Excel-bibliotheek niet geladen. Controleer de internetverbinding.');
+    showImportStatus('error', I18n.t('app.import.xlsx_not_loaded', 'Excel-bibliotheek niet geladen. Controleer de internetverbinding.'));
     return;
   }
 
@@ -1519,20 +1550,22 @@ function importParticipantsFromFile(event) {
   reader.onload = function(e) {
     try {
       const wb = XLSX.read(e.target.result, { type: 'array' });
-      // Use first sheet named 'Deelnemers', or fall back to first sheet
-      const sheetName = wb.SheetNames.includes('Deelnemers') ? 'Deelnemers' : wb.SheetNames[0];
+      // Use first sheet named 'Deelnemers' or 'Participants', or fall back to first sheet
+      const sheetName = wb.SheetNames.includes('Deelnemers') ? 'Deelnemers'
+        : wb.SheetNames.includes('Participants') ? 'Participants'
+        : wb.SheetNames[0];
       const ws = wb.Sheets[sheetName];
       const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
       if (rows.length < 2) {
-        showImportStatus('error', 'Het bestand heeft geen gegevens (minstens een kopregel en één dataregel vereist).');
+        showImportStatus('error', I18n.t('app.import.no_data', 'Het bestand heeft geen gegevens (minstens een kopregel en één dataregel vereist).'));
         event.target.value = '';
         return;
       }
 
       // Row 0 = headers, rows 1+ = data (skip rows where name1 is empty)
       const dataRows = rows.slice(1).filter(r => String(r[0] || '').trim() !== '');
-      const avBool = val => String(val).trim().toLowerCase() !== 'nee' && String(val).trim() !== '0';
+      const avBool = val => { const v = String(val).trim().toLowerCase(); return v !== 'nee' && v !== 'no' && v !== '0'; };
       const validHostPrefs = ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'naborrel'];
       const allCourses = ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'naborrel'];
 
@@ -1587,9 +1620,9 @@ function importParticipantsFromFile(event) {
       });
 
       renderParticipantsList();
-      showImportStatus('ok', `✓ ${added} deelnemer(s) succesvol geïmporteerd${skipped ? ` (${skipped} overgeslagen)` : ''}.`);
+      showImportStatus('ok', `✓ ${added} ${I18n.t('app.import.imported_suffix', 'deelnemer(s) succesvol geïmporteerd')}${skipped ? ` (${skipped} ${I18n.t('app.import.skipped', 'overgeslagen')})` : ''}.`);
     } catch (err) {
-      showImportStatus('error', `Importeren mislukt: ${err.message}`);
+      showImportStatus('error', `${I18n.t('app.import.failed', 'Importeren mislukt')}: ${err.message}`);
     }
     event.target.value = ''; // reset so same file can be re-imported
   };
@@ -1663,8 +1696,8 @@ function showRatingModal() {
       document.getElementById('rating-modal-body').innerHTML = `
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:2rem;margin-bottom:8px">🍽️</div>
-          <h3 style="margin:0 0 6px;font-size:1.15rem;color:var(--secondary)">${existing ? 'Jouw beoordeling bijwerken' : 'Hoe vind je de planner?'}</h3>
-          <p style="color:var(--text-light);font-size:.88rem;margin:0">Jouw feedback helpt ons de tool te verbeteren</p>
+          <h3 style="margin:0 0 6px;font-size:1.15rem;color:var(--secondary)">${existing ? I18n.t('app.rating.update_title', 'Jouw beoordeling bijwerken') : I18n.t('app.rating.ask_title', 'Hoe vind je de planner?')}</h3>
+          <p style="color:var(--text-light);font-size:.88rem;margin:0">${I18n.t('app.rating.feedback_helps', 'Jouw feedback helpt ons de tool te verbeteren')}</p>
         </div>
         <div id="rating-stars" style="display:flex;justify-content:center;gap:8px;margin:20px 0;font-size:2.2rem;cursor:pointer">
           ${[1,2,3,4,5].map(n =>
@@ -1673,13 +1706,13 @@ function showRatingModal() {
         </div>
         <input type="hidden" id="rating-score" value="${currentScore}">
         <div style="margin-bottom:16px">
-          <label style="font-size:.85rem;font-weight:600;color:var(--secondary);display:block;margin-bottom:6px">Opmerking (optioneel)</label>
+          <label style="font-size:.85rem;font-weight:600;color:var(--secondary);display:block;margin-bottom:6px">${I18n.t('app.rating.comment_label', 'Opmerking (optioneel)')}</label>
           <textarea id="rating-comment" rows="3" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:.9rem;resize:vertical"
-            placeholder="Wat vind je goed? Wat kan beter?">${escapeHtml(currentComment)}</textarea>
+            placeholder="${I18n.t('app.rating.comment_placeholder', 'Wat vind je goed? Wat kan beter?')}">${escapeHtml(currentComment)}</textarea>
         </div>
         <div style="display:flex;gap:10px;justify-content:flex-end">
-          <button class="btn-secondary" onclick="closeRatingModal()">Later</button>
-          <button class="btn-primary" id="rating-submit-btn" onclick="submitRating()">Verstuur beoordeling</button>
+          <button class="btn-secondary" onclick="closeRatingModal()">${I18n.t('app.rating.later', 'Later')}</button>
+          <button class="btn-primary" id="rating-submit-btn" onclick="submitRating()">${I18n.t('app.rating.submit', 'Verstuur beoordeling')}</button>
         </div>
         <p id="rating-status" style="font-size:.85rem;margin-top:10px;text-align:center"></p>`;
       modal.style.display = 'flex';
@@ -1715,13 +1748,13 @@ async function submitRating() {
   const btn = document.getElementById('rating-submit-btn');
 
   if (!score || score < 1) {
-    status.textContent = 'Selecteer minimaal 1 ster';
+    status.textContent = I18n.t('app.rating.select_star', 'Selecteer minimaal 1 ster');
     status.style.color = 'var(--danger)';
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = 'Versturen...';
+  btn.textContent = I18n.t('app.rating.submitting', 'Versturen...');
 
   try {
     const res = await fetch('/api/ratings', {
@@ -1731,20 +1764,20 @@ async function submitRating() {
     });
     const data = await res.json();
     if (res.ok) {
-      status.textContent = data.message || 'Bedankt!';
+      status.textContent = data.message || I18n.t('app.rating.thanks', 'Bedankt!');
       status.style.color = 'var(--success)';
       setTimeout(() => closeRatingModal(), 1500);
     } else {
-      status.textContent = data.error || 'Er ging iets mis';
+      status.textContent = data.error || I18n.t('app.rating.error', 'Er ging iets mis');
       status.style.color = 'var(--danger)';
     }
   } catch {
-    status.textContent = 'Netwerkfout';
+    status.textContent = I18n.t('app.rating.network_error', 'Netwerkfout');
     status.style.color = 'var(--danger)';
   }
 
   btn.disabled = false;
-  btn.textContent = 'Verstuur beoordeling';
+  btn.textContent = I18n.t('app.rating.submit', 'Verstuur beoordeling');
 }
 
 function closeRatingModal() {
@@ -1784,7 +1817,7 @@ function init() {
   if (new URLSearchParams(location.search).has('dev')) {
     const devBtn = document.createElement('button');
     devBtn.className = 'btn-secondary btn-small';
-    devBtn.textContent = '📋 Laad voorbeelddata';
+    devBtn.textContent = I18n.t('app.dev.load_sample', '📋 Laad voorbeelddata');
     devBtn.style.marginLeft = 'auto';
     devBtn.onclick = loadSampleData;
     document.querySelector('.participants-header').appendChild(devBtn);

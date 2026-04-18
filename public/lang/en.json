@@ -275,5 +275,359 @@
       "open_planner": "Open the planner →",
       "invoice_note": "You'll receive an invoice by email."
     }
+  },
+
+  "app": {
+    "courses": {
+      "voorborrel": "Pre-dinner drinks",
+      "voorgerecht": "Starter",
+      "hoofdgerecht": "Main course",
+      "nagerecht": "Dessert",
+      "naborrel": "After-party drinks"
+    },
+
+    "steps": {
+      "step1_btn": "1. Configuration",
+      "step2_btn": "2. Participants",
+      "step3_btn": "3. Planning",
+      "step4_btn": "4. Overview",
+      "step1_title": "Step 1: Configuration",
+      "step2_title": "Step 2: Participants",
+      "step3_title": "Step 3: Automatic Planning",
+      "step4_title": "Step 4: Overview"
+    },
+
+    "nav": {
+      "next_participants": "Next: Participants →",
+      "next_planning": "Next: Planning →",
+      "next_overview": "Next: Overview →",
+      "back": "← Back",
+      "back_to_planning": "← Back to planning"
+    },
+
+    "config": {
+      "select_courses": "Select active courses",
+      "optional": "Optional",
+      "required": "Required",
+      "time_settings": "Time settings",
+      "time_voorborrel": "Pre-dinner drinks start time",
+      "time_voorgerecht": "Starter start time",
+      "time_hoofdgerecht": "Main course start time",
+      "time_nagerecht": "Dessert start time",
+      "time_naborrel": "After-party drinks start time",
+      "duration": "Duration",
+      "table_size": "Table size",
+      "min_guests": "Minimum guests per table",
+      "max_guests": "Maximum guests per table",
+      "host_not_counted": "The host is <strong>not</strong> included in this number.",
+      "event_details": "Event details",
+      "event_name": "Event name",
+      "event_date": "Date",
+      "event_city": "City/town"
+    },
+
+    "participants": {
+      "title": "Participants",
+      "add_btn": "+ Add participant",
+      "empty_state": "No participants added yet. Click \"+ Add participant\" to get started.",
+      "forced_combos": "Forced combinations",
+      "forced_combos_hint": "Specify participants that must always sit at the same table.",
+      "add_combo": "+ Add combination",
+      "select_person1": "Select person 1...",
+      "select_person2": "Select person 2...",
+      "always_together": "always together with",
+      "host_label": "Host",
+      "unavailable": "Not available",
+      "edit_btn": "Edit"
+    },
+
+    "import": {
+      "title": "Import / Export",
+      "hint": "Download the Excel template, fill in the participants and import the file back. Remove the example row before importing.",
+      "download_template": "📋 Download Excel template",
+      "import_excel": "📥 Import Excel",
+      "xlsx_not_loaded": "Excel library not loaded. Check your internet connection.",
+      "no_data": "The file contains no data (at least a header row and one data row required).",
+      "imported_suffix": "participant(s) successfully imported",
+      "skipped": "skipped",
+      "failed": "Import failed"
+    },
+
+    "groups": {
+      "title": "Group management",
+      "hint": "Save the current participant list to reuse next year.",
+      "save_group": "💾 Save group",
+      "load_group": "📂 Load group",
+      "delete_all": "🗑️ Delete all participants",
+      "save_title": "💾 Save participant group",
+      "save_placeholder": "Name for this group (e.g. 'Edition 2026')",
+      "existing_groups": "Existing groups (click to reuse a name)",
+      "no_groups": "No saved groups.",
+      "no_groups_hint": "No saved groups. Save a group first via \"Save group\".",
+      "load_title": "📂 Load participant group",
+      "load_btn": "Load",
+      "saved_at": "saved"
+    },
+
+    "planning": {
+      "social_locations": "Social course locations",
+      "social_locations_hint": "Select which participant hosts the social course, or enter a custom address.",
+      "generate_title": "Generate planning",
+      "generate_desc": "Click the button below to generate an optimal seating arrangement. The algorithm maximises the variety of tablemates.",
+      "generate_btn": "⚡ Generate Planning",
+      "regenerate_btn": "🔄 Regenerate",
+      "table_layout": "Table layout per course",
+      "change_log": "Change log",
+      "attention_points": "Points of attention",
+      "everyone_together": "Everyone together",
+      "table": "Table",
+      "drag_to_move": "Drag to move",
+      "drag_guest_here": "Drag a guest here",
+      "no_changes": "No manual changes yet. Drag guests (⠿) between tables to swap them.",
+      "changes": "change(s)",
+      "undo_all": "Undo all",
+      "moved_from": "moved from",
+      "undo": "Undo"
+    },
+
+    "overview": {
+      "tab_per_person": "📋 Route per participant",
+      "tab_per_location": "📍 Per location",
+      "tab_envelope": "✉️ Envelope cards",
+      "organizer_note": "🔒 Organiser overview — this shows the full route per participant for the entire evening.",
+      "print_routes": "🖨️ Print routes",
+      "print_locations": "🖨️ Print location overview",
+      "envelope_hint": "✉️ <strong>Envelope cards</strong> — per table, per course. Place the cards <strong>sealed</strong> on the table. Guests open the envelope at the end of the course and see their next destination.",
+      "print_all_cards": "🖨️ Print all cards",
+      "print_per_course": "🖨️ Print per course (separate pages)",
+      "no_planning": "Go to step 3 first and generate a planning.",
+      "yourself": "yourself",
+      "you_are_host": "You are the host",
+      "host": "Host",
+      "tablemates": "Tablemates",
+      "social_moment": "Social moment",
+      "all_together": "All participants together",
+      "name": "Name",
+      "role": "Role",
+      "dietary": "Dietary needs",
+      "guest": "Guest"
+    },
+
+    "envelope": {
+      "no_cards": "No envelope cards available for the current planning.",
+      "location_unknown": "Location unknown",
+      "next": "next",
+      "table_at": "Table at",
+      "open_at_end": "open at the end of this course",
+      "your_next_destination": "Your next destination",
+      "at": "At"
+    },
+
+    "snapshots": {
+      "title": "Snapshots",
+      "hint": "Save the current planning as a snapshot to review later.",
+      "save": "💾 Save snapshot",
+      "load": "📂 Load snapshot",
+      "name_prompt": "Name for this snapshot:",
+      "load_title": "📂 Load snapshot",
+      "no_snapshots": "No saved snapshots."
+    },
+
+    "modal": {
+      "add_participant": "Add participant",
+      "edit_participant": "Edit participant",
+      "personal_details": "Personal details",
+      "name_person1": "Name person 1 *",
+      "name_partner": "Name partner (optional)",
+      "name1_placeholder": "John Smith",
+      "name2_placeholder": "Jane Smith",
+      "address": "Address",
+      "postcode": "Postcode *",
+      "housenumber": "House number *",
+      "lookup_btn": "🔍 Look up",
+      "street": "Street name *",
+      "city": "City *",
+      "auto_filled": "Auto-filled from postcode",
+      "availability": "Availability",
+      "availability_hint": "Indicate at which courses person 1 and optionally the partner can attend.",
+      "person1": "Person 1",
+      "partner": "Partner",
+      "host_preference": "Hosting preference",
+      "host_preference_label": "For which course would you like to be the host?",
+      "no_preference": "No preference",
+      "diet_title": "Dietary needs & Allergies",
+      "diet_person1": "Person 1 – dietary needs/allergies",
+      "diet_partner": "Partner – dietary needs/allergies",
+      "diet1_placeholder": "e.g. vegetarian, nut allergy",
+      "diet2_placeholder": "e.g. lactose intolerant",
+      "tablemate_prefs": "Tablemate preferences",
+      "prefer_with": "Would like to dine with:",
+      "avoid": "Would NOT like to dine with:",
+      "names_comma_separated": "Names, comma separated",
+      "cancel": "Cancel",
+      "save": "Save",
+      "manage": "Manage"
+    },
+
+    "social": {
+      "unknown_location": "Location unknown / fill in later",
+      "participant_host": "Participant as host",
+      "custom_address": "Custom address",
+      "select_participant": "Select participant…",
+      "name_desc": "Name / description",
+      "street_nr": "Street + number",
+      "postcode": "Postcode",
+      "city": "City"
+    },
+
+    "postcode": {
+      "loading": "Looking up…",
+      "found": "✓ Address found",
+      "not_found": "Address not found. Please fill in manually.",
+      "failed": "Lookup failed. Please fill in manually."
+    },
+
+    "stats": {
+      "participants": "Participants",
+      "couples": "Couples",
+      "avg_new_tablemates": "Avg. new tablemates",
+      "courses": "Courses"
+    },
+
+    "alert": {
+      "min_participants": "Add at least 3 participants to generate a planning.",
+      "same_course_only": "Guests can only be moved within the same course.",
+      "enter_name": "Please enter a name.",
+      "group_saved_prefix": "Group",
+      "saved": "saved!",
+      "snapshot_prefix": "Snapshot",
+      "generate_first": "Generate a planning in step 3 first.",
+      "xlsx_not_loaded": "Excel library not yet loaded. Check your internet connection and try again."
+    },
+
+    "confirm": {
+      "delete_participant": "Delete participant?",
+      "undo_all": "Undo all manual changes?",
+      "delete_group": "Group",
+      "delete_suffix": "delete?",
+      "load_group_prefix": "Group",
+      "load_group_suffix": "load? The current participants will be replaced.",
+      "delete_all_prefix": "All",
+      "delete_all_suffix": "participants delete? This cannot be undone.",
+      "load_snapshot_suffix": "load? The current state will be overwritten."
+    },
+
+    "warning": {
+      "not_enough_hosts": "Not enough available hosts for",
+      "consider_more_participants": "Consider adding more participants.",
+      "table_full": "Table full at",
+      "increase_max": "Increase the maximum number of guests per table or add an extra host.",
+      "table_underfilled_prefix": "Table of",
+      "table_underfilled_at": "at",
+      "table_underfilled_suffix": "has only",
+      "guests": "guest(s)",
+      "guideline_min": "guideline minimum"
+    },
+
+    "rating": {
+      "title": "Rating",
+      "update_title": "Update your rating",
+      "ask_title": "How do you like the planner?",
+      "feedback_helps": "Your feedback helps us improve the tool",
+      "comment_label": "Comment (optional)",
+      "comment_placeholder": "What do you like? What could be better?",
+      "later": "Later",
+      "submit": "Submit rating",
+      "submitting": "Submitting...",
+      "select_star": "Select at least 1 star",
+      "thanks": "Thank you!",
+      "error": "Something went wrong",
+      "network_error": "Network error"
+    },
+
+    "auth": {
+      "subscribe": "Subscribe",
+      "profile": "Profile",
+      "logout": "Log out",
+      "subscription_required": "Subscription required",
+      "subscription_desc": "To use the Running Dinner Planner you need an active subscription.",
+      "subscribe_cta": "Subscribe – €5/year",
+      "login_other": "Log in with another account",
+      "subscription_valid": "Subscription valid until"
+    },
+
+    "excel": {
+      "sheet_participants": "Participants",
+      "sheet_instructions": "Instructions",
+      "filename": "running-dinner-participants-template.xlsx",
+      "name_person1": "Name person 1*",
+      "name_partner": "Name partner",
+      "postcode": "Postcode*",
+      "housenumber": "House number*",
+      "street": "Street name",
+      "city": "City",
+      "host_preference": "Hosting preference",
+      "avail_p1_voorborrel": "Avail. P1: pre-drinks",
+      "avail_p1_voorgerecht": "Avail. P1: starter",
+      "avail_p1_hoofdgerecht": "Avail. P1: main course",
+      "avail_p1_nagerecht": "Avail. P1: dessert",
+      "avail_p1_naborrel": "Avail. P1: after-party",
+      "avail_partner_voorborrel": "Avail. partner: pre-drinks",
+      "avail_partner_voorgerecht": "Avail. partner: starter",
+      "avail_partner_hoofdgerecht": "Avail. partner: main course",
+      "avail_partner_nagerecht": "Avail. partner: dessert",
+      "avail_partner_naborrel": "Avail. partner: after-party",
+      "diet_person1": "Dietary needs person 1",
+      "diet_partner": "Dietary needs partner",
+      "prefer_with": "Would like to sit with",
+      "avoid": "Would NOT like to sit with",
+      "yes": "yes",
+      "no": "no",
+      "example_vegetarian": "vegetarian",
+      "instr_yes": "Yes",
+      "instr_no": "No",
+      "instr_column": "Column",
+      "instr_required": "Required",
+      "instr_explanation": "Explanation",
+      "instr_valid_values": "Valid values",
+      "instr_name1": "Name person 1",
+      "instr_name1_desc": "Full name of the first person",
+      "instr_partner": "Name partner",
+      "instr_partner_desc": "Full name of the partner (leave empty if no partner)",
+      "instr_postcode": "Postcode",
+      "instr_postcode_desc": "Postcode without spaces",
+      "instr_postcode_eg": "e.g. 1015AB",
+      "instr_housenr": "House number",
+      "instr_housenr_desc": "House number only (including suffix)",
+      "instr_housenr_eg": "e.g. 45 or 45A",
+      "instr_street": "Street name",
+      "instr_street_desc": "Auto-filled via postcode if left empty",
+      "instr_city": "City",
+      "instr_city_desc": "Auto-filled via postcode if left empty",
+      "instr_host": "Hosting preference",
+      "instr_host_desc": "For which course does the person want to be the host?",
+      "instr_empty": "empty",
+      "instr_avail_p1": "Avail. P1: *",
+      "instr_avail_p1_desc": "Is person 1 attending this course?",
+      "instr_avail_partner": "Avail. partner: *",
+      "instr_avail_partner_desc": "Is the partner attending this course?",
+      "instr_yes_no": "yes / no  (empty = yes)",
+      "instr_diet1": "Dietary needs person 1",
+      "instr_diet1_desc": "Allergies or dietary needs of person 1",
+      "instr_diet2": "Dietary needs partner",
+      "instr_diet2_desc": "Allergies or dietary needs of the partner",
+      "instr_free_text": "Free text",
+      "instr_prefer": "Would like to sit with",
+      "instr_prefer_desc": "Names of people they'd like to sit with (comma separated)",
+      "instr_prefer_eg": "e.g. Lisa Johnson, Thomas Smith",
+      "instr_avoid": "Would NOT like to sit with",
+      "instr_avoid_desc": "Names of people they do NOT want to sit with (comma separated)",
+      "instr_avoid_eg": "e.g. Kevin Peters",
+      "instr_warning": "NOTE: Delete the example row (row 2 in the Participants sheet) before importing!"
+    },
+
+    "dev": {
+      "load_sample": "📋 Load sample data"
+    }
   }
 }

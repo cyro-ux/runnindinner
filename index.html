@@ -17,20 +17,20 @@
   <span style="font-weight:700">🍽️ Running Dinner Planner</span>
   <span id="auth-license-info" style="opacity:.85"></span>
   <span style="margin-left:auto;display:flex;align-items:center;gap:12px">
-    <a id="auth-subscribe-link" href="/subscribe.html" style="color:#fff;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:100px;font-weight:600;text-decoration:none;display:none">Abonnement nemen</a>
+    <a id="auth-subscribe-link" href="/subscribe.html" style="color:#fff;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:100px;font-weight:600;text-decoration:none;display:none" data-i18n="app.auth.subscribe">Abonnement nemen</a>
     <span id="auth-user-email" style="opacity:.8"></span>
-    <a href="/profile.html" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;text-decoration:none;font-size:.8rem">Profiel</a>
-    <button id="auth-logout-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.8rem">Uitloggen</button>
+    <a href="/profile.html" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;text-decoration:none;font-size:.8rem" data-i18n="app.auth.profile">Profiel</a>
+    <button id="auth-logout-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.8rem" data-i18n="app.auth.logout">Uitloggen</button>
     <span id="app-lang-toggle" style="display:flex;align-items:center;gap:2px;margin-left:4px"></span>
   </span>
 </div>
 <div id="auth-gate" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:#F8FAFC;font-family:'Plus Jakarta Sans',system-ui,sans-serif">
   <div style="background:#fff;border:1px solid #E2E8F0;border-radius:20px;padding:48px 40px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.1)">
     <div style="font-size:2.5rem;margin-bottom:12px">🔒</div>
-    <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px;color:#1E293B">Abonnement vereist</h2>
-    <p style="color:#64748B;margin-bottom:24px;font-size:.9rem">Om de Running Dinner Planner te gebruiken heb je een actief abonnement nodig.</p>
-    <a href="/subscribe.html" style="display:block;background:#E85D3A;color:#fff;border-radius:10px;padding:13px;font-weight:700;text-decoration:none;margin-bottom:12px;box-shadow:0 4px 16px rgba(232,93,58,.25)">Abonnement nemen – €5/jaar</a>
-    <a href="/login.html" style="color:#E85D3A;font-size:.85rem;font-weight:600">Inloggen met ander account</a>
+    <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px;color:#1E293B" data-i18n="app.auth.subscription_required">Abonnement vereist</h2>
+    <p style="color:#64748B;margin-bottom:24px;font-size:.9rem" data-i18n="app.auth.subscription_desc">Om de Running Dinner Planner te gebruiken heb je een actief abonnement nodig.</p>
+    <a href="/subscribe.html" style="display:block;background:#E85D3A;color:#fff;border-radius:10px;padding:13px;font-weight:700;text-decoration:none;margin-bottom:12px;box-shadow:0 4px 16px rgba(232,93,58,.25)" data-i18n="app.auth.subscribe_cta">Abonnement nemen – €5/jaar</a>
+    <a href="/login.html" style="color:#E85D3A;font-size:.85rem;font-weight:600" data-i18n="app.auth.login_other">Inloggen met ander account</a>
   </div>
 </div>
 
@@ -38,239 +38,239 @@
     <header>
       <h1>🍽️ Running Dinner Planner</h1>
       <nav class="steps-nav">
-        <button class="step-btn active" data-step="1">1. Configuratie</button>
-        <button class="step-btn" data-step="2">2. Deelnemers</button>
-        <button class="step-btn" data-step="3">3. Planning</button>
-        <button class="step-btn" data-step="4">4. Overzicht</button>
+        <button class="step-btn active" data-step="1" data-i18n="app.steps.step1_btn">1. Configuratie</button>
+        <button class="step-btn" data-step="2" data-i18n="app.steps.step2_btn">2. Deelnemers</button>
+        <button class="step-btn" data-step="3" data-i18n="app.steps.step3_btn">3. Planning</button>
+        <button class="step-btn" data-step="4" data-i18n="app.steps.step4_btn">4. Overzicht</button>
       </nav>
     </header>
 
     <!-- STEP 1: Configuration -->
     <section id="step-1" class="step active">
-      <h2>Stap 1: Configuratie</h2>
+      <h2 data-i18n="app.steps.step1_title">Stap 1: Configuratie</h2>
       <div class="card">
-        <h3>Selecteer actieve onderdelen</h3>
+        <h3 data-i18n="app.config.select_courses">Selecteer actieve onderdelen</h3>
         <div class="course-config">
           <label class="course-item optional">
             <input type="checkbox" id="has-voorborrel" name="voorborrel">
             <span class="course-icon">🥂</span>
-            <span class="course-name">Voorborrel</span>
-            <span class="badge optional-badge">Optioneel</span>
+            <span class="course-name" data-i18n="app.courses.voorborrel">Voorborrel</span>
+            <span class="badge optional-badge" data-i18n="app.config.optional">Optioneel</span>
           </label>
           <label class="course-item required">
             <input type="checkbox" id="has-voorgerecht" name="voorgerecht" checked disabled>
             <span class="course-icon">🥗</span>
-            <span class="course-name">Voorgerecht</span>
-            <span class="badge required-badge">Verplicht</span>
+            <span class="course-name" data-i18n="app.courses.voorgerecht">Voorgerecht</span>
+            <span class="badge required-badge" data-i18n="app.config.required">Verplicht</span>
             <span class="duration-badge">45 min</span>
           </label>
           <label class="course-item required">
             <input type="checkbox" id="has-hoofdgerecht" name="hoofdgerecht" checked disabled>
             <span class="course-icon">🍖</span>
-            <span class="course-name">Hoofdgerecht</span>
-            <span class="badge required-badge">Verplicht</span>
+            <span class="course-name" data-i18n="app.courses.hoofdgerecht">Hoofdgerecht</span>
+            <span class="badge required-badge" data-i18n="app.config.required">Verplicht</span>
             <span class="duration-badge">60 min</span>
           </label>
           <label class="course-item required">
             <input type="checkbox" id="has-nagerecht" name="nagerecht" checked disabled>
             <span class="course-icon">🍰</span>
-            <span class="course-name">Nagerecht</span>
-            <span class="badge required-badge">Verplicht</span>
+            <span class="course-name" data-i18n="app.courses.nagerecht">Nagerecht</span>
+            <span class="badge required-badge" data-i18n="app.config.required">Verplicht</span>
             <span class="duration-badge">45 min</span>
           </label>
           <label class="course-item optional">
             <input type="checkbox" id="has-naborrel" name="naborrel">
             <span class="course-icon">🎉</span>
-            <span class="course-name">Naborrel</span>
-            <span class="badge optional-badge">Optioneel</span>
+            <span class="course-name" data-i18n="app.courses.naborrel">Naborrel</span>
+            <span class="badge optional-badge" data-i18n="app.config.optional">Optioneel</span>
           </label>
         </div>
       </div>
 
       <div class="card">
-        <h3>Tijdsinstellingen</h3>
+        <h3 data-i18n="app.config.time_settings">Tijdsinstellingen</h3>
         <div class="time-config">
           <div class="time-item" id="voorborrel-time-config" style="display:none">
-            <label>🥂 Voorborrel starttijd:</label>
+            <label>🥂 <span data-i18n="app.config.time_voorborrel">Voorborrel starttijd</span>:</label>
             <input type="time" id="voorborrel-start" value="17:00">
-            <span class="duration-info">Duur: <input type="number" id="voorborrel-duration" value="45" min="15" max="120"> min</span>
+            <span class="duration-info"><span data-i18n="app.config.duration">Duur</span>: <input type="number" id="voorborrel-duration" value="45" min="15" max="120"> min</span>
           </div>
           <div class="time-item">
-            <label>🥗 Voorgerecht starttijd:</label>
+            <label>🥗 <span data-i18n="app.config.time_voorgerecht">Voorgerecht starttijd</span>:</label>
             <input type="time" id="voorgerecht-start" value="18:00">
-            <span class="duration-info">Duur: <input type="number" id="voorgerecht-duration" value="45" min="15" max="120"> min</span>
+            <span class="duration-info"><span data-i18n="app.config.duration">Duur</span>: <input type="number" id="voorgerecht-duration" value="45" min="15" max="120"> min</span>
           </div>
           <div class="time-item">
-            <label>🍖 Hoofdgerecht starttijd:</label>
+            <label>🍖 <span data-i18n="app.config.time_hoofdgerecht">Hoofdgerecht starttijd</span>:</label>
             <input type="time" id="hoofdgerecht-start" value="19:00">
-            <span class="duration-info">Duur: <input type="number" id="hoofdgerecht-duration" value="60" min="15" max="120"> min</span>
+            <span class="duration-info"><span data-i18n="app.config.duration">Duur</span>: <input type="number" id="hoofdgerecht-duration" value="60" min="15" max="120"> min</span>
           </div>
           <div class="time-item">
-            <label>🍰 Nagerecht starttijd:</label>
+            <label>🍰 <span data-i18n="app.config.time_nagerecht">Nagerecht starttijd</span>:</label>
             <input type="time" id="nagerecht-start" value="20:15">
-            <span class="duration-info">Duur: <input type="number" id="nagerecht-duration" value="45" min="15" max="120"> min</span>
+            <span class="duration-info"><span data-i18n="app.config.duration">Duur</span>: <input type="number" id="nagerecht-duration" value="45" min="15" max="120"> min</span>
           </div>
           <div class="time-item" id="naborrel-time-config" style="display:none">
-            <label>🎉 Naborrel starttijd:</label>
+            <label>🎉 <span data-i18n="app.config.time_naborrel">Naborrel starttijd</span>:</label>
             <input type="time" id="naborrel-start" value="21:15">
-            <span class="duration-info">Duur: <input type="number" id="naborrel-duration" value="60" min="15" max="120"> min</span>
+            <span class="duration-info"><span data-i18n="app.config.duration">Duur</span>: <input type="number" id="naborrel-duration" value="60" min="15" max="120"> min</span>
           </div>
         </div>
       </div>
 
       <div class="card">
-        <h3>Tafelgrootte</h3>
+        <h3 data-i18n="app.config.table_size">Tafelgrootte</h3>
         <div class="table-size-config">
-          <label>Minimum gasten per tafel: <input type="number" id="min-table-size" value="4" min="1" max="20"></label>
-          <label>Maximum gasten per tafel: <input type="number" id="max-table-size" value="6" min="2" max="20"></label>
-          <p class="hint" style="margin-top:6px;font-size:0.78rem">Gastheer/vrouw telt <strong>niet</strong> mee in dit getal.</p>
+          <label><span data-i18n="app.config.min_guests">Minimum gasten per tafel</span>: <input type="number" id="min-table-size" value="4" min="1" max="20"></label>
+          <label><span data-i18n="app.config.max_guests">Maximum gasten per tafel</span>: <input type="number" id="max-table-size" value="6" min="2" max="20"></label>
+          <p class="hint" style="margin-top:6px;font-size:0.78rem" data-i18n-html="app.config.host_not_counted">Gastheer/vrouw telt <strong>niet</strong> mee in dit getal.</p>
         </div>
       </div>
 
       <div class="card">
-        <h3>Evenement details</h3>
+        <h3 data-i18n="app.config.event_details">Evenement details</h3>
         <div class="event-details">
-          <label>Evenement naam: <input type="text" id="event-name" placeholder="Running Dinner 2026" value="Running Dinner 2026"></label>
-          <label>Datum: <input type="date" id="event-date" value="2026-05-16"></label>
-          <label>Stad/gemeente: <input type="text" id="event-city" placeholder="Amsterdam" value=""></label>
+          <label><span data-i18n="app.config.event_name">Evenement naam</span>: <input type="text" id="event-name" placeholder="Running Dinner 2026" value="Running Dinner 2026"></label>
+          <label><span data-i18n="app.config.event_date">Datum</span>: <input type="date" id="event-date" value="2026-05-16"></label>
+          <label><span data-i18n="app.config.event_city">Stad/gemeente</span>: <input type="text" id="event-city" placeholder="Amsterdam" value=""></label>
         </div>
       </div>
 
       <div class="btn-row">
-        <button class="btn-primary" onclick="goToStep(2)">Volgende: Deelnemers →</button>
+        <button class="btn-primary" onclick="goToStep(2)" data-i18n="app.nav.next_participants">Volgende: Deelnemers →</button>
       </div>
     </section>
 
     <!-- STEP 2: Participants -->
     <section id="step-2" class="step">
-      <h2>Stap 2: Deelnemers</h2>
+      <h2 data-i18n="app.steps.step2_title">Stap 2: Deelnemers</h2>
       <div class="card">
         <div class="participants-header">
-          <h3>Deelnemers (<span id="participant-count">0</span>)</h3>
-          <button class="btn-primary" onclick="openAddParticipant()">+ Deelnemer toevoegen</button>
+          <h3><span data-i18n="app.participants.title">Deelnemers</span> (<span id="participant-count">0</span>)</h3>
+          <button class="btn-primary" onclick="openAddParticipant()" data-i18n="app.participants.add_btn">+ Deelnemer toevoegen</button>
         </div>
         <div id="participants-list" class="participants-list">
-          <p class="empty-state">Nog geen deelnemers toegevoegd. Klik op "+ Deelnemer toevoegen" om te beginnen.</p>
+          <p class="empty-state" data-i18n="app.participants.empty_state">Nog geen deelnemers toegevoegd. Klik op "+ Deelnemer toevoegen" om te beginnen.</p>
         </div>
       </div>
 
       <div class="card" id="force-combos-card">
-        <h3>Geforceerde combinaties</h3>
-        <p class="hint">Specificeer deelnemers die altijd samen aan tafel moeten zitten.</p>
+        <h3 data-i18n="app.participants.forced_combos">Geforceerde combinaties</h3>
+        <p class="hint" data-i18n="app.participants.forced_combos_hint">Specificeer deelnemers die altijd samen aan tafel moeten zitten.</p>
         <div id="forced-combos-list"></div>
-        <button class="btn-secondary" onclick="addForcedCombo()">+ Combinatie toevoegen</button>
+        <button class="btn-secondary" onclick="addForcedCombo()" data-i18n="app.participants.add_combo">+ Combinatie toevoegen</button>
       </div>
 
       <div class="card">
-        <h3>Importeren / Exporteren</h3>
-        <p class="hint">Download het Excel-sjabloon, vul de deelnemers in en importeer het bestand terug. Verwijder de voorbeeldrij vóór het importeren.</p>
+        <h3 data-i18n="app.import.title">Importeren / Exporteren</h3>
+        <p class="hint" data-i18n="app.import.hint">Download het Excel-sjabloon, vul de deelnemers in en importeer het bestand terug. Verwijder de voorbeeldrij vóór het importeren.</p>
         <div class="group-actions">
-          <button class="btn-secondary" onclick="downloadTemplate()">📋 Download Excel-sjabloon</button>
-          <button class="btn-secondary" onclick="document.getElementById('import-file').click()">📥 Importeer Excel</button>
+          <button class="btn-secondary" onclick="downloadTemplate()" data-i18n="app.import.download_template">📋 Download Excel-sjabloon</button>
+          <button class="btn-secondary" onclick="document.getElementById('import-file').click()" data-i18n="app.import.import_excel">📥 Importeer Excel</button>
           <input type="file" id="import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importParticipantsFromFile(event)">
         </div>
         <div id="import-status" class="import-status-msg"></div>
       </div>
 
       <div class="card">
-        <h3>Groepsbeheer</h3>
-        <p class="hint">Sla de huidige deelnemerslijst op om volgend jaar opnieuw te gebruiken.</p>
+        <h3 data-i18n="app.groups.title">Groepsbeheer</h3>
+        <p class="hint" data-i18n="app.groups.hint">Sla de huidige deelnemerslijst op om volgend jaar opnieuw te gebruiken.</p>
         <div class="group-actions">
-          <button class="btn-secondary" onclick="showSaveGroupModal()">💾 Groep opslaan</button>
-          <button class="btn-secondary" onclick="showLoadGroupModal()">📂 Groep laden</button>
-          <button class="btn-danger" onclick="deleteAllParticipants()">🗑️ Alle deelnemers verwijderen</button>
+          <button class="btn-secondary" onclick="showSaveGroupModal()" data-i18n="app.groups.save_group">💾 Groep opslaan</button>
+          <button class="btn-secondary" onclick="showLoadGroupModal()" data-i18n="app.groups.load_group">📂 Groep laden</button>
+          <button class="btn-danger" onclick="deleteAllParticipants()" data-i18n="app.groups.delete_all">🗑️ Alle deelnemers verwijderen</button>
         </div>
       </div>
 
       <div class="btn-row">
-        <button class="btn-secondary" onclick="goToStep(1)">← Terug</button>
-        <button class="btn-primary" onclick="goToStep(3)" id="btn-to-planning">Volgende: Planning →</button>
+        <button class="btn-secondary" onclick="goToStep(1)" data-i18n="app.nav.back">← Terug</button>
+        <button class="btn-primary" onclick="goToStep(3)" id="btn-to-planning" data-i18n="app.nav.next_planning">Volgende: Planning →</button>
       </div>
     </section>
 
     <!-- STEP 3: Planning -->
     <section id="step-3" class="step">
-      <h2>Stap 3: Automatische Planning</h2>
+      <h2 data-i18n="app.steps.step3_title">Stap 3: Automatische Planning</h2>
 
       <div class="card" id="social-locations-card" style="display:none">
-        <h3>Locatie sociale gangen</h3>
-        <p class="hint">Selecteer welke deelnemer de sociale gang organiseert, of voer een apart adres in.</p>
+        <h3 data-i18n="app.planning.social_locations">Locatie sociale gangen</h3>
+        <p class="hint" data-i18n="app.planning.social_locations_hint">Selecteer welke deelnemer de sociale gang organiseert, of voer een apart adres in.</p>
         <div id="social-locations-body"></div>
       </div>
 
       <div class="card">
-        <h3>Planning genereren</h3>
-        <p>Klik op de knop hieronder om een optimale indeling te genereren. Het algoritme zorgt voor maximale spreiding van tafelgenoten.</p>
+        <h3 data-i18n="app.planning.generate_title">Planning genereren</h3>
+        <p data-i18n="app.planning.generate_desc">Klik op de knop hieronder om een optimale indeling te genereren. Het algoritme zorgt voor maximale spreiding van tafelgenoten.</p>
         <div id="planning-stats" class="planning-stats" style="display:none"></div>
         <div class="btn-row">
-          <button class="btn-primary" onclick="generatePlanning()">⚡ Genereer Planning</button>
-          <button class="btn-secondary" onclick="regeneratePlanning()" id="btn-regenerate" style="display:none">🔄 Opnieuw genereren</button>
+          <button class="btn-primary" onclick="generatePlanning()" data-i18n="app.planning.generate_btn">⚡ Genereer Planning</button>
+          <button class="btn-secondary" onclick="regeneratePlanning()" id="btn-regenerate" style="display:none" data-i18n="app.planning.regenerate_btn">🔄 Opnieuw genereren</button>
         </div>
         <div id="planning-warnings" class="warnings-box" style="display:none"></div>
       </div>
 
       <div id="planning-result" style="display:none">
         <div class="card">
-          <h3>Tafelindeling per gang</h3>
+          <h3 data-i18n="app.planning.table_layout">Tafelindeling per gang</h3>
           <div id="courses-overview"></div>
         </div>
 
         <div class="card">
-          <h3>Wijzigingslog</h3>
+          <h3 data-i18n="app.planning.change_log">Wijzigingslog</h3>
           <div id="manual-adjustment-area"></div>
         </div>
       </div>
 
       <div class="btn-row">
-        <button class="btn-secondary" onclick="goToStep(2)">← Terug</button>
-        <button class="btn-primary" onclick="goToStep(4)" id="btn-to-overview" style="display:none">Volgende: Overzicht →</button>
+        <button class="btn-secondary" onclick="goToStep(2)" data-i18n="app.nav.back">← Terug</button>
+        <button class="btn-primary" onclick="goToStep(4)" id="btn-to-overview" style="display:none" data-i18n="app.nav.next_overview">Volgende: Overzicht →</button>
       </div>
     </section>
 
     <!-- STEP 4: Overview -->
     <section id="step-4" class="step">
-      <h2>Stap 4: Overzicht</h2>
+      <h2 data-i18n="app.steps.step4_title">Stap 4: Overzicht</h2>
       <div class="view-tabs">
-        <button class="tab-btn active" onclick="switchTab('per-person')">📋 Route per deelnemer</button>
-        <button class="tab-btn" onclick="switchTab('per-location')">📍 Per locatie</button>
-        <button class="tab-btn" onclick="switchTab('envelope')">✉️ Envelop-kaartjes</button>
+        <button class="tab-btn active" onclick="switchTab('per-person')" data-i18n="app.overview.tab_per_person">📋 Route per deelnemer</button>
+        <button class="tab-btn" onclick="switchTab('per-location')" data-i18n="app.overview.tab_per_location">📍 Per locatie</button>
+        <button class="tab-btn" onclick="switchTab('envelope')" data-i18n="app.overview.tab_envelope">✉️ Envelop-kaartjes</button>
       </div>
 
       <div id="tab-per-person" class="tab-content active">
         <div class="print-controls">
-          <p class="hint organizer-note">🔒 Organisatorsoverzicht — dit toont de volledige route per deelnemer voor de hele avond.</p>
-          <button class="btn-secondary" onclick="printSection('per-person')">🖨️ Print routes</button>
+          <p class="hint organizer-note" data-i18n="app.overview.organizer_note">🔒 Organisatorsoverzicht — dit toont de volledige route per deelnemer voor de hele avond.</p>
+          <button class="btn-secondary" onclick="printSection('per-person')" data-i18n="app.overview.print_routes">🖨️ Print routes</button>
         </div>
         <div id="per-person-content"></div>
       </div>
 
       <div id="tab-per-location" class="tab-content">
         <div class="print-controls">
-          <button class="btn-secondary" onclick="printSection('per-location')">🖨️ Print locatie-overzicht</button>
+          <button class="btn-secondary" onclick="printSection('per-location')" data-i18n="app.overview.print_locations">🖨️ Print locatie-overzicht</button>
         </div>
         <div id="per-location-content"></div>
       </div>
 
       <div id="tab-envelope" class="tab-content">
         <div class="print-controls">
-          <p class="hint">✉️ <strong>Envelop-kaartjes</strong> — per tafel, per gang. Leg de kaartjes <strong>gesloten</strong> op tafel. Gasten openen de envelop aan het einde van het gerecht en zien dan hun volgende bestemming.</p>
-          <button class="btn-secondary" onclick="printSection('envelope')">🖨️ Print alle kaartjes</button>
-          <button class="btn-secondary" onclick="printSingleEnvelopes()">🖨️ Print per gang (aparte pagina's)</button>
+          <p class="hint" data-i18n-html="app.overview.envelope_hint">✉️ <strong>Envelop-kaartjes</strong> — per tafel, per gang. Leg de kaartjes <strong>gesloten</strong> op tafel. Gasten openen de envelop aan het einde van het gerecht en zien dan hun volgende bestemming.</p>
+          <button class="btn-secondary" onclick="printSection('envelope')" data-i18n="app.overview.print_all_cards">🖨️ Print alle kaartjes</button>
+          <button class="btn-secondary" onclick="printSingleEnvelopes()" data-i18n="app.overview.print_per_course">🖨️ Print per gang (aparte pagina's)</button>
         </div>
         <div id="envelope-content"></div>
       </div>
 
       <div class="snapshot-bar card">
-        <h3>Momentopnames</h3>
-        <p class="hint">Sla de huidige planning op als momentopname om later te raadplegen.</p>
+        <h3 data-i18n="app.snapshots.title">Momentopnames</h3>
+        <p class="hint" data-i18n="app.snapshots.hint">Sla de huidige planning op als momentopname om later te raadplegen.</p>
         <div class="group-actions">
-          <button class="btn-secondary" onclick="savePlanningSnapshot()">💾 Momentopname opslaan</button>
-          <button class="btn-secondary" onclick="showLoadSnapshotModal()">📂 Momentopname laden</button>
+          <button class="btn-secondary" onclick="savePlanningSnapshot()" data-i18n="app.snapshots.save">💾 Momentopname opslaan</button>
+          <button class="btn-secondary" onclick="showLoadSnapshotModal()" data-i18n="app.snapshots.load">📂 Momentopname laden</button>
         </div>
       </div>
 
       <div class="btn-row">
-        <button class="btn-secondary" onclick="goToStep(3)">← Terug naar planning</button>
+        <button class="btn-secondary" onclick="goToStep(3)" data-i18n="app.nav.back_to_planning">← Terug naar planning</button>
       </div>
     </section>
   </div>
@@ -280,7 +280,7 @@
     <div class="modal-backdrop" onclick="closeRatingModal()"></div>
     <div class="modal-content" style="max-width:440px">
       <div class="modal-header">
-        <h3>Beoordeling</h3>
+        <h3 data-i18n="app.rating.title">Beoordeling</h3>
         <button class="modal-close" onclick="closeRatingModal()">×</button>
       </div>
       <div class="modal-body" id="rating-modal-body"></div>
@@ -292,7 +292,7 @@
     <div class="modal-backdrop" onclick="closeListModal()"></div>
     <div class="modal-content" style="max-width:480px">
       <div class="modal-header">
-        <h3 id="list-modal-title">Beheer</h3>
+        <h3 id="list-modal-title" data-i18n="app.modal.manage">Beheer</h3>
         <button class="modal-close" onclick="closeListModal()">×</button>
       </div>
       <div class="modal-body">
@@ -306,97 +306,98 @@
     <div class="modal-backdrop" onclick="closeParticipantModal()"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="modal-title">Deelnemer toevoegen</h3>
+        <h3 id="modal-title" data-i18n="app.modal.add_participant">Deelnemer toevoegen</h3>
         <button class="modal-close" onclick="closeParticipantModal()">×</button>
       </div>
       <div class="modal-body">
         <form id="participant-form" onsubmit="saveParticipant(event)">
           <input type="hidden" id="participant-id">
 
-          <h4>Persoonsgegevens</h4>
+          <h4 data-i18n="app.modal.personal_details">Persoonsgegevens</h4>
           <div class="form-row">
             <div class="form-group">
-              <label>Naam persoon 1 *</label>
-              <input type="text" id="p-name1" required placeholder="Jan de Vries">
+              <label data-i18n="app.modal.name_person1">Naam persoon 1 *</label>
+              <input type="text" id="p-name1" required placeholder="Jan de Vries" data-i18n-placeholder="app.modal.name1_placeholder">
             </div>
             <div class="form-group">
-              <label>Naam partner (optioneel)</label>
-              <input type="text" id="p-name2" placeholder="Marie de Vries">
+              <label data-i18n="app.modal.name_partner">Naam partner (optioneel)</label>
+              <input type="text" id="p-name2" placeholder="Marie de Vries" data-i18n-placeholder="app.modal.name2_placeholder">
             </div>
           </div>
 
-          <h4>Adres</h4>
+          <h4 data-i18n="app.modal.address">Adres</h4>
           <div class="form-row" style="flex-wrap:nowrap;align-items:flex-end;gap:10px">
             <div class="form-group" style="flex:1.2">
-              <label>Postcode *</label>
+              <label data-i18n="app.modal.postcode">Postcode *</label>
               <input type="text" id="p-postcode" required placeholder="1234AB" maxlength="7"
                 oninput="this.value=this.value.replace(/\s/g,'')" onblur="autoLookupPostcode()">
             </div>
             <div class="form-group" style="flex:1">
-              <label>Huisnummer *</label>
+              <label data-i18n="app.modal.housenumber">Huisnummer *</label>
               <input type="text" id="p-housenumber" required placeholder="12" onblur="autoLookupPostcode()">
             </div>
             <div style="padding-bottom:2px;flex-shrink:0">
-              <button type="button" class="btn-secondary" id="btn-postcode-lookup" onclick="lookupPostcode()">🔍 Opzoeken</button>
+              <button type="button" class="btn-secondary" id="btn-postcode-lookup" onclick="lookupPostcode()" data-i18n="app.modal.lookup_btn">🔍 Opzoeken</button>
             </div>
           </div>
           <div id="postcode-status" class="postcode-status"></div>
           <div class="form-row">
             <div class="form-group flex-2">
-              <label>Straatnaam *</label>
-              <input type="text" id="p-street" required placeholder="Wordt automatisch gevuld">
+              <label data-i18n="app.modal.street">Straatnaam *</label>
+              <input type="text" id="p-street" required placeholder="Wordt automatisch gevuld" data-i18n-placeholder="app.modal.auto_filled">
             </div>
             <div class="form-group flex-2">
-              <label>Woonplaats *</label>
-              <input type="text" id="p-city" required placeholder="Wordt automatisch gevuld">
+              <label data-i18n="app.modal.city">Woonplaats *</label>
+              <input type="text" id="p-city" required placeholder="Wordt automatisch gevuld" data-i18n-placeholder="app.modal.auto_filled">
             </div>
           </div>
 
-          <h4>Beschikbaarheid</h4>
-          <p class="hint">Geef aan bij welke onderdelen persoon 1 en eventueel de partner aanwezig kunnen zijn.</p>
+          <h4 data-i18n="app.modal.availability">Beschikbaarheid</h4>
+          <p class="hint" data-i18n="app.modal.availability_hint">Geef aan bij welke onderdelen persoon 1 en eventueel de partner aanwezig kunnen zijn.</p>
           <div id="availability-grid" class="availability-grid"></div>
 
-          <h4>Gastrol voorkeur</h4>
+          <h4 data-i18n="app.modal.host_preference">Gastrol voorkeur</h4>
           <div class="form-group">
-            <label>Bij welk onderdeel wil je graag gastheer/gastvrouw zijn?</label>
+            <label data-i18n="app.modal.host_preference_label">Bij welk onderdeel wil je graag gastheer/gastvrouw zijn?</label>
             <select id="p-host-preference">
-              <option value="">Geen voorkeur</option>
+              <option value="" data-i18n="app.modal.no_preference">Geen voorkeur</option>
             </select>
           </div>
 
-          <h4>Dieetwensen & Allergieën</h4>
+          <h4 data-i18n="app.modal.diet_title">Dieetwensen & Allergieën</h4>
           <div class="form-row">
             <div class="form-group">
-              <label>Persoon 1 – dieetwensen/allergieën</label>
-              <input type="text" id="p-diet1" placeholder="bijv. vegetarisch, noten allergie">
+              <label data-i18n="app.modal.diet_person1">Persoon 1 – dieetwensen/allergieën</label>
+              <input type="text" id="p-diet1" placeholder="bijv. vegetarisch, noten allergie" data-i18n-placeholder="app.modal.diet1_placeholder">
             </div>
             <div class="form-group" id="diet2-group">
-              <label>Partner – dieetwensen/allergieën</label>
-              <input type="text" id="p-diet2" placeholder="bijv. lactose-intolerant">
+              <label data-i18n="app.modal.diet_partner">Partner – dieetwensen/allergieën</label>
+              <input type="text" id="p-diet2" placeholder="bijv. lactose-intolerant" data-i18n-placeholder="app.modal.diet2_placeholder">
             </div>
           </div>
 
-          <h4>Voorkeur tafelgenoten</h4>
+          <h4 data-i18n="app.modal.tablemate_prefs">Voorkeur tafelgenoten</h4>
           <div class="form-row">
             <div class="form-group">
-              <label>Wil graag samen eten met:</label>
-              <input type="text" id="p-prefer-with" placeholder="Namen, komma gescheiden">
+              <label data-i18n="app.modal.prefer_with">Wil graag samen eten met:</label>
+              <input type="text" id="p-prefer-with" placeholder="Namen, komma gescheiden" data-i18n-placeholder="app.modal.names_comma_separated">
             </div>
             <div class="form-group">
-              <label>Wil NIET samen eten met:</label>
-              <input type="text" id="p-avoid" placeholder="Namen, komma gescheiden">
+              <label data-i18n="app.modal.avoid">Wil NIET samen eten met:</label>
+              <input type="text" id="p-avoid" placeholder="Namen, komma gescheiden" data-i18n-placeholder="app.modal.names_comma_separated">
             </div>
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="closeParticipantModal()">Annuleren</button>
-            <button type="submit" class="btn-primary">Opslaan</button>
+            <button type="button" class="btn-secondary" onclick="closeParticipantModal()" data-i18n="app.modal.cancel">Annuleren</button>
+            <button type="submit" class="btn-primary" data-i18n="app.modal.save">Opslaan</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
+  <script src="/lang/i18n.js"></script>
   <script src="app.js"></script>
   <script>
   // Auth check – only runs when accessed via the Node.js server (not file://)
@@ -427,8 +428,8 @@
 
       // Has access – show license info
       if (data.license_until) {
-        const until = new Date(data.license_until).toLocaleDateString('nl-NL');
-        document.getElementById('auth-license-info').textContent = `Abonnement geldig t/m ${until}`;
+        const until = new Date(data.license_until).toLocaleDateString(I18n.getLang() === 'en' ? 'en-GB' : 'nl-NL');
+        document.getElementById('auth-license-info').textContent = I18n.t('app.auth.subscription_valid', 'Abonnement geldig t/m') + ` ${until}`;
       }
 
       // Show user email
@@ -448,7 +449,6 @@
     });
   })();
   </script>
-  <script src="/lang/i18n.js"></script>
   <script>
     // Language toggle in auth bar
     I18n.onReady(() => {
