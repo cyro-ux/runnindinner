@@ -7,12 +7,13 @@
   <meta name="robots" content="noindex">
   <link rel="stylesheet" href="/home.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
   <style>
     .profile-page {
       min-height: 100vh;
-      background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
-      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #FFFBF7 0%, #F8FAFC 100%);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       padding: 24px 16px;
     }
     .profile-container {
@@ -36,24 +37,26 @@
     }
     .profile-nav a {
       font-size: 14px;
-      color: #1a56db;
+      color: #E85D3A;
       text-decoration: none;
       padding: 8px 16px;
-      border-radius: 6px;
+      border-radius: 10px;
       background: white;
-      border: 1px solid #e5e7eb;
-      transition: all 0.15s;
+      border: 1px solid #E2E8F0;
+      transition: all 0.2s;
+      font-weight: 600;
     }
     .profile-nav a:hover {
-      background: #eff6ff;
-      border-color: #1a56db;
+      background: #FFF1ED;
+      border-color: #E85D3A;
     }
     .card {
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 20px rgba(0,0,0,.06);
+      padding: 28px;
       margin-bottom: 20px;
+      border: 1px solid #E2E8F0;
     }
     .card h2 {
       font-size: 16px;
@@ -123,18 +126,20 @@
       align-items: center;
       gap: 6px;
       padding: 6px 14px;
-      background: #1a56db;
+      background: #E85D3A;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       text-decoration: none;
-      transition: background 0.15s;
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(232,93,58,.2);
     }
     .btn-download:hover {
-      background: #1e40af;
+      background: #D14A28;
+      transform: translateY(-1px);
     }
     .btn-download svg {
       width: 14px;
@@ -177,21 +182,22 @@
     }
     .password-section input:focus {
       outline: none;
-      border-color: #1a56db;
-      box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+      border-color: #E85D3A;
+      box-shadow: 0 0 0 3px rgba(232,93,58,0.1);
     }
     .btn-save {
       padding: 8px 20px;
-      background: #1a56db;
+      background: #E85D3A;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(232,93,58,.2);
     }
-    .btn-save:hover { background: #1e40af; }
+    .btn-save:hover { background: #D14A28; transform: translateY(-1px); }
     .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
     .msg { font-size: 13px; margin-top: 8px; }
     .msg-ok { color: #065f46; }

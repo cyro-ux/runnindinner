@@ -7,31 +7,32 @@
   <meta name="robots" content="noindex">
   <link rel="stylesheet" href="/home.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
   <style>
-    .subscribe-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f9fafb; padding: 24px; }
-    .subscribe-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 48px 40px; width: 100%; max-width: 480px; box-shadow: 0 4px 24px rgba(0,0,0,.08); text-align: center; }
+    .subscribe-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #FFFBF7; padding: 24px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    .subscribe-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,.1); text-align: center; }
     .sub-icon { font-size: 3rem; margin-bottom: 8px; }
-    .sub-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; }
-    .sub-subtitle { color: #6b7280; margin-bottom: 32px; font-size: .95rem; }
-    .sub-price { font-size: 3.2rem; font-weight: 800; color: #111827; }
-    .sub-price span { font-size: 1rem; font-weight: 400; color: #6b7280; }
+    .sub-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; color: #1E293B; letter-spacing: -.02em; }
+    .sub-subtitle { color: #64748B; margin-bottom: 32px; font-size: .95rem; }
+    .sub-price { font-size: 3.2rem; font-weight: 800; color: #1E293B; letter-spacing: -.03em; }
+    .sub-price span { font-size: 1rem; font-weight: 400; color: #94A3B8; }
     .sub-features { list-style: none; text-align: left; margin: 24px 0; display: flex; flex-direction: column; gap: 10px; }
-    .sub-features li { font-size: .9rem; color: #374151; }
-    .sub-features li::before { content: "\2713  "; color: #16a34a; font-weight: 700; }
-    .btn-subscribe { display: block; width: 100%; background: #1a56db; color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px; transition: background .15s; }
-    .btn-subscribe:hover { background: #1343b0; }
-    .btn-subscribe:disabled { opacity: .6; cursor: not-allowed; }
-    .sub-note { font-size: .78rem; color: #9ca3af; margin-top: 12px; }
-    .sub-cancelled { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; border-radius: 8px; padding: 10px 14px; font-size: .85rem; margin-bottom: 20px; display: none; }
-    .sub-error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 8px; padding: 10px 14px; font-size: .85rem; margin-bottom: 20px; display: none; }
-    .sub-already { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; border-radius: 8px; padding: 12px 16px; font-size: .9rem; margin-bottom: 20px; display: none; }
+    .sub-features li { font-size: .9rem; color: #334155; }
+    .sub-features li::before { content: "\2713  "; color: #10B981; font-weight: 700; }
+    .btn-subscribe { display: block; width: 100%; background: #E85D3A; color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px; transition: all .2s; box-shadow: 0 4px 16px rgba(232,93,58,.25); }
+    .btn-subscribe:hover { background: #D14A28; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(232,93,58,.35); }
+    .btn-subscribe:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .sub-note { font-size: .78rem; color: #94A3B8; margin-top: 12px; }
+    .sub-cancelled { background: #FEF3C7; border: 1px solid rgba(245,158,11,.2); color: #92400E; border-radius: 10px; padding: 10px 14px; font-size: .85rem; margin-bottom: 20px; display: none; }
+    .sub-error { background: #FEF2F2; border: 1px solid rgba(239,68,68,.2); color: #DC2626; border-radius: 10px; padding: 10px 14px; font-size: .85rem; margin-bottom: 20px; display: none; }
+    .sub-already { background: #F0FDF4; border: 1px solid rgba(16,185,129,.2); color: #10B981; border-radius: 10px; padding: 12px 16px; font-size: .9rem; margin-bottom: 20px; display: none; }
     .payment-methods { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
-    .pm-badge { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px 10px; font-size: .75rem; color: #374151; font-weight: 600; }
+    .pm-badge { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 4px 12px; font-size: .75rem; color: #334155; font-weight: 600; }
     .auto-renew-toggle { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 20px 0 8px; cursor: pointer; user-select: none; }
-    .auto-renew-toggle input { width: 18px; height: 18px; accent-color: #1a56db; cursor: pointer; }
-    .auto-renew-toggle label { font-size: .9rem; color: #374151; cursor: pointer; }
-    .auto-renew-info { font-size: .78rem; color: #6b7280; margin: 0 0 8px; line-height: 1.4; }
+    .auto-renew-toggle input { width: 18px; height: 18px; accent-color: #E85D3A; cursor: pointer; }
+    .auto-renew-toggle label { font-size: .9rem; color: #334155; cursor: pointer; }
+    .auto-renew-info { font-size: .78rem; color: #64748B; margin: 0 0 8px; line-height: 1.4; }
   </style>
 </head>
 <body>

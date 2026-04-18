@@ -4,13 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Running Dinner Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
 <!-- ── Auth top bar (only shown when served via Node.js server) ── -->
-<div id="auth-bar" style="display:none;background:#1a56db;color:#fff;padding:8px 20px;font-size:.83rem;align-items:center;gap:16px;font-family:system-ui,sans-serif">
+<div id="auth-bar" style="display:none;background:#1E293B;color:#fff;padding:10px 20px;font-size:.83rem;align-items:center;gap:16px;font-family:'Plus Jakarta Sans',system-ui,sans-serif">
   <span style="font-weight:700">🍽️ Running Dinner Planner</span>
   <span id="auth-license-info" style="opacity:.85"></span>
   <span style="margin-left:auto;display:flex;align-items:center;gap:12px">
@@ -20,13 +23,13 @@
     <button id="auth-logout-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.8rem">Uitloggen</button>
   </span>
 </div>
-<div id="auth-gate" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:#f9fafb;font-family:system-ui,sans-serif">
-  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:48px 40px;max-width:420px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+<div id="auth-gate" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:#F8FAFC;font-family:'Plus Jakarta Sans',system-ui,sans-serif">
+  <div style="background:#fff;border:1px solid #E2E8F0;border-radius:20px;padding:48px 40px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.1)">
     <div style="font-size:2.5rem;margin-bottom:12px">🔒</div>
-    <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px">Abonnement vereist</h2>
-    <p style="color:#6b7280;margin-bottom:24px;font-size:.9rem">Om de Running Dinner Planner te gebruiken heb je een actief abonnement nodig.</p>
-    <a href="/subscribe.html" style="display:block;background:#1a56db;color:#fff;border-radius:10px;padding:13px;font-weight:700;text-decoration:none;margin-bottom:12px">Abonnement nemen – €5/jaar</a>
-    <a href="/login.html" style="color:#1a56db;font-size:.85rem">Inloggen met ander account</a>
+    <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px;color:#1E293B">Abonnement vereist</h2>
+    <p style="color:#64748B;margin-bottom:24px;font-size:.9rem">Om de Running Dinner Planner te gebruiken heb je een actief abonnement nodig.</p>
+    <a href="/subscribe.html" style="display:block;background:#E85D3A;color:#fff;border-radius:10px;padding:13px;font-weight:700;text-decoration:none;margin-bottom:12px;box-shadow:0 4px 16px rgba(232,93,58,.25)">Abonnement nemen – €5/jaar</a>
+    <a href="/login.html" style="color:#E85D3A;font-size:.85rem;font-weight:600">Inloggen met ander account</a>
   </div>
 </div>
 
