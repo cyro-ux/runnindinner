@@ -207,6 +207,30 @@ img { max-width: 100%; display: block; }
 }
 .nav-links .btn-outline { padding: 8px 16px; font-size: .85rem; }
 
+/* Language toggle */
+.lang-toggle {
+  display: flex; align-items: center; gap: 4px;
+  margin-left: 4px;
+  padding: 4px 2px;
+}
+.lang-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: .8rem; font-weight: 600; font-family: inherit;
+  color: var(--muted); padding: 3px 6px; border-radius: 4px;
+  transition: all .2s;
+}
+.lang-btn:hover { color: var(--primary); }
+.lang-btn.active {
+  color: var(--primary); background: var(--primary-light);
+}
+.lang-sep {
+  color: var(--border); font-size: .75rem; user-select: none;
+}
+.nav-mobile .lang-toggle {
+  padding: 8px 0; justify-content: center; border-bottom: none;
+}
+.nav-mobile .lang-btn { font-size: .9rem; padding: 6px 12px; }
+
 .nav-hamburger {
   display: none; background: none; border: none;
   font-size: 1.5rem; cursor: pointer; color: var(--text); margin-left: auto;

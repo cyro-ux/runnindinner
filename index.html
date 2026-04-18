@@ -21,6 +21,7 @@
     <span id="auth-user-email" style="opacity:.8"></span>
     <a href="/profile.html" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;text-decoration:none;font-size:.8rem">Profiel</a>
     <button id="auth-logout-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.8rem">Uitloggen</button>
+    <span id="app-lang-toggle" style="display:flex;align-items:center;gap:2px;margin-left:4px"></span>
   </span>
 </div>
 <div id="auth-gate" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:#F8FAFC;font-family:'Plus Jakarta Sans',system-ui,sans-serif">
@@ -446,6 +447,29 @@
       window.location.href = '/login.html';
     });
   })();
+  </script>
+  <script src="/lang/i18n.js"></script>
+  <script>
+    // Language toggle in auth bar
+    I18n.onReady(() => {
+      const container = document.getElementById('app-lang-toggle');
+      if (container) {
+        const toggle = I18n.createToggle();
+        // Style buttons for dark background
+        toggle.querySelectorAll('.lang-btn').forEach(btn => {
+          btn.style.color = 'rgba(255,255,255,.6)';
+          btn.style.fontSize = '.78rem';
+          btn.style.padding = '2px 5px';
+        });
+        toggle.querySelectorAll('.lang-btn.active').forEach(btn => {
+          btn.style.color = '#fff';
+          btn.style.background = 'rgba(255,255,255,.2)';
+          btn.style.borderRadius = '4px';
+        });
+        toggle.querySelector('.lang-sep').style.color = 'rgba(255,255,255,.3)';
+        container.appendChild(toggle);
+      }
+    });
   </script>
 </body>
 </html>

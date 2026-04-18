@@ -109,6 +109,7 @@ if (!userCols.includes('mollie_customer_id')) db.exec("ALTER TABLE users ADD COL
 if (!userCols.includes('auto_renew'))         db.exec("ALTER TABLE users ADD COLUMN auto_renew INTEGER NOT NULL DEFAULT 0");
 if (!userCols.includes('mollie_mandate_id'))  db.exec("ALTER TABLE users ADD COLUMN mollie_mandate_id TEXT");
 if (!userCols.includes('renewal_reminder_sent')) db.exec("ALTER TABLE users ADD COLUMN renewal_reminder_sent INTEGER");
+if (!userCols.includes('language'))              db.exec("ALTER TABLE users ADD COLUMN language TEXT NOT NULL DEFAULT 'nl'");
 const paymentCols = db.prepare("PRAGMA table_info(payments)").all().map(c => c.name);
 if (!paymentCols.includes('mollie_payment_id')) db.exec("ALTER TABLE payments ADD COLUMN mollie_payment_id TEXT");
 if (!paymentCols.includes('payment_type'))      db.exec("ALTER TABLE payments ADD COLUMN payment_type TEXT NOT NULL DEFAULT 'one-time'");
@@ -284,6 +285,27 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' })); // Mollie webhook sends urlencoded body
 app.use(cookieParser());
 
+// ── Language detection middleware ─────────────────────────────────────────────
+function detectLanguage(req, res, next) {
+  // 1. URL path: /en/ prefix = explicit choice
+  if (req.path.startsWith('/en/') || req.path === '/en') {
+    req.lang = 'en';
+  // 2. Cookie: returning visitor
+  } else if (req.cookies?.lang && ['nl', 'en'].includes(req.cookies.lang)) {
+    req.lang = req.cookies.lang;
+  // 3. Accept-Language header: first visit, browser setting
+  } else {
+    const accept = req.headers['accept-language'] || '';
+    req.lang = accept.toLowerCase().startsWith('en') ? 'en' : 'nl';
+  }
+  // Set/update cookie if needed
+  if (!req.cookies?.lang || req.cookies.lang !== req.lang) {
+    res.cookie('lang', req.lang, { maxAge: 365 * 86400000, sameSite: 'lax' });
+  }
+  next();
+}
+app.use(detectLanguage);
+
 // Security headers
 app.use(helmet({
   contentSecurityPolicy: {
@@ -346,7 +368,9 @@ app.use('/api/', apiLimiter);
 // Serve static files
 // The running dinner planner app lives at the repo root (index.html, app.js, style.css)
 app.use('/app', express.static(path.join(__dirname)));
+app.use('/en/app', express.static(path.join(__dirname)));  // English version serves same static files
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
+app.use('/en', express.static(path.join(__dirname, 'public'))); // English public files (CSS, images, lang/)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Auth middleware ───────────────────────────────────────────────────────────
@@ -404,9 +428,10 @@ app.post('/api/auth/register', async (req, res) => {
 
   const hash = await bcrypt.hash(password, 12);
   const id   = uuidv4();
+  const lang = req.lang || 'nl';
   db.prepare(
-    'INSERT INTO users (id, email, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?)'
-  ).run(id, email.toLowerCase(), hash, 'user', Date.now());
+    'INSERT INTO users (id, email, password_hash, role, created_at, language) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(id, email.toLowerCase(), hash, 'user', Date.now(), lang);
 
   res.json({ ok: true, message: 'Account aangemaakt. Je kunt nu inloggen.' });
 });
@@ -433,6 +458,11 @@ app.post('/api/auth/login', async (req, res) => {
     maxAge: 30 * 24 * 3600 * 1000,
   });
 
+  // Set language cookie from user preference
+  if (user.language && ['nl', 'en'].includes(user.language)) {
+    res.cookie('lang', user.language, { maxAge: 365 * 86400000, sameSite: 'lax' });
+  }
+
   // Track active session + last login
   db.prepare('UPDATE users SET last_login = ? WHERE id = ?').run(Date.now(), user.id);
   activeSessions.set(user.id, { email: user.email, loginAt: Date.now(), lastSeen: Date.now() });
@@ -456,7 +486,7 @@ app.post('/api/auth/logout', requireAuth, (req, res) => {
 
 // GET /api/auth/me
 app.get('/api/auth/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT email, role, license_until FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT email, role, license_until, language FROM users WHERE id = ?').get(req.user.id);
   if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
   res.json({ ok: true, user });
 });
@@ -1259,6 +1289,31 @@ app.get('/api/app/access', requireAuth, (req, res) => {
     license_until: user?.license_until || null,
     auto_renew: !!user?.auto_renew,
   });
+});
+
+// ── Language preference API ──────────────────────────────────────────────────
+app.put('/api/user/language', requireAuth, (req, res) => {
+  const { language } = req.body || {};
+  if (!language || !['nl', 'en'].includes(language)) {
+    return res.status(400).json({ error: 'Ongeldige taal. Kies "nl" of "en".' });
+  }
+  db.prepare('UPDATE users SET language = ? WHERE id = ?').run(language, req.user.id);
+  res.cookie('lang', language, { maxAge: 365 * 86400000, sameSite: 'lax' });
+  res.json({ ok: true, language });
+});
+
+// ── English route handling (/en/*) ──────────────────────────────────────────
+// Serve the same HTML files for /en/ paths — language is applied client-side via i18n.js
+app.get('/en/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/en', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
+app.get('/en/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
+app.get('/en/:page.html', (req, res) => {
+  const file = path.join(__dirname, 'public', `${req.params.page}.html`);
+  if (fs.existsSync(file)) {
+    res.sendFile(file);
+  } else {
+    res.status(404).sendFile(path.join(__dirname, 'public', 'home.html'));
+  }
 });
 
 // ── SPA fallbacks ─────────────────────────────────────────────────────────────

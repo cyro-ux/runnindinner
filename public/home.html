@@ -102,6 +102,7 @@
       <a href="#faq">FAQ</a>
       <a href="/login.html" class="btn-outline">Inloggen</a>
       <a href="/register.html" class="btn-primary">Start voor €5/jaar</a>
+      <div class="lang-toggle" id="lang-toggle-desktop"></div>
     </div>
     <button class="nav-hamburger" id="hamburger" aria-label="Menu openen">&#9776;</button>
   </div>
@@ -112,6 +113,7 @@
     <a href="#faq">FAQ</a>
     <a href="/login.html">Inloggen</a>
     <a href="/register.html" class="btn-primary">Start voor €5/jaar</a>
+    <div class="lang-toggle" id="lang-toggle-mobile"></div>
   </div>
 </nav>
 
@@ -593,6 +595,16 @@
       const target = document.querySelector(a.getAttribute('href'));
       if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     });
+  });
+</script>
+<script src="/lang/i18n.js"></script>
+<script>
+  // Initialize language toggle in nav
+  I18n.onReady(() => {
+    const desktop = document.getElementById('lang-toggle-desktop');
+    const mobile = document.getElementById('lang-toggle-mobile');
+    if (desktop) desktop.appendChild(I18n.createToggle());
+    if (mobile) mobile.appendChild(I18n.createToggle());
   });
 </script>
 </body>
