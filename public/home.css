@@ -95,6 +95,12 @@ img { max-width: 100%; display: block; }
   50% { transform: translateY(-6px); }
 }
 
+@keyframes ctaPulse {
+  0%   { box-shadow: 0 2px 8px rgba(232,93,58,.25); }
+  50%  { box-shadow: 0 2px 16px rgba(232,93,58,.5), 0 0 20px rgba(232,93,58,.15); }
+  100% { box-shadow: 0 2px 8px rgba(232,93,58,.25); }
+}
+
 .fade-in-up {
   animation: fadeInUp .6s ease-out both;
 }
@@ -194,7 +200,11 @@ img { max-width: 100%; display: block; }
   transition: color .2s;
 }
 .nav-links a:hover { color: var(--primary); text-decoration: none; }
-.nav-links .btn-primary { padding: 9px 18px; font-size: .85rem; }
+.nav-links .btn-primary {
+  padding: 9px 18px; font-size: .85rem;
+  color: #fff !important;
+  animation: ctaPulse 2.5s ease-in-out infinite;
+}
 .nav-links .btn-outline { padding: 8px 16px; font-size: .85rem; }
 
 .nav-hamburger {
@@ -218,6 +228,8 @@ img { max-width: 100%; display: block; }
 .nav-mobile .btn-primary {
   margin-top: 8px; text-align: center; border-bottom: none;
   border-radius: var(--radius-sm); padding: 14px;
+  color: #fff !important;
+  animation: ctaPulse 2.5s ease-in-out infinite;
 }
 
 /* ── Hero ────────────────────────────────────────────────── */
