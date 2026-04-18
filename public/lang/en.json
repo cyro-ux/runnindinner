@@ -25,7 +25,8 @@
     "label": "Trusted by organisers across the Netherlands",
     "dinners": "Running dinners planned",
     "participants": "Participants processed",
-    "rating": "Average rating"
+    "rating": "Average rating",
+    "new": "New"
   },
 
   "features": {
@@ -120,7 +121,11 @@
     "email_placeholder": "your@email.com",
     "message_label": "Message",
     "message_placeholder": "Your question or comment...",
-    "submit": "Send message"
+    "submit": "Send message",
+    "sending": "Sending...",
+    "success": "Message sent!",
+    "error": "Something went wrong.",
+    "network_error": "Network error. Please try again later."
   },
 
   "footer": {

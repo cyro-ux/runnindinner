@@ -458,6 +458,7 @@
   </div>
 </footer>
 
+<script src="/lang/i18n.js"></script>
 <script>
   // ── Screenshot carousel
   (function() {
@@ -515,7 +516,7 @@
       const ratEl = document.getElementById('sp-rating');
       if (dinEl)  dinEl.textContent  = data.dinners > 0 ? fmt(data.dinners) + '+' : '0';
       if (partEl) partEl.textContent = data.participants > 0 ? fmt(data.participants) + '+' : '0';
-      if (ratEl)  ratEl.textContent  = data.ratingCount > 0 ? data.avgRating.toFixed(1) + ' \u2605' : 'Nieuw';
+      if (ratEl)  ratEl.textContent  = data.ratingCount > 0 ? data.avgRating.toFixed(1) + ' \u2605' : I18n.t('social_proof.new', 'Nieuw');
     })
     .catch(() => {});
 
@@ -557,7 +558,7 @@
     const status = document.getElementById('contact-status');
     const btn    = e.target.querySelector('button[type=submit]');
     btn.disabled = true;
-    btn.textContent = 'Versturen...';
+    btn.textContent = I18n.t('contact.sending', 'Versturen...');
     status.textContent = '';
     status.className = 'form-status';
 
@@ -573,20 +574,20 @@
       });
       const data = await res.json();
       if (res.ok) {
-        status.textContent = data.message || 'Bericht verzonden!';
+        status.textContent = data.message || I18n.t('contact.success', 'Bericht verzonden!');
         status.classList.add('ok');
         e.target.reset();
       } else {
-        status.textContent = data.error || 'Er ging iets mis.';
+        status.textContent = data.error || I18n.t('contact.error', 'Er ging iets mis.');
         status.classList.add('err');
       }
     } catch {
-      status.textContent = 'Netwerkfout. Probeer het later opnieuw.';
+      status.textContent = I18n.t('contact.network_error', 'Netwerkfout. Probeer het later opnieuw.');
       status.classList.add('err');
     }
 
     btn.disabled = false;
-    btn.textContent = 'Verstuur bericht';
+    btn.textContent = I18n.t('contact.submit', 'Verstuur bericht');
   });
 
   // ── Smooth scroll for anchor links
@@ -597,7 +598,6 @@
     });
   });
 </script>
-<script src="/lang/i18n.js"></script>
 <script>
   // Initialize language toggle in nav
   I18n.onReady(() => {

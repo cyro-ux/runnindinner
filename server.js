@@ -135,6 +135,14 @@ cmsDefault.run('features_intro', 'Alles wat je nodig hebt voor een perfect Runni
 cmsDefault.run('price_label', '€5 per jaar', now);
 cmsDefault.run('footer_text', '© 2025 Running Dinner Planner. Alle rechten voorbehouden.', now);
 
+// Seed English CMS defaults
+cmsDefault.run('hero_title_en', 'The easiest way to organize your Running Dinner', now);
+cmsDefault.run('hero_subtitle_en', 'Plan routes, assign tables and print envelopes — done in minutes.', now);
+cmsDefault.run('hero_cta_en', 'Start now for €5/year', now);
+cmsDefault.run('features_intro_en', 'Everything you need for a perfect Running Dinner event.', now);
+cmsDefault.run('price_label_en', '€5 per year', now);
+cmsDefault.run('footer_text_en', '© 2025 Running Dinner Planner. All rights reserved.', now);
+
 // Seed admin account (once)
 (async () => {
   const existing = db.prepare('SELECT id FROM users WHERE role = ?').get('admin');
@@ -853,10 +861,25 @@ app.get('/api/user/profile', requireAuth, (req, res) => {
 
 // ── CMS routes ────────────────────────────────────────────────────────────────
 
-// GET /api/cms  (public)
+// GET /api/cms  (public, language-aware)
 app.get('/api/cms', (req, res) => {
   const rows = db.prepare('SELECT key, value FROM cms').all();
-  const cms  = Object.fromEntries(rows.map(r => [r.key, r.value]));
+  const all  = Object.fromEntries(rows.map(r => [r.key, r.value]));
+  const lang = req.lang || 'nl';
+
+  // Build language-aware CMS object:
+  // For EN: if hero_title_en exists, return it as hero_title (so client code stays simple)
+  // For NL: return base keys as-is, skip _en keys
+  const cms = {};
+  for (const [key, value] of Object.entries(all)) {
+    if (key.endsWith('_en')) continue;           // skip _en keys from base output
+    if (lang !== 'nl') {
+      const enKey = key + '_en';
+      if (all[enKey]) { cms[key] = all[enKey]; continue; }
+    }
+    cms[key] = value;
+  }
+
   res.json({ ok: true, cms });
 });
 
