@@ -1483,6 +1483,50 @@ app.put('/api/user/language', requireAuth, (req, res) => {
   res.json({ ok: true, language });
 });
 
+// ── Sitemap ──────────────────────────────────────────────────────────────────
+app.get('/sitemap.xml', (req, res) => {
+  const base = 'https://runningdiner.nl';
+  const today = new Date().toISOString().split('T')[0];
+
+  // Pages with NL + EN alternates
+  const bilingualPages = [
+    { nl: '/',                  en: '/en/',                  priority: '1.0', changefreq: 'weekly' },
+    { nl: '/login.html',       en: '/en/login.html',       priority: '0.6', changefreq: 'monthly' },
+    { nl: '/register.html',    en: '/en/register.html',    priority: '0.7', changefreq: 'monthly' },
+    { nl: '/subscribe.html',   en: '/en/subscribe.html',   priority: '0.7', changefreq: 'monthly' },
+  ];
+
+  let urls = '';
+  for (const page of bilingualPages) {
+    urls += `
+  <url>
+    <loc>${base}${page.nl}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+    <xhtml:link rel="alternate" hreflang="nl" href="${base}${page.nl}"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${base}${page.en}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${base}${page.nl}"/>
+  </url>
+  <url>
+    <loc>${base}${page.en}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+    <xhtml:link rel="alternate" hreflang="nl" href="${base}${page.nl}"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${base}${page.en}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${base}${page.nl}"/>
+  </url>`;
+  }
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls}
+</urlset>`;
+
+  res.type('application/xml').send(xml);
+});
+
 // ── English route handling (/en/*) ──────────────────────────────────────────
 
 // Build English homepage variant at startup (cached in memory for SEO)

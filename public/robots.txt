@@ -1,0 +1,22 @@
+# Running Dinner Planner – robots.txt
+User-agent: *
+Allow: /
+Allow: /en/
+
+# Auth/account pages – not useful for indexing
+Disallow: /forgot-password.html
+Disallow: /reset-password.html
+Disallow: /payment-success.html
+Disallow: /profile.html
+Disallow: /app
+Disallow: /api/
+Disallow: /admin/
+
+# English equivalents
+Disallow: /en/forgot-password.html
+Disallow: /en/reset-password.html
+Disallow: /en/payment-success.html
+Disallow: /en/profile.html
+Disallow: /en/app
+
+Sitemap: https://runningdiner.nl/sitemap.xml
