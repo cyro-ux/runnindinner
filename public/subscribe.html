@@ -36,36 +36,37 @@
   </style>
 </head>
 <body>
+<div style="position:fixed;top:12px;right:16px;z-index:1000" id="auth-lang-toggle"></div>
 <div class="subscribe-page">
   <div class="subscribe-card">
     <div class="sub-icon">🍽️</div>
-    <h1 class="sub-title">Jaarabonnement</h1>
-    <p class="sub-subtitle">Eenmalig betalen, daarna direct toegang voor 1 jaar.</p>
+    <h1 class="sub-title" data-i18n="auth.subscribe.title">Jaarabonnement</h1>
+    <p class="sub-subtitle" data-i18n="auth.subscribe.subtitle">Eenmalig betalen, daarna direct toegang voor 1 jaar.</p>
 
-    <div class="sub-cancelled" id="cancelled-msg">Betaling geannuleerd. Je kunt het opnieuw proberen.</div>
+    <div class="sub-cancelled" id="cancelled-msg" data-i18n="auth.subscribe.cancelled">Betaling geannuleerd. Je kunt het opnieuw proberen.</div>
     <div class="sub-error"     id="error-msg"></div>
     <div class="sub-already"   id="already-msg"></div>
 
-    <div class="sub-price" id="price-display">&#8364;5 <span>/ jaar</span></div>
+    <div class="sub-price" id="price-display" data-i18n-html="auth.subscribe.price">&#8364;5 <span>/ jaar</span></div>
 
     <ul class="sub-features">
-      <li>Onbeperkt evenementen organiseren</li>
-      <li>Slimme routeplanning &amp; drag &amp; drop</li>
-      <li>Envelop-kaartjes afdrukken</li>
-      <li>Excel import &amp; export</li>
-      <li>Directe toegang na betaling</li>
-      <li>Factuur per e-mail</li>
+      <li data-i18n="auth.subscribe.feature_unlimited">Onbeperkt evenementen organiseren</li>
+      <li data-i18n="auth.subscribe.feature_routing">Slimme routeplanning &amp; drag &amp; drop</li>
+      <li data-i18n="auth.subscribe.feature_envelopes">Envelop-kaartjes afdrukken</li>
+      <li data-i18n="auth.subscribe.feature_excel">Excel import &amp; export</li>
+      <li data-i18n="auth.subscribe.feature_instant">Directe toegang na betaling</li>
+      <li data-i18n="auth.subscribe.feature_invoice">Factuur per e-mail</li>
     </ul>
 
     <div class="auto-renew-toggle">
       <input type="checkbox" id="auto-renew-cb">
-      <label for="auto-renew-cb">Automatisch jaarlijks verlengen</label>
+      <label for="auto-renew-cb" data-i18n="auth.subscribe.auto_renew_label">Automatisch jaarlijks verlengen</label>
     </div>
-    <p class="auto-renew-info" id="auto-renew-info" style="display:none">
+    <p class="auto-renew-info" id="auto-renew-info" style="display:none" data-i18n="auth.subscribe.auto_renew_info">
       14 dagen voor verlenging ontvang je een herinnering. Je kunt dit altijd uitschakelen in je profiel.
     </p>
 
-    <button class="btn-subscribe" id="pay-btn">Nu betalen &amp; direct toegang</button>
+    <button class="btn-subscribe" id="pay-btn" data-i18n-html="auth.subscribe.pay_button">Nu betalen &amp; direct toegang</button>
     <div class="payment-methods">
       <span class="pm-badge" title="Nederland">iDEAL</span>
       <span class="pm-badge" title="Belgie">Bancontact</span>
@@ -73,10 +74,16 @@
       <span class="pm-badge">Visa / Mastercard</span>
       <span class="pm-badge">SEPA</span>
     </div>
-    <p class="sub-note" id="sub-note">Veilige betaling via Mollie &bull; Factuur direct per e-mail</p>
+    <p class="sub-note" id="sub-note" data-i18n-html="auth.subscribe.note">Veilige betaling via Mollie &bull; Factuur direct per e-mail</p>
   </div>
 </div>
+<script src="/lang/i18n.js"></script>
 <script>
+  I18n.onReady(() => {
+    const c = document.getElementById('auth-lang-toggle');
+    if (c) c.appendChild(I18n.createToggle());
+  });
+
   const params = new URLSearchParams(location.search);
   if (params.get('cancelled')) {
     document.getElementById('cancelled-msg').style.display = 'block';
@@ -98,7 +105,7 @@
       if (user.license_until && user.license_until > Date.now()) {
         const until = new Date(user.license_until).toLocaleDateString('nl-NL');
         const alr   = document.getElementById('already-msg');
-        alr.textContent = 'Je hebt al een actief abonnement t/m ' + until + '. Betalen verlengt je abonnement met 1 jaar.';
+        alr.textContent = I18n.t('auth.subscribe.already_active_prefix', 'Je hebt al een actief abonnement t/m ') + until + I18n.t('auth.subscribe.already_active_suffix', '. Betalen verlengt je abonnement met 1 jaar.');
         alr.style.display = 'block';
       }
     })
@@ -108,7 +115,7 @@
   fetch('/api/mollie/price')
     .then(r => r.ok ? r.json() : null)
     .then(data => {
-      if (data) document.getElementById('price-display').innerHTML = data.formatted + ' <span>/ jaar</span>';
+      if (data) document.getElementById('price-display').innerHTML = data.formatted + ' <span>' + I18n.t('auth.subscribe.per_year', '/ jaar') + '</span>';
     })
     .catch(() => {});
 
@@ -117,7 +124,7 @@
     const btn = document.getElementById('pay-btn');
     const err = document.getElementById('error-msg');
     btn.disabled = true;
-    btn.textContent = 'Doorsturen naar betaalpagina...';
+    btn.textContent = I18n.t('auth.subscribe.redirecting', 'Doorsturen naar betaalpagina...');
     err.style.display = 'none';
 
     try {
@@ -130,16 +137,16 @@
       if (res.ok && data.url) {
         window.location.href = data.url;
       } else {
-        err.textContent = data.error || 'Betaling kon niet worden gestart.';
+        err.textContent = data.error || I18n.t('auth.subscribe.error_payment', 'Betaling kon niet worden gestart.');
         err.style.display = 'block';
         btn.disabled = false;
-        btn.textContent = 'Nu betalen & direct toegang';
+        btn.textContent = I18n.t('auth.subscribe.pay_button_text', 'Nu betalen & direct toegang');
       }
     } catch {
-      err.textContent = 'Netwerkfout. Probeer het opnieuw.';
+      err.textContent = I18n.t('auth.subscribe.error_network', 'Netwerkfout. Probeer het opnieuw.');
       err.style.display = 'block';
       btn.disabled = false;
-      btn.textContent = 'Nu betalen & direct toegang';
+      btn.textContent = I18n.t('auth.subscribe.pay_button_text', 'Nu betalen & direct toegang');
     }
   });
 </script>

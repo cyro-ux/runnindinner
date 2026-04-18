@@ -213,44 +213,45 @@
   </style>
 </head>
 <body>
+<div style="position:fixed;top:12px;right:16px;z-index:1000" id="auth-lang-toggle"></div>
 <div class="profile-page">
   <div class="profile-container">
     <div class="profile-header">
-      <h1>Mijn Profiel</h1>
+      <h1 data-i18n="auth.profile.title">Mijn Profiel</h1>
       <nav class="profile-nav">
-        <a href="/app">Naar planner</a>
-        <a href="#" id="logout-btn">Uitloggen</a>
+        <a href="/app" data-i18n="auth.profile.nav_planner">Naar planner</a>
+        <a href="#" id="logout-btn" data-i18n="auth.profile.nav_logout">Uitloggen</a>
       </nav>
     </div>
 
     <!-- Account info -->
     <div class="card">
-      <h2>Accountgegevens</h2>
+      <h2 data-i18n="auth.profile.account_heading">Accountgegevens</h2>
       <div class="info-grid">
-        <span class="info-label">E-mail</span>
+        <span class="info-label" data-i18n="auth.profile.label_email">E-mail</span>
         <span class="info-value" id="user-email">-</span>
-        <span class="info-label">Lid sinds</span>
+        <span class="info-label" data-i18n="auth.profile.label_member_since">Lid sinds</span>
         <span class="info-value" id="user-since">-</span>
-        <span class="info-label">Abonnement</span>
+        <span class="info-label" data-i18n="auth.profile.label_subscription">Abonnement</span>
         <span class="info-value" id="user-license">-</span>
       </div>
     </div>
 
     <!-- Change password -->
     <div class="card">
-      <h2>Wachtwoord wijzigen</h2>
+      <h2 data-i18n="auth.profile.password_heading">Wachtwoord wijzigen</h2>
       <div class="password-section">
         <form id="pw-form">
           <div class="form-row">
             <div class="form-group">
-              <label for="current-pw">Huidig wachtwoord</label>
+              <label for="current-pw" data-i18n="auth.profile.current_password">Huidig wachtwoord</label>
               <input type="password" id="current-pw" autocomplete="current-password" required>
             </div>
             <div class="form-group">
-              <label for="new-pw">Nieuw wachtwoord</label>
+              <label for="new-pw" data-i18n="auth.profile.new_password">Nieuw wachtwoord</label>
               <input type="password" id="new-pw" autocomplete="new-password" minlength="8" required>
             </div>
-            <button type="submit" class="btn-save" id="pw-btn">Opslaan</button>
+            <button type="submit" class="btn-save" id="pw-btn" data-i18n="auth.profile.save_button">Opslaan</button>
           </div>
         </form>
         <div class="msg" id="pw-msg"></div>
@@ -259,12 +260,12 @@
 
     <!-- Auto-renewal -->
     <div class="card">
-      <h2>Automatische verlenging</h2>
+      <h2 data-i18n="auth.profile.auto_renew_heading">Automatische verlenging</h2>
       <div id="auto-renew-container">
         <div class="info-grid">
-          <span class="info-label">Status</span>
-          <span class="info-value" id="ar-status">Laden...</span>
-          <span class="info-label" id="ar-next-label" style="display:none">Volgende verlenging</span>
+          <span class="info-label" data-i18n="auth.profile.label_status">Status</span>
+          <span class="info-value" id="ar-status" data-i18n="auth.profile.loading">Laden...</span>
+          <span class="info-label" id="ar-next-label" style="display:none" data-i18n="auth.profile.label_next_renewal">Volgende verlenging</span>
           <span class="info-value" id="ar-next" style="display:none"></span>
         </div>
         <div style="margin-top:16px" id="ar-actions"></div>
@@ -274,15 +275,21 @@
 
     <!-- Invoices -->
     <div class="card">
-      <h2>Facturen</h2>
+      <h2 data-i18n="auth.profile.invoices_heading">Facturen</h2>
       <div id="invoices-container">
-        <div class="empty-state">Facturen worden geladen...</div>
+        <div class="empty-state" data-i18n="auth.profile.invoices_loading">Facturen worden geladen...</div>
       </div>
     </div>
   </div>
 </div>
 
+<script src="/lang/i18n.js"></script>
 <script>
+  I18n.onReady(() => {
+    const c = document.getElementById('auth-lang-toggle');
+    if (c) c.appendChild(I18n.createToggle());
+  });
+
   const $ = s => document.querySelector(s);
 
   // Auth check
@@ -298,12 +305,13 @@
     if (user.license_until) {
       const expiry = new Date(user.license_until);
       const active = expiry > new Date();
+      const badgeText = active ? I18n.t('auth.profile.badge_active', 'Actief') : I18n.t('auth.profile.badge_expired', 'Verlopen');
       $('#user-license').innerHTML = `
-        <span class="badge ${active ? 'badge-active' : 'badge-expired'}">${active ? 'Actief' : 'Verlopen'}</span>
-        t/m ${expiry.toLocaleDateString('nl-NL', { year: 'numeric', month: 'long', day: 'numeric' })}
+        <span class="badge ${active ? 'badge-active' : 'badge-expired'}">${badgeText}</span>
+        ${I18n.t('auth.profile.until_prefix', 't/m')} ${expiry.toLocaleDateString('nl-NL', { year: 'numeric', month: 'long', day: 'numeric' })}
       `;
     } else {
-      $('#user-license').innerHTML = '<span class="badge badge-none">Geen abonnement</span>';
+      $('#user-license').innerHTML = '<span class="badge badge-none">' + I18n.t('auth.profile.badge_none', 'Geen abonnement') + '</span>';
     }
 
     // Auto-renewal
@@ -312,7 +320,7 @@
     // Invoices
     const container = $('#invoices-container');
     if (!payments || payments.length === 0) {
-      container.innerHTML = '<div class="empty-state">Je hebt nog geen facturen.</div>';
+      container.innerHTML = '<div class="empty-state">' + I18n.t('auth.profile.no_invoices', 'Je hebt nog geen facturen.') + '</div>';
       return;
     }
 
@@ -322,9 +330,9 @@
       <table class="invoice-table">
         <thead>
           <tr>
-            <th>Factuurnummer</th>
-            <th>Datum</th>
-            <th>Bedrag</th>
+            <th>${I18n.t('auth.profile.invoice_number', 'Factuurnummer')}</th>
+            <th>${I18n.t('auth.profile.invoice_date', 'Datum')}</th>
+            <th>${I18n.t('auth.profile.invoice_amount', 'Bedrag')}</th>
             <th></th>
           </tr>
         </thead>
@@ -353,19 +361,19 @@
     const isOn = !!user.auto_renew;
 
     if (isOn) {
-      status.innerHTML = '<span class="badge badge-active">Ingeschakeld</span>';
+      status.innerHTML = '<span class="badge badge-active">' + I18n.t('auth.profile.ar_enabled', 'Ingeschakeld') + '</span>';
       if (user.license_until) {
         $('#ar-next-label').style.display = '';
         $('#ar-next').style.display = '';
         $('#ar-next').textContent = new Date(user.license_until).toLocaleDateString('nl-NL', { year: 'numeric', month: 'long', day: 'numeric' });
       }
-      actions.innerHTML = '<button class="btn-save" id="ar-toggle-btn" style="background:#dc2626">Uitschakelen</button>';
+      actions.innerHTML = '<button class="btn-save" id="ar-toggle-btn" style="background:#dc2626">' + I18n.t('auth.profile.ar_disable', 'Uitschakelen') + '</button>';
     } else if (hasMandate) {
-      status.innerHTML = '<span class="badge badge-expired">Uitgeschakeld</span> <span style="color:#6b7280;font-size:13px">(machtiging actief)</span>';
-      actions.innerHTML = '<button class="btn-save" id="ar-toggle-btn">Inschakelen</button>';
+      status.innerHTML = '<span class="badge badge-expired">' + I18n.t('auth.profile.ar_disabled', 'Uitgeschakeld') + '</span> <span style="color:#6b7280;font-size:13px">(' + I18n.t('auth.profile.ar_mandate_active', 'machtiging actief') + ')</span>';
+      actions.innerHTML = '<button class="btn-save" id="ar-toggle-btn">' + I18n.t('auth.profile.ar_enable', 'Inschakelen') + '</button>';
     } else {
-      status.innerHTML = '<span class="badge badge-none">Niet beschikbaar</span>';
-      actions.innerHTML = '<p style="font-size:13px;color:#6b7280;margin:0">Activeer automatische verlenging bij je <a href="/subscribe.html" style="color:#1a56db">volgende betaling</a>.</p>';
+      status.innerHTML = '<span class="badge badge-none">' + I18n.t('auth.profile.ar_unavailable', 'Niet beschikbaar') + '</span>';
+      actions.innerHTML = '<p style="font-size:13px;color:#6b7280;margin:0">' + I18n.t('auth.profile.ar_activate_hint', 'Activeer automatische verlenging bij je') + ' <a href="/subscribe.html" style="color:#1a56db">' + I18n.t('auth.profile.ar_next_payment_link', 'volgende betaling') + '</a>.</p>';
       return;
     }
 
@@ -387,12 +395,12 @@
           // Reload to refresh state
           setTimeout(() => loadProfile(), 800);
         } else {
-          msg.textContent = data.error || 'Er ging iets mis.';
+          msg.textContent = data.error || I18n.t('auth.profile.error_generic', 'Er ging iets mis.');
           msg.className = 'msg msg-err';
           btn.disabled = false;
         }
       } catch {
-        msg.textContent = 'Verbindingsfout.';
+        msg.textContent = I18n.t('auth.profile.error_connection', 'Verbindingsfout.');
         msg.className = 'msg msg-err';
         btn.disabled = false;
       }
@@ -420,15 +428,15 @@
       });
       const data = await r.json();
       if (r.ok) {
-        msg.textContent = 'Wachtwoord gewijzigd!';
+        msg.textContent = I18n.t('auth.profile.password_changed', 'Wachtwoord gewijzigd!');
         msg.className = 'msg msg-ok';
         $('#pw-form').reset();
       } else {
-        msg.textContent = data.error || 'Er ging iets mis.';
+        msg.textContent = data.error || I18n.t('auth.profile.error_generic', 'Er ging iets mis.');
         msg.className = 'msg msg-err';
       }
     } catch {
-      msg.textContent = 'Verbindingsfout.';
+      msg.textContent = I18n.t('auth.profile.error_connection', 'Verbindingsfout.');
       msg.className = 'msg msg-err';
     }
     btn.disabled = false;

@@ -11,33 +11,40 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
 </head>
 <body>
+<div style="position:fixed;top:12px;right:16px;z-index:1000" id="auth-lang-toggle"></div>
 <div class="auth-page">
   <div class="auth-card">
     <div class="auth-logo">🍽️</div>
-    <h1 class="auth-title">Inloggen</h1>
-    <p class="auth-subtitle">Welkom terug bij Running Dinner Planner</p>
+    <h1 class="auth-title" data-i18n="auth.login.title">Inloggen</h1>
+    <p class="auth-subtitle" data-i18n="auth.login.subtitle">Welkom terug bij Running Dinner Planner</p>
 
     <div class="auth-error" id="error-msg"></div>
 
     <form class="auth-form" id="login-form">
       <div class="form-group">
-        <label for="email">E-mailadres</label>
-        <input type="email" id="email" autocomplete="email" placeholder="jouw@email.nl" required>
+        <label for="email" data-i18n="auth.login.email_label">E-mailadres</label>
+        <input type="email" id="email" autocomplete="email" placeholder="jouw@email.nl" data-i18n-placeholder="auth.login.email_placeholder" required>
       </div>
       <div class="form-group">
-        <label for="password">Wachtwoord</label>
+        <label for="password" data-i18n="auth.login.password_label">Wachtwoord</label>
         <input type="password" id="password" autocomplete="current-password" placeholder="••••••••" required>
       </div>
-      <button type="submit" class="btn-primary" id="submit-btn">Inloggen</button>
+      <button type="submit" class="btn-primary" id="submit-btn" data-i18n="auth.login.submit">Inloggen</button>
     </form>
 
     <div class="auth-links">
-      <a href="/forgot-password.html">Wachtwoord vergeten?</a><br><br>
-      Nog geen account? <a href="/register.html">Registreer gratis</a>
+      <a href="/forgot-password.html" data-i18n="auth.login.forgot_password">Wachtwoord vergeten?</a><br><br>
+      <span data-i18n="auth.login.no_account">Nog geen account?</span> <a href="/register.html" data-i18n="auth.login.register_link">Registreer gratis</a>
     </div>
   </div>
 </div>
+<script src="/lang/i18n.js"></script>
 <script>
+  I18n.onReady(() => {
+    const c = document.getElementById('auth-lang-toggle');
+    if (c) c.appendChild(I18n.createToggle());
+  });
+
   // Redirect if already logged in
   fetch('/api/auth/me').then(r => {
     if (r.ok) return r.json();
@@ -52,7 +59,7 @@
     const btn = document.getElementById('submit-btn');
     const err = document.getElementById('error-msg');
     btn.disabled = true;
-    btn.textContent = 'Inloggen...';
+    btn.textContent = I18n.t('auth.login.logging_in', 'Inloggen...');
     err.style.display = 'none';
 
     try {
@@ -70,16 +77,16 @@
         const redirect = new URLSearchParams(location.search).get('next') || '/app';
         window.location.href = data.user?.role === 'admin' ? '/admin/' : redirect;
       } else {
-        err.textContent = data.error || 'Inloggen mislukt';
+        err.textContent = data.error || I18n.t('auth.login.error_failed', 'Inloggen mislukt');
         err.style.display = 'block';
         btn.disabled = false;
-        btn.textContent = 'Inloggen';
+        btn.textContent = I18n.t('auth.login.submit', 'Inloggen');
       }
     } catch {
-      err.textContent = 'Netwerkfout. Probeer het opnieuw.';
+      err.textContent = I18n.t('auth.login.error_network', 'Netwerkfout. Probeer het opnieuw.');
       err.style.display = 'block';
       btn.disabled = false;
-      btn.textContent = 'Inloggen';
+      btn.textContent = I18n.t('auth.login.submit', 'Inloggen');
     }
   });
 </script>

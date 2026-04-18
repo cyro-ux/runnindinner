@@ -34,26 +34,27 @@
   </style>
 </head>
 <body>
+<div style="position:fixed;top:12px;right:16px;z-index:1000" id="auth-lang-toggle"></div>
 <div class="auth-page">
   <div class="auth-card">
     <div class="auth-logo">🍽️</div>
-    <h1 class="auth-title">Account aanmaken</h1>
-    <p class="auth-subtitle">Stap 1 van 2 — aanmelden, daarna betalen</p>
+    <h1 class="auth-title" data-i18n="auth.register.title">Account aanmaken</h1>
+    <p class="auth-subtitle" data-i18n="auth.register.subtitle">Stap 1 van 2 — aanmelden, daarna betalen</p>
 
     <!-- Stappen indicator -->
     <div class="steps-indicator">
       <div class="step-dot">
         <div class="step-dot-circle active">1</div>
-        <span class="step-dot-label active">Account</span>
+        <span class="step-dot-label active" data-i18n="auth.register.step_account">Account</span>
       </div>
       <div class="step-connector"></div>
       <div class="step-dot">
         <div class="step-dot-circle pending">2</div>
-        <span class="step-dot-label">Betalen</span>
+        <span class="step-dot-label" data-i18n="auth.register.step_payment">Betalen</span>
       </div>
     </div>
 
-    <div class="payment-info-box">
+    <div class="payment-info-box" data-i18n-html="auth.register.payment_info">
       💳 Na het aanmaken word je direct doorgestuurd naar de betaalpagina. Toegang kost <strong>€5 per jaar</strong>.
     </div>
 
@@ -62,23 +63,23 @@
 
     <form class="auth-form" id="register-form">
       <div class="form-group">
-        <label for="email">E-mailadres</label>
-        <input type="email" id="email" autocomplete="email" placeholder="jouw@email.nl" required>
+        <label for="email" data-i18n="auth.register.email_label">E-mailadres</label>
+        <input type="email" id="email" autocomplete="email" placeholder="jouw@email.nl" data-i18n-placeholder="auth.register.email_placeholder" required>
       </div>
       <div class="form-group">
-        <label for="password">Wachtwoord <span style="font-weight:400;color:#6b7280">(min. 8 tekens)</span></label>
+        <label for="password" data-i18n-html="auth.register.password_label">Wachtwoord <span style="font-weight:400;color:#6b7280">(min. 8 tekens)</span></label>
         <input type="password" id="password" autocomplete="new-password" placeholder="••••••••" required minlength="8">
       </div>
       <div class="form-group">
-        <label for="password2">Wachtwoord herhalen</label>
+        <label for="password2" data-i18n="auth.register.password2_label">Wachtwoord herhalen</label>
         <input type="password" id="password2" autocomplete="new-password" placeholder="••••••••" required minlength="8">
       </div>
-      <button type="submit" class="btn-primary" id="submit-btn">Account aanmaken → naar betalen</button>
+      <button type="submit" class="btn-primary" id="submit-btn" data-i18n="auth.register.submit">Account aanmaken → naar betalen</button>
     </form>
 
     <!-- Betaalmethoden -->
     <div style="margin-top:16px;text-align:center">
-      <p style="font-size:.75rem;color:#9ca3af;margin-bottom:8px">Betaalmethoden</p>
+      <p style="font-size:.75rem;color:#9ca3af;margin-bottom:8px" data-i18n="auth.register.payment_methods_label">Betaalmethoden</p>
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
         <span style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:.74rem;font-weight:600;color:#374151">🇳🇱 iDEAL</span>
         <span style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:.74rem;font-weight:600;color:#374151">🇧🇪 Bancontact</span>
@@ -89,11 +90,17 @@
     </div>
 
     <div class="auth-links">
-      Al een account? <a href="/login.html">Inloggen</a>
+      <span data-i18n="auth.register.have_account">Al een account?</span> <a href="/login.html" data-i18n="auth.register.login_link">Inloggen</a>
     </div>
   </div>
 </div>
+<script src="/lang/i18n.js"></script>
 <script>
+  I18n.onReady(() => {
+    const c = document.getElementById('auth-lang-toggle');
+    if (c) c.appendChild(I18n.createToggle());
+  });
+
   document.getElementById('register-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn    = document.getElementById('submit-btn');
@@ -104,13 +111,13 @@
     const password  = document.getElementById('password').value;
     const password2 = document.getElementById('password2').value;
     if (password !== password2) {
-      errEl.textContent = 'Wachtwoorden komen niet overeen';
+      errEl.textContent = I18n.t('auth.register.error_mismatch', 'Wachtwoorden komen niet overeen');
       errEl.style.display = 'block';
       return;
     }
 
     btn.disabled = true;
-    btn.textContent = 'Account aanmaken…';
+    btn.textContent = I18n.t('auth.register.creating', 'Account aanmaken…');
 
     try {
       const res = await fetch('/api/auth/register', {
@@ -129,7 +136,7 @@
         });
         if (loginRes.ok) {
           // Directly start checkout
-          btn.textContent = 'Doorsturen naar betaalpagina…';
+          btn.textContent = I18n.t('auth.register.redirecting_payment', 'Doorsturen naar betaalpagina…');
           const checkoutRes = await fetch('/api/mollie/create-payment', { method: 'POST' });
           const checkoutData = await checkoutRes.json();
           if (checkoutRes.ok && checkoutData.url) {
@@ -138,20 +145,20 @@
           }
         }
         // Fallback: redirect to subscribe page
-        succEl.textContent = 'Account aangemaakt! Doorsturen naar betaalpagina…';
+        succEl.textContent = I18n.t('auth.register.success_redirect', 'Account aangemaakt! Doorsturen naar betaalpagina…');
         succEl.style.display = 'block';
         setTimeout(() => { window.location.href = '/subscribe.html'; }, 1000);
       } else {
-        errEl.textContent = data.error || 'Registreren mislukt';
+        errEl.textContent = data.error || I18n.t('auth.register.error_failed', 'Registreren mislukt');
         errEl.style.display = 'block';
         btn.disabled = false;
-        btn.textContent = 'Account aanmaken → naar betalen';
+        btn.textContent = I18n.t('auth.register.submit', 'Account aanmaken → naar betalen');
       }
     } catch {
-      errEl.textContent = 'Netwerkfout. Probeer het opnieuw.';
+      errEl.textContent = I18n.t('auth.register.error_network', 'Netwerkfout. Probeer het opnieuw.');
       errEl.style.display = 'block';
       btn.disabled = false;
-      btn.textContent = 'Account aanmaken → naar betalen';
+      btn.textContent = I18n.t('auth.register.submit', 'Account aanmaken → naar betalen');
     }
   });
 </script>
