@@ -135,13 +135,13 @@ cmsDefault.run('features_intro', 'Alles wat je nodig hebt voor een perfect Runni
 cmsDefault.run('price_label', '€5 per jaar', now);
 cmsDefault.run('footer_text', '© 2025 Running Dinner Planner. Alle rechten voorbehouden.', now);
 
-// Seed English CMS defaults
-cmsDefault.run('hero_title_en', 'The easiest way to organize your Running Dinner', now);
-cmsDefault.run('hero_subtitle_en', 'Plan routes, assign tables and print envelopes — done in minutes.', now);
+// Seed English CMS defaults (personal tone, matching Dutch live texts)
+cmsDefault.run('hero_title_en', 'From spreadsheet chaos to planning in minutes', now);
+cmsDefault.run('hero_subtitle_en', 'After years of organizing running dinners myself with endless spreadsheets, duplicate guests and wrong routes, I built this tool. Everything I ran into is now built in as standard.', now);
 cmsDefault.run('hero_cta_en', 'Start now for €5/year', now);
-cmsDefault.run('features_intro_en', 'Everything you need for a perfect Running Dinner event.', now);
+cmsDefault.run('features_intro_en', 'Every feature was born from a problem I encountered while organizing. No unnecessary bells and whistles — only what you really need.', now);
 cmsDefault.run('price_label_en', '€5 per year', now);
-cmsDefault.run('footer_text_en', '© 2025 Running Dinner Planner. All rights reserved.', now);
+cmsDefault.run('footer_text_en', 'Built from personal experience. Every feature solves a real problem.', now);
 
 // Seed admin account (once)
 (async () => {
