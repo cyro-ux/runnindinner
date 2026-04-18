@@ -94,6 +94,7 @@
     </div>
   </div>
 </div>
+<script defer data-domain="runningdiner.nl" data-api="/api/event" src="/js/script.js"></script>
 <script src="/lang/i18n.js"></script>
 <script>
   I18n.onReady(() => {
@@ -147,6 +148,7 @@
         // Fallback: redirect to subscribe page
         succEl.textContent = I18n.t('auth.register.success_redirect', 'Account aangemaakt! Doorsturen naar betaalpagina…');
         succEl.style.display = 'block';
+        if (window.plausible) plausible('Signup');
         setTimeout(() => { window.location.href = '/subscribe.html'; }, 1000);
       } else {
         errEl.textContent = data.error || I18n.t('auth.register.error_failed', 'Registreren mislukt');

@@ -77,6 +77,7 @@
     <p class="sub-note" id="sub-note" data-i18n-html="auth.subscribe.note">Veilige betaling via Mollie &bull; Factuur direct per e-mail</p>
   </div>
 </div>
+<script defer data-domain="runningdiner.nl" data-api="/api/event" src="/js/script.js"></script>
 <script src="/lang/i18n.js"></script>
 <script>
   I18n.onReady(() => {
@@ -135,6 +136,7 @@
       });
       const data = await res.json();
       if (res.ok && data.url) {
+        if (window.plausible) plausible('Payment-Start');
         window.location.href = data.url;
       } else {
         err.textContent = data.error || I18n.t('auth.subscribe.error_payment', 'Betaling kon niet worden gestart.');

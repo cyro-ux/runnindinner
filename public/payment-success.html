@@ -40,12 +40,14 @@
     <p class="success-note" data-i18n="auth.payment_success.invoice_note">Je ontvangt een factuur per e-mail.</p>
   </div>
 </div>
+<script defer data-domain="runningdiner.nl" data-api="/api/event" src="/js/script.js"></script>
 <script src="/lang/i18n.js"></script>
 <script>
   I18n.onReady(() => {
     const c = document.getElementById('auth-lang-toggle');
     if (c) c.appendChild(I18n.createToggle());
   });
+  if (window.plausible) plausible('Payment-Complete');
 
   // Fetch updated user info to display license date + auto-renew status
   fetch('/api/app/access')
