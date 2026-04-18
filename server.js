@@ -195,9 +195,12 @@ async function sendMail(to, subject, html, { replyTo } = {}) {
 }
 
 // Wrap HTML content in a proper email document structure
-function wrapHtml(body) {
+function wrapHtml(body, lang = 'nl') {
+  const footer = lang === 'en'
+    ? 'You are receiving this email because you have an account or have been invited.'
+    : 'Je ontvangt deze e-mail omdat je een account hebt of bent uitgenodigd.';
   return `<!DOCTYPE html>
-<html lang="nl" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="${lang}" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -218,7 +221,7 @@ function wrapHtml(body) {
             <td style="padding:16px 24px;border-top:1px solid #e5e7eb;text-align:center">
               <p style="margin:0;color:#9ca3af;font-size:11px;line-height:16px">
                 Running Dinner Planner &bull; runningdiner.nl<br>
-                Je ontvangt deze e-mail omdat je een account hebt of bent uitgenodigd.
+                ${footer}
               </p>
             </td>
           </tr>
@@ -257,33 +260,43 @@ function formatEur(cents) {
 }
 
 async function sendInvoiceMail(user, payment) {
+  const lang = user.language || 'nl';
+  const locale = lang === 'en' ? 'en-GB' : 'nl-NL';
+  const isEN = lang === 'en';
+
   const html = `
           <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-          <p style="color:#374151;line-height:1.6">Hallo,</p>
-          <p style="color:#374151;line-height:1.6">Bedankt voor je betaling! Je abonnement is actief t/m <strong>${new Date(user.license_until).toLocaleDateString('nl-NL')}</strong>.</p>
+          <p style="color:#374151;line-height:1.6">${isEN ? 'Hi,' : 'Hallo,'}</p>
+          <p style="color:#374151;line-height:1.6">${isEN
+            ? `Thank you for your payment! Your subscription is active until <strong>${new Date(user.license_until).toLocaleDateString(locale)}</strong>.`
+            : `Bedankt voor je betaling! Je abonnement is actief t/m <strong>${new Date(user.license_until).toLocaleDateString(locale)}</strong>.`
+          }</p>
           <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px">
             <tr style="background:#f3f4f6">
-              <td style="padding:8px 12px;color:#374151">Factuurnummer</td>
+              <td style="padding:8px 12px;color:#374151">${isEN ? 'Invoice number' : 'Factuurnummer'}</td>
               <td style="padding:8px 12px;color:#374151"><strong>${payment.invoice_number}</strong></td>
             </tr>
             <tr>
-              <td style="padding:8px 12px;color:#374151">Omschrijving</td>
-              <td style="padding:8px 12px;color:#374151">Running Dinner Planner - 1 jaar abonnement</td>
+              <td style="padding:8px 12px;color:#374151">${isEN ? 'Description' : 'Omschrijving'}</td>
+              <td style="padding:8px 12px;color:#374151">Running Dinner Planner - ${isEN ? '1 year subscription' : '1 jaar abonnement'}</td>
             </tr>
             <tr style="background:#f3f4f6">
-              <td style="padding:8px 12px;color:#374151">Bedrag</td>
+              <td style="padding:8px 12px;color:#374151">${isEN ? 'Amount' : 'Bedrag'}</td>
               <td style="padding:8px 12px;color:#374151"><strong>${formatEur(payment.amount_cents)}</strong></td>
             </tr>
             <tr>
-              <td style="padding:8px 12px;color:#374151">Datum</td>
-              <td style="padding:8px 12px;color:#374151">${new Date(payment.created_at).toLocaleDateString('nl-NL')}</td>
+              <td style="padding:8px 12px;color:#374151">${isEN ? 'Date' : 'Datum'}</td>
+              <td style="padding:8px 12px;color:#374151">${new Date(payment.created_at).toLocaleDateString(locale)}</td>
             </tr>
           </table>
           <p style="margin:24px 0;text-align:center">
-            <a href="${BASE_URL}/app" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">Open de planner</a>
+            <a href="${BASE_URL}/app" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${isEN ? 'Open the planner' : 'Open de planner'}</a>
           </p>
   `;
-  await sendMail(user.email, `Factuur ${payment.invoice_number} - Running Dinner Planner`, html);
+  const subject = isEN
+    ? `Invoice ${payment.invoice_number} - Running Dinner Planner`
+    : `Factuur ${payment.invoice_number} - Running Dinner Planner`;
+  await sendMail(user.email, subject, wrapHtml(html, lang));
 }
 
 // ── Express app ───────────────────────────────────────────────────────────────
@@ -381,10 +394,119 @@ app.use('/admin', express.static(path.join(__dirname, 'admin')));
 app.use('/en', express.static(path.join(__dirname, 'public'))); // English public files (CSS, images, lang/)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── Server-side translations ─────────────────────────────────────────────────
+const T = {
+  nl: {
+    not_logged_in:       'Niet ingelogd',
+    session_expired:     'Sessie verlopen',
+    no_access:           'Geen toegang',
+    no_active_sub:       'Geen actief abonnement',
+    email_pw_required:   'E-mail en wachtwoord verplicht',
+    pw_min_8:            'Wachtwoord minimaal 8 tekens',
+    email_in_use:        'E-mailadres al in gebruik',
+    bad_credentials:     'Onbekend e-mailadres of onjuist wachtwoord',
+    account_created:     'Account aangemaakt. Je kunt nu inloggen.',
+    user_not_found:      'Gebruiker niet gevonden',
+    fill_both_fields:    'Vul beide velden in',
+    new_pw_min_8:        'Nieuw wachtwoord moet minimaal 8 tekens zijn',
+    current_pw_wrong:    'Huidig wachtwoord is onjuist',
+    pw_changed:          'Wachtwoord gewijzigd',
+    give_enabled:        'Geef { enabled: true/false } mee',
+    no_mandate_found:    'Geen machtiging gevonden',
+    mandate_revoked:     'Machtiging ingetrokken en automatische verlenging uitgeschakeld',
+    reset_email_sent:    'Als dit e-mailadres bekend is, ontvang je een link.',
+    token_pw_required:   'Token en wachtwoord verplicht',
+    invalid_reset_link:  'Ongeldige of verlopen link',
+    pw_changed_login:    'Wachtwoord gewijzigd. Je kunt nu inloggen.',
+    payment_failed:      'Betaling kon niet worden gestart',
+    invoice_not_found:   'Factuur niet gevonden',
+    key_dataurl_req:     'key en dataUrl verplicht',
+    email_required:      'E-mailadres is verplicht',
+    pw_required_invite:  'Wachtwoord verplicht (of kies uitnodigingslink)',
+    cannot_edit_admin:   'Kan andere admin niet bewerken',
+    user_updated:        'Gebruiker bijgewerkt',
+    invite_sent:         'Uitnodiging verstuurd naar {email}',
+    email_send_failed:   'E-mail kon niet worden verstuurd',
+    min_price:           'Minimale prijs €1,00',
+    invalid_duration:    'Ongeldige duur',
+    invalid_env:         'Ongeldige omgeving',
+    deploy_registered:   'Deployment naar {env} geregistreerd.',
+    invalid_number:      'Ongeldig getal',
+    score_1_5:           'Score moet 1-5 zijn',
+    rating_updated:      'Beoordeling bijgewerkt',
+    thanks_rating:       'Bedankt voor je beoordeling!',
+    all_fields_required: 'Alle velden zijn verplicht',
+    message_sent:        'Je bericht is verzonden!',
+    message_send_failed: 'Bericht kon niet worden verzonden. Probeer het later opnieuw.',
+    invalid_lang:        'Ongeldige taal. Kies "nl" of "en".',
+    too_many_requests:   'Te veel verzoeken. Probeer het later opnieuw.',
+    no_mandate_needs:    'Geen machtiging gevonden. Doe eerst een betaling met automatische verlenging ingeschakeld.',
+    auto_renew_on:       'Automatische verlenging ingeschakeld',
+    auto_renew_off:      'Automatische verlenging uitgeschakeld',
+  },
+  en: {
+    not_logged_in:       'Not logged in',
+    session_expired:     'Session expired',
+    no_access:           'Access denied',
+    no_active_sub:       'No active subscription',
+    email_pw_required:   'Email and password are required',
+    pw_min_8:            'Password must be at least 8 characters',
+    email_in_use:        'Email address already in use',
+    bad_credentials:     'Unknown email address or incorrect password',
+    account_created:     'Account created. You can now log in.',
+    user_not_found:      'User not found',
+    fill_both_fields:    'Please fill in both fields',
+    new_pw_min_8:        'New password must be at least 8 characters',
+    current_pw_wrong:    'Current password is incorrect',
+    pw_changed:          'Password changed',
+    give_enabled:        'Provide { enabled: true/false }',
+    no_mandate_found:    'No mandate found',
+    mandate_revoked:     'Mandate revoked and auto-renewal disabled',
+    reset_email_sent:    'If this email address is known, you will receive a link.',
+    token_pw_required:   'Token and password are required',
+    invalid_reset_link:  'Invalid or expired link',
+    pw_changed_login:    'Password changed. You can now log in.',
+    payment_failed:      'Payment could not be started',
+    invoice_not_found:   'Invoice not found',
+    key_dataurl_req:     'key and dataUrl are required',
+    email_required:      'Email address is required',
+    pw_required_invite:  'Password required (or choose invitation link)',
+    cannot_edit_admin:   'Cannot edit another admin',
+    user_updated:        'User updated',
+    invite_sent:         'Invitation sent to {email}',
+    email_send_failed:   'Email could not be sent',
+    min_price:           'Minimum price €1.00',
+    invalid_duration:    'Invalid duration',
+    invalid_env:         'Invalid environment',
+    deploy_registered:   'Deployment to {env} registered.',
+    invalid_number:      'Invalid number',
+    score_1_5:           'Score must be 1-5',
+    rating_updated:      'Rating updated',
+    thanks_rating:       'Thank you for your rating!',
+    all_fields_required: 'All fields are required',
+    message_sent:        'Your message has been sent!',
+    message_send_failed: 'Message could not be sent. Please try again later.',
+    invalid_lang:        'Invalid language. Choose "nl" or "en".',
+    too_many_requests:   'Too many requests. Please try again later.',
+    no_mandate_needs:    'No mandate found. Please make a payment with auto-renewal enabled first.',
+    auto_renew_on:       'Auto-renewal enabled',
+    auto_renew_off:      'Auto-renewal disabled',
+  }
+};
+function t(req, key, replacements) {
+  let msg = (T[req?.lang || 'nl'] || T.nl)[key] || T.nl[key] || key;
+  if (replacements) {
+    for (const [k, v] of Object.entries(replacements)) {
+      msg = msg.replace(`{${k}}`, v);
+    }
+  }
+  return msg;
+}
+
 // ── Auth middleware ───────────────────────────────────────────────────────────
 function requireAuth(req, res, next) {
   const token = req.cookies?.token || req.headers?.authorization?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'Niet ingelogd' });
+  if (!token) return res.status(401).json({ error: t(req, 'not_logged_in') });
   try {
     req.user = jwt.verify(token, JWT_SECRET);
     // Refresh lastSeen for active session tracking
@@ -397,13 +519,13 @@ function requireAuth(req, res, next) {
     next();
   } catch {
     res.clearCookie('token');
-    res.status(401).json({ error: 'Sessie verlopen' });
+    res.status(401).json({ error: t(req, 'session_expired') });
   }
 }
 
 function requireAdmin(req, res, next) {
   requireAuth(req, res, () => {
-    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Geen toegang' });
+    if (req.user.role !== 'admin') return res.status(403).json({ error: t(req, 'no_access') });
     next();
   });
 }
@@ -417,7 +539,7 @@ function requireLicense(req, res, next) {
       if (user?.auto_renew && user.license_until && user.license_until + gracePeriod > Date.now()) {
         return next();
       }
-      return res.status(402).json({ error: 'Geen actief abonnement', redirect: '/subscribe.html' });
+      return res.status(402).json({ error: t(req, 'no_active_sub'), redirect: '/subscribe.html' });
     }
     next();
   });
@@ -428,11 +550,11 @@ function requireLicense(req, res, next) {
 // POST /api/auth/register
 app.post('/api/auth/register', async (req, res) => {
   const { email, password } = req.body || {};
-  if (!email || !password) return res.status(400).json({ error: 'E-mail en wachtwoord verplicht' });
-  if (password.length < 8) return res.status(400).json({ error: 'Wachtwoord minimaal 8 tekens' });
+  if (!email || !password) return res.status(400).json({ error: t(req, 'email_pw_required') });
+  if (password.length < 8) return res.status(400).json({ error: t(req, 'pw_min_8') });
 
   const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
-  if (exists) return res.status(409).json({ error: 'E-mailadres al in gebruik' });
+  if (exists) return res.status(409).json({ error: t(req, 'email_in_use') });
 
   const hash = await bcrypt.hash(password, 12);
   const id   = uuidv4();
@@ -441,17 +563,17 @@ app.post('/api/auth/register', async (req, res) => {
     'INSERT INTO users (id, email, password_hash, role, created_at, language) VALUES (?, ?, ?, ?, ?, ?)'
   ).run(id, email.toLowerCase(), hash, 'user', Date.now(), lang);
 
-  res.json({ ok: true, message: 'Account aangemaakt. Je kunt nu inloggen.' });
+  res.json({ ok: true, message: t(req, 'account_created') });
 });
 
 // POST /api/auth/login
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body || {};
   const user = db.prepare('SELECT * FROM users WHERE email = ?').get((email || '').toLowerCase());
-  if (!user) return res.status(401).json({ error: 'Onbekend e-mailadres of onjuist wachtwoord' });
+  if (!user) return res.status(401).json({ error: t(req, 'bad_credentials') });
 
   const ok = await bcrypt.compare(password || '', user.password_hash);
-  if (!ok) return res.status(401).json({ error: 'Onbekend e-mailadres of onjuist wachtwoord' });
+  if (!ok) return res.status(401).json({ error: t(req, 'bad_credentials') });
 
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
@@ -495,50 +617,50 @@ app.post('/api/auth/logout', requireAuth, (req, res) => {
 // GET /api/auth/me
 app.get('/api/auth/me', requireAuth, (req, res) => {
   const user = db.prepare('SELECT email, role, license_until, language FROM users WHERE id = ?').get(req.user.id);
-  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+  if (!user) return res.status(404).json({ error: t(req, 'user_not_found') });
   res.json({ ok: true, user });
 });
 
 // POST /api/auth/change-password
 app.post('/api/auth/change-password', requireAuth, async (req, res) => {
   const { currentPassword, newPassword } = req.body || {};
-  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Vul beide velden in' });
-  if (newPassword.length < 8) return res.status(400).json({ error: 'Nieuw wachtwoord moet minimaal 8 tekens zijn' });
+  if (!currentPassword || !newPassword) return res.status(400).json({ error: t(req, 'fill_both_fields') });
+  if (newPassword.length < 8) return res.status(400).json({ error: t(req, 'new_pw_min_8') });
 
   const user = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(req.user.id);
-  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+  if (!user) return res.status(404).json({ error: t(req, 'user_not_found') });
 
   const ok = await bcrypt.compare(currentPassword, user.password_hash);
-  if (!ok) return res.status(401).json({ error: 'Huidig wachtwoord is onjuist' });
+  if (!ok) return res.status(401).json({ error: t(req, 'current_pw_wrong') });
 
   const hash = await bcrypt.hash(newPassword, 12);
   db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, req.user.id);
-  res.json({ ok: true, message: 'Wachtwoord gewijzigd' });
+  res.json({ ok: true, message: t(req, 'pw_changed') });
 });
 
 // PUT /api/user/auto-renew  – toggle automatic renewal
 app.put('/api/user/auto-renew', requireAuth, (req, res) => {
   const { enabled } = req.body || {};
-  if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'Geef { enabled: true/false } mee' });
+  if (typeof enabled !== 'boolean') return res.status(400).json({ error: t(req, 'give_enabled') });
 
   const user = db.prepare('SELECT mollie_mandate_id, auto_renew FROM users WHERE id = ?').get(req.user.id);
-  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+  if (!user) return res.status(404).json({ error: t(req, 'user_not_found') });
 
   if (enabled && !user.mollie_mandate_id) {
     return res.status(400).json({
-      error: 'Geen machtiging gevonden. Doe eerst een betaling met automatische verlenging ingeschakeld.',
+      error: t(req, 'no_mandate_needs'),
       needsMandate: true,
     });
   }
 
   db.prepare('UPDATE users SET auto_renew = ? WHERE id = ?').run(enabled ? 1 : 0, req.user.id);
-  res.json({ ok: true, auto_renew: enabled, message: enabled ? 'Automatische verlenging ingeschakeld' : 'Automatische verlenging uitgeschakeld' });
+  res.json({ ok: true, auto_renew: enabled, message: enabled ? t(req, 'auto_renew_on') : t(req, 'auto_renew_off') });
 });
 
 // DELETE /api/user/mandate  – revoke Mollie mandate
 app.delete('/api/user/mandate', requireAuth, async (req, res) => {
   const user = db.prepare('SELECT mollie_customer_id, mollie_mandate_id FROM users WHERE id = ?').get(req.user.id);
-  if (!user || !user.mollie_mandate_id) return res.status(404).json({ error: 'Geen machtiging gevonden' });
+  if (!user || !user.mollie_mandate_id) return res.status(404).json({ error: t(req, 'no_mandate_found') });
 
   try {
     await mollie.customerMandates.revoke({ customerId: user.mollie_customer_id, id: user.mollie_mandate_id });
@@ -548,7 +670,7 @@ app.delete('/api/user/mandate', requireAuth, async (req, res) => {
   }
 
   db.prepare('UPDATE users SET mollie_mandate_id = NULL, auto_renew = 0 WHERE id = ?').run(req.user.id);
-  res.json({ ok: true, message: 'Machtiging ingetrokken en automatische verlenging uitgeschakeld' });
+  res.json({ ok: true, message: t(req, 'mandate_revoked') });
 });
 
 // POST /api/auth/forgot-password
@@ -557,7 +679,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   const user = db.prepare('SELECT id, email FROM users WHERE email = ?').get((email || '').toLowerCase());
 
   // Always return OK to prevent email enumeration
-  res.json({ ok: true, message: 'Als dit e-mailadres bekend is, ontvang je een link.' });
+  res.json({ ok: true, message: t(req, 'reset_email_sent') });
 
   if (!user) return;
 
@@ -567,34 +689,50 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   db.prepare('INSERT INTO password_resets (token, user_id, expires_at) VALUES (?, ?, ?)').run(token, user.id, expiresAt);
 
   const link = `${BASE_URL}/reset-password.html?token=${token}`;
-  await sendMail(user.email, 'Wachtwoord opnieuw instellen - Running Dinner Planner', `
+  // Use stored user language if available, otherwise request language
+  const userFull = db.prepare('SELECT language FROM users WHERE id = ?').get(user.id);
+  const lang = userFull?.language || req.lang || 'nl';
+  const isEN = lang === 'en';
+
+  await sendMail(user.email,
+    isEN ? 'Reset your password - Running Dinner Planner' : 'Wachtwoord opnieuw instellen - Running Dinner Planner',
+    wrapHtml(`
           <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-          <p style="color:#374151;line-height:1.6">Hallo,</p>
-          <p style="color:#374151;line-height:1.6">Je hebt een wachtwoord-reset aangevraagd. Klik op onderstaande knop om een nieuw wachtwoord in te stellen. Deze link is 2 uur geldig.</p>
+          <p style="color:#374151;line-height:1.6">${isEN ? 'Hi,' : 'Hallo,'}</p>
+          <p style="color:#374151;line-height:1.6">${isEN
+            ? 'You have requested a password reset. Click the button below to set a new password. This link is valid for 2 hours.'
+            : 'Je hebt een wachtwoord-reset aangevraagd. Klik op onderstaande knop om een nieuw wachtwoord in te stellen. Deze link is 2 uur geldig.'
+          }</p>
           <p style="margin:24px 0;text-align:center">
             <a href="${link}" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">
-              Nieuw wachtwoord instellen
+              ${isEN ? 'Set new password' : 'Nieuw wachtwoord instellen'}
             </a>
           </p>
-          <p style="color:#6b7280;font-size:13px;line-height:1.5">Werkt de knop niet? Kopieer dan deze link in je browser:<br><a href="${link}" style="color:#1a56db;word-break:break-all">${link}</a></p>
-          <p style="color:#6b7280;font-size:13px;line-height:1.5">Heb jij dit niet aangevraagd? Dan kun je deze e-mail veilig negeren.</p>
-  `);
+          <p style="color:#6b7280;font-size:13px;line-height:1.5">${isEN
+            ? `Button not working? Copy this link into your browser:<br><a href="${link}" style="color:#1a56db;word-break:break-all">${link}</a>`
+            : `Werkt de knop niet? Kopieer dan deze link in je browser:<br><a href="${link}" style="color:#1a56db;word-break:break-all">${link}</a>`
+          }</p>
+          <p style="color:#6b7280;font-size:13px;line-height:1.5">${isEN
+            ? 'Didn\'t request this? You can safely ignore this email.'
+            : 'Heb jij dit niet aangevraagd? Dan kun je deze e-mail veilig negeren.'
+          }</p>
+    `, lang));
 });
 
 // POST /api/auth/reset-password
 app.post('/api/auth/reset-password', async (req, res) => {
   const { token, password } = req.body || {};
-  if (!token || !password) return res.status(400).json({ error: 'Token en wachtwoord verplicht' });
-  if (password.length < 8) return res.status(400).json({ error: 'Wachtwoord minimaal 8 tekens' });
+  if (!token || !password) return res.status(400).json({ error: t(req, 'token_pw_required') });
+  if (password.length < 8) return res.status(400).json({ error: t(req, 'pw_min_8') });
 
   const row = db.prepare('SELECT * FROM password_resets WHERE token = ?').get(token);
-  if (!row || row.expires_at < Date.now()) return res.status(400).json({ error: 'Ongeldige of verlopen link' });
+  if (!row || row.expires_at < Date.now()) return res.status(400).json({ error: t(req, 'invalid_reset_link') });
 
   const hash = await bcrypt.hash(password, 12);
   db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, row.user_id);
   db.prepare('DELETE FROM password_resets WHERE token = ?').run(token);
 
-  res.json({ ok: true, message: 'Wachtwoord gewijzigd. Je kunt nu inloggen.' });
+  res.json({ ok: true, message: t(req, 'pw_changed_login') });
 });
 
 // ── Mollie / Payment routes ───────────────────────────────────────────────────
@@ -632,7 +770,7 @@ app.post('/api/mollie/create-payment', requireAuth, async (req, res) => {
     res.json({ ok: true, url: payment.getCheckoutUrl() });
   } catch (err) {
     console.error('[mollie] create-payment error:', err.message);
-    res.status(500).json({ error: 'Betaling kon niet worden gestart' });
+    res.status(500).json({ error: t(req, 'payment_failed') });
   }
 });
 
@@ -665,25 +803,45 @@ app.post('/api/mollie/webhook', async (req, res) => {
       if (failCount >= 2) {
         // 3rd failure (including this one) → disable auto-renewal
         db.prepare('UPDATE users SET auto_renew = 0 WHERE id = ?').run(userId);
-        sendMail(user.email, 'Automatische verlenging uitgeschakeld - Running Dinner Planner', `
+        const uLang = user.language || 'nl';
+        const uEN = uLang === 'en';
+        sendMail(user.email,
+          uEN ? 'Auto-renewal disabled - Running Dinner Planner' : 'Automatische verlenging uitgeschakeld - Running Dinner Planner',
+          wrapHtml(`
           <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-          <p style="color:#374151;line-height:1.6">Hallo,</p>
-          <p style="color:#374151;line-height:1.6">Je automatische verlenging is uitgeschakeld omdat de betaling meerdere keren niet gelukt is.</p>
-          <p style="color:#374151;line-height:1.6">Je kunt je abonnement handmatig verlengen via onderstaande knop.</p>
+          <p style="color:#374151;line-height:1.6">${uEN ? 'Hi,' : 'Hallo,'}</p>
+          <p style="color:#374151;line-height:1.6">${uEN
+            ? 'Your auto-renewal has been disabled because the payment failed multiple times.'
+            : 'Je automatische verlenging is uitgeschakeld omdat de betaling meerdere keren niet gelukt is.'
+          }</p>
+          <p style="color:#374151;line-height:1.6">${uEN
+            ? 'You can renew your subscription manually using the button below.'
+            : 'Je kunt je abonnement handmatig verlengen via onderstaande knop.'
+          }</p>
           <p style="margin:24px 0;text-align:center">
-            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">Abonnement verlengen</a>
+            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${uEN ? 'Renew subscription' : 'Abonnement verlengen'}</a>
           </p>
-        `).catch(console.error);
+        `, uLang)).catch(console.error);
       } else {
-        sendMail(user.email, 'Automatische verlenging mislukt - Running Dinner Planner', `
+        const uLang2 = user.language || 'nl';
+        const uEN2 = uLang2 === 'en';
+        sendMail(user.email,
+          uEN2 ? 'Auto-renewal failed - Running Dinner Planner' : 'Automatische verlenging mislukt - Running Dinner Planner',
+          wrapHtml(`
           <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-          <p style="color:#374151;line-height:1.6">Hallo,</p>
-          <p style="color:#374151;line-height:1.6">De automatische verlenging van je abonnement is niet gelukt. We proberen het binnenkort opnieuw.</p>
-          <p style="color:#374151;line-height:1.6">Wil je het zelf regelen? Verleng dan handmatig:</p>
+          <p style="color:#374151;line-height:1.6">${uEN2 ? 'Hi,' : 'Hallo,'}</p>
+          <p style="color:#374151;line-height:1.6">${uEN2
+            ? 'The automatic renewal of your subscription has failed. We will try again soon.'
+            : 'De automatische verlenging van je abonnement is niet gelukt. We proberen het binnenkort opnieuw.'
+          }</p>
+          <p style="color:#374151;line-height:1.6">${uEN2
+            ? 'Would you rather handle it yourself? Renew manually:'
+            : 'Wil je het zelf regelen? Verleng dan handmatig:'
+          }</p>
           <p style="margin:24px 0;text-align:center">
-            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">Handmatig verlengen</a>
+            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${uEN2 ? 'Renew manually' : 'Handmatig verlengen'}</a>
           </p>
-        `).catch(console.error);
+        `, uLang2)).catch(console.error);
       }
 
       // Record failed payment
@@ -760,7 +918,7 @@ app.get('/api/payments/invoice/:invoiceNumber', requireAuth, (req, res) => {
     'SELECT p.*, u.email FROM payments p JOIN users u ON u.id = p.user_id WHERE p.invoice_number = ? AND p.user_id = ? AND p.status = ?'
   ).get(req.params.invoiceNumber, req.user.id, 'paid');
 
-  if (!payment) return res.status(404).json({ error: 'Factuur niet gevonden' });
+  if (!payment) return res.status(404).json({ error: t(req, 'invoice_not_found') });
 
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
@@ -852,7 +1010,7 @@ app.get('/api/payments/invoice/:invoiceNumber', requireAuth, (req, res) => {
 // GET /api/user/profile  – user profile data
 app.get('/api/user/profile', requireAuth, (req, res) => {
   const user = db.prepare('SELECT id, email, role, user_type, created_at, last_login, license_until, auto_renew, mollie_mandate_id FROM users WHERE id = ?').get(req.user.id);
-  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+  if (!user) return res.status(404).json({ error: t(req, 'user_not_found') });
   const payments = db.prepare(
     "SELECT invoice_number, amount_cents, currency, status, created_at FROM payments WHERE user_id = ? AND status = 'paid' ORDER BY created_at DESC"
   ).all(req.user.id);
@@ -895,7 +1053,7 @@ app.put('/api/cms', requireAdmin, (req, res) => {
 // POST /api/cms/photo  (admin only) – expects { key: string, dataUrl: string }
 app.post('/api/cms/photo', requireAdmin, (req, res) => {
   const { key, dataUrl } = req.body || {};
-  if (!key || !dataUrl) return res.status(400).json({ error: 'key en dataUrl verplicht' });
+  if (!key || !dataUrl) return res.status(400).json({ error: t(req, 'key_dataurl_req') });
   // Store as data URL in CMS (simple approach; swap for file upload in production)
   setCmsValue(key, dataUrl);
   res.json({ ok: true });
@@ -967,15 +1125,15 @@ app.get('/api/admin/users', requireAdmin, (req, res) => {
 // POST /api/admin/users  – manually create user (optionally send invite)
 app.post('/api/admin/users', requireAdmin, async (req, res) => {
   const { email, password, user_type = 'manual', license_days, send_invite } = req.body || {};
-  if (!email) return res.status(400).json({ error: 'E-mailadres is verplicht' });
+  if (!email) return res.status(400).json({ error: t(req, 'email_required') });
 
   // If send_invite, password is optional (generate random one)
   const actualPassword = send_invite ? (password || crypto.randomBytes(16).toString('hex')) : password;
-  if (!actualPassword) return res.status(400).json({ error: 'Wachtwoord verplicht (of kies uitnodigingslink)' });
-  if (!send_invite && actualPassword.length < 8) return res.status(400).json({ error: 'Wachtwoord minimaal 8 tekens' });
+  if (!actualPassword) return res.status(400).json({ error: t(req, 'pw_required_invite') });
+  if (!send_invite && actualPassword.length < 8) return res.status(400).json({ error: t(req, 'pw_min_8') });
 
   const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
-  if (exists) return res.status(409).json({ error: 'E-mailadres al in gebruik' });
+  if (exists) return res.status(409).json({ error: t(req, 'email_in_use') });
 
   const hash         = await bcrypt.hash(actualPassword, 12);
   const id           = uuidv4();
@@ -995,7 +1153,7 @@ app.post('/api/admin/users', requireAdmin, async (req, res) => {
       db.prepare('INSERT INTO password_resets (token, user_id, expires_at) VALUES (?, ?, ?)').run(token, id, expiresAt);
 
       const link = `${BASE_URL}/reset-password.html?token=${token}&invite=1`;
-      const html = `
+      const inviteBody = `
               <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
               <p style="color:#374151;line-height:1.6">Hallo,</p>
               <p style="color:#374151;line-height:1.6">Je bent uitgenodigd om Running Dinner Planner te gebruiken. Klik op onderstaande knop om je wachtwoord in te stellen en aan de slag te gaan.</p>
@@ -1007,7 +1165,7 @@ app.post('/api/admin/users', requireAdmin, async (req, res) => {
               </p>
               <p style="color:#6b7280;font-size:13px;line-height:1.5">Deze link is 7 dagen geldig. Werkt de knop niet? Kopieer dan deze link in je browser:<br><a href="${link}" style="color:#1a56db;word-break:break-all">${link}</a></p>
       `;
-      await sendMail(email.toLowerCase(), 'Uitnodiging Running Dinner Planner', html);
+      await sendMail(email.toLowerCase(), 'Uitnodiging Running Dinner Planner', wrapHtml(inviteBody));
       inviteSent = true;
     } catch (err) {
       console.error('[invite] mail error:', err.message);
@@ -1015,10 +1173,10 @@ app.post('/api/admin/users', requireAdmin, async (req, res) => {
   }
 
   const msg = inviteSent
-    ? `Gebruiker aangemaakt en uitnodiging verstuurd naar ${email}`
+    ? (req.lang === 'en' ? `User created and invitation sent to ${email}` : `Gebruiker aangemaakt en uitnodiging verstuurd naar ${email}`)
     : send_invite
-      ? 'Gebruiker aangemaakt, maar uitnodigingsmail kon niet verstuurd worden'
-      : 'Gebruiker aangemaakt.';
+      ? (req.lang === 'en' ? 'User created, but invitation email could not be sent' : 'Gebruiker aangemaakt, maar uitnodigingsmail kon niet verstuurd worden')
+      : (req.lang === 'en' ? 'User created.' : 'Gebruiker aangemaakt.');
 
   res.json({ ok: true, message: msg, user_id: id });
 });
@@ -1027,13 +1185,13 @@ app.post('/api/admin/users', requireAdmin, async (req, res) => {
 app.put('/api/admin/users/:id', requireAdmin, async (req, res) => {
   const { email, user_type, license_days, license_until, password } = req.body || {};
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
-  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
-  if (user.role === 'admin' && req.user.id !== user.id) return res.status(403).json({ error: 'Kan andere admin niet bewerken' });
+  if (!user) return res.status(404).json({ error: t(req, 'user_not_found') });
+  if (user.role === 'admin' && req.user.id !== user.id) return res.status(403).json({ error: t(req, 'cannot_edit_admin') });
 
   // Update email if changed
   if (email && email.toLowerCase() !== user.email) {
     const exists = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email.toLowerCase(), user.id);
-    if (exists) return res.status(409).json({ error: 'E-mailadres al in gebruik' });
+    if (exists) return res.status(409).json({ error: t(req, 'email_in_use') });
     db.prepare('UPDATE users SET email = ? WHERE id = ?').run(email.toLowerCase(), user.id);
   }
 
@@ -1062,13 +1220,13 @@ app.put('/api/admin/users/:id', requireAdmin, async (req, res) => {
   }
 
   const updated = db.prepare('SELECT id, email, role, user_type, license_until FROM users WHERE id = ?').get(user.id);
-  res.json({ ok: true, message: 'Gebruiker bijgewerkt', user: updated });
+  res.json({ ok: true, message: t(req, 'user_updated'), user: updated });
 });
 
 // POST /api/admin/users/:id/invite  – send invitation email with password-set link
 app.post('/api/admin/users/:id/invite', requireAdmin, async (req, res) => {
   const user = db.prepare('SELECT id, email FROM users WHERE id = ?').get(req.params.id);
-  if (!user) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+  if (!user) return res.status(404).json({ error: t(req, 'user_not_found') });
 
   // Generate password reset token (used as invite link)
   const token     = crypto.randomBytes(32).toString('hex');
@@ -1091,10 +1249,10 @@ app.post('/api/admin/users/:id/invite', requireAdmin, async (req, res) => {
 
   try {
     await sendMail(user.email, 'Uitnodiging Running Dinner Planner', html);
-    res.json({ ok: true, message: `Uitnodiging verstuurd naar ${user.email}` });
+    res.json({ ok: true, message: t(req, 'invite_sent', { email: user.email }) });
   } catch (err) {
     console.error('[invite] mail error:', err.message);
-    res.status(500).json({ error: 'E-mail kon niet worden verstuurd' });
+    res.status(500).json({ error: t(req, 'email_send_failed') });
   }
 });
 
@@ -1132,13 +1290,13 @@ app.put('/api/admin/settings', requireAdmin, (req, res) => {
   const { subscription_price_cents, subscription_duration_days } = req.body || {};
   if (subscription_price_cents !== undefined) {
     const cents = parseInt(subscription_price_cents, 10);
-    if (isNaN(cents) || cents < 100) return res.status(400).json({ error: 'Minimale prijs €1,00' });
+    if (isNaN(cents) || cents < 100) return res.status(400).json({ error: t(req, 'min_price') });
     db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value')
       .run('subscription_price_cents', String(cents));
   }
   if (subscription_duration_days !== undefined) {
     const days = parseInt(subscription_duration_days, 10);
-    if (isNaN(days) || days < 1) return res.status(400).json({ error: 'Ongeldige duur' });
+    if (isNaN(days) || days < 1) return res.status(400).json({ error: t(req, 'invalid_duration') });
     db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value')
       .run('subscription_duration_days', String(days));
   }
@@ -1158,7 +1316,7 @@ app.get('/api/admin/deployments', requireAdmin, (req, res) => {
 app.post('/api/admin/deploy', requireAdmin, (req, res) => {
   const { env = 'production', note = '' } = req.body || {};
   const validEnvs = ['production', 'staging'];
-  if (!validEnvs.includes(env)) return res.status(400).json({ error: 'Ongeldige omgeving' });
+  if (!validEnvs.includes(env)) return res.status(400).json({ error: t(req, 'invalid_env') });
 
   const id = uuidv4();
   db.prepare(
@@ -1169,7 +1327,7 @@ app.post('/api/admin/deploy', requireAdmin, (req, res) => {
   // For now just log the deployment intent.
   console.log(`[deploy] ${env} deployment triggered by ${req.user.email}: ${note}`);
 
-  res.json({ ok: true, message: `Deployment naar ${env} geregistreerd.` });
+  res.json({ ok: true, message: t(req, 'deploy_registered', { env }) });
 });
 
 // ── Planning counter ──────────────────────────────────────────────────────────
@@ -1201,7 +1359,7 @@ app.post('/api/planning-count/increment', requireAuth, (req, res) => {
 app.put('/api/admin/planning-count', requireAdmin, (req, res) => {
   const { count } = req.body || {};
   const n = parseInt(count, 10);
-  if (isNaN(n) || n < 0) return res.status(400).json({ error: 'Ongeldig getal' });
+  if (isNaN(n) || n < 0) return res.status(400).json({ error: t(req, 'invalid_number') });
   db.prepare("INSERT INTO settings (key, value) VALUES ('planning_counter', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
     .run(String(n));
   res.json({ ok: true, count: n });
@@ -1236,7 +1394,7 @@ app.get('/api/public/stats', (req, res) => {
 app.post('/api/ratings', requireAuth, (req, res) => {
   const { score, comment } = req.body || {};
   const s = parseInt(score, 10);
-  if (!s || s < 1 || s > 5) return res.status(400).json({ error: 'Score moet 1-5 zijn' });
+  if (!s || s < 1 || s > 5) return res.status(400).json({ error: t(req, 'score_1_5') });
 
   // Check if user already rated (allow max 1 per user to keep it fair)
   const existing = db.prepare('SELECT id FROM ratings WHERE user_id = ?').get(req.user.id);
@@ -1244,14 +1402,14 @@ app.post('/api/ratings', requireAuth, (req, res) => {
     // Update existing rating
     db.prepare('UPDATE ratings SET score = ?, comment = ?, created_at = ? WHERE user_id = ?')
       .run(s, comment || null, Date.now(), req.user.id);
-    return res.json({ ok: true, message: 'Beoordeling bijgewerkt', updated: true });
+    return res.json({ ok: true, message: t(req, 'rating_updated'), updated: true });
   }
 
   const id = uuidv4();
   db.prepare('INSERT INTO ratings (id, user_id, score, comment, created_at) VALUES (?, ?, ?, ?, ?)')
     .run(id, req.user.id, s, comment || null, Date.now());
 
-  res.json({ ok: true, message: 'Bedankt voor je beoordeling!' });
+  res.json({ ok: true, message: t(req, 'thanks_rating') });
 });
 
 // GET /api/ratings/mine  (authenticated – get own rating)
@@ -1265,7 +1423,7 @@ app.get('/api/ratings/mine', requireAuth, (req, res) => {
 // POST /api/contact
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body || {};
-  if (!name || !email || !message) return res.status(400).json({ error: 'Alle velden zijn verplicht' });
+  if (!name || !email || !message) return res.status(400).json({ error: t(req, 'all_fields_required') });
 
   const contactEmail = process.env.CONTACT_EMAIL || 'cyro@vanmalsen.net';
   const safeName = escHtml(name);
@@ -1289,10 +1447,10 @@ app.post('/api/contact', async (req, res) => {
 
   try {
     await sendMail(contactEmail, `Contactformulier: ${name} - Running Dinner Planner`, html, { replyTo: email });
-    res.json({ ok: true, message: 'Je bericht is verzonden!' });
+    res.json({ ok: true, message: t(req, 'message_sent') });
   } catch (err) {
     console.error('[contact] mail error:', err.message);
-    res.status(500).json({ error: 'Bericht kon niet worden verzonden. Probeer het later opnieuw.' });
+    res.status(500).json({ error: t(req, 'message_send_failed') });
   }
 });
 
@@ -1318,7 +1476,7 @@ app.get('/api/app/access', requireAuth, (req, res) => {
 app.put('/api/user/language', requireAuth, (req, res) => {
   const { language } = req.body || {};
   if (!language || !['nl', 'en'].includes(language)) {
-    return res.status(400).json({ error: 'Ongeldige taal. Kies "nl" of "en".' });
+    return res.status(400).json({ error: t(req, 'invalid_lang') });
   }
   db.prepare('UPDATE users SET language = ? WHERE id = ?').run(language, req.user.id);
   res.cookie('lang', language, { maxAge: 365 * 86400000, sameSite: 'lax' });
@@ -1326,16 +1484,125 @@ app.put('/api/user/language', requireAuth, (req, res) => {
 });
 
 // ── English route handling (/en/*) ──────────────────────────────────────────
-// Serve the same HTML files for /en/ paths — language is applied client-side via i18n.js
+
+// Build English homepage variant at startup (cached in memory for SEO)
+const homeHtmlPath = path.join(__dirname, 'public', 'home.html');
+let homeHtmlEN = null;
+try {
+  let html = fs.readFileSync(homeHtmlPath, 'utf8');
+
+  // 1. <html lang="nl"> → <html lang="en">
+  html = html.replace('<html lang="nl">', '<html lang="en">');
+
+  // 2. <title>
+  html = html.replace(
+    /<title>[^<]+<\/title>/,
+    '<title>Organize a Running Dinner – The Easiest Planner | Running Dinner Planner</title>'
+  );
+
+  // 3. <meta name="description">
+  html = html.replace(
+    /<meta name="description" content="[^"]*">/,
+    '<meta name="description" content="Built by an organiser, for organisers. From spreadsheet chaos to planning in minutes. Subscription only €5 per year.">'
+  );
+
+  // 4. <meta name="keywords">
+  html = html.replace(
+    /<meta name="keywords" content="[^"]*">/,
+    '<meta name="keywords" content="running dinner organise, running dinner planner, progressive dinner, dinner party planner, running dinner tool, running dinner app">'
+  );
+
+  // 5. canonical
+  html = html.replace(
+    /<link rel="canonical" href="https:\/\/runningdiner\.nl\/">/,
+    '<link rel="canonical" href="https://runningdiner.nl/en/">'
+  );
+
+  // 6. Open Graph
+  html = html.replace(
+    /<meta property="og:url" content="https:\/\/runningdiner\.nl\/">/,
+    '<meta property="og:url" content="https://runningdiner.nl/en/">'
+  );
+  html = html.replace(
+    /<meta property="og:title" content="[^"]*">/,
+    '<meta property="og:title" content="Running Dinner Planner – From spreadsheet chaos to planning in minutes">'
+  );
+  html = html.replace(
+    /<meta property="og:description" content="[^"]*">/,
+    '<meta property="og:description" content="Built by an organiser, for organisers. Everything I ran into is now built in as standard.">'
+  );
+
+  // 7. Twitter Card
+  html = html.replace(
+    /<meta name="twitter:title" content="[^"]*">/,
+    '<meta name="twitter:title" content="Running Dinner Planner – From spreadsheet chaos to planning in minutes">'
+  );
+  html = html.replace(
+    /<meta name="twitter:description" content="[^"]*">/,
+    '<meta name="twitter:description" content="Built by an organiser. Everything I ran into is now built in as standard. €5 per year.">'
+  );
+
+  // 8. Schema.org SoftwareApplication
+  html = html.replace(
+    '"description": "Organiseer een running dinner moeiteloos. Plan routes, wijs tafels toe en druk enveloppen af."',
+    '"description": "Organize a running dinner effortlessly. Plan routes, assign tables and print envelopes."'
+  );
+  html = html.replace(
+    '"url": "https://runningdiner.nl/"',
+    '"url": "https://runningdiner.nl/en/"'
+  );
+  html = html.replace(
+    '"description": "1 jaar abonnement"',
+    '"description": "1 year subscription"'
+  );
+
+  // 9. FAQ structured data
+  html = html.replace(
+    '"name": "Wat is een running dinner?"',
+    '"name": "What is a running dinner?"'
+  );
+  html = html.replace(
+    '"text": "Een running dinner (ook wel lopend diner of diner en route) is een sociaal evenement waarbij deelnemers elke gang van het diner bij een andere gastheer eten. Zo ontmoet iedereen nieuwe mensen."',
+    '"text": "A running dinner (also known as a progressive dinner) is a social event where participants eat each course of the dinner at a different host\'s home. This way everyone meets new people."'
+  );
+  html = html.replace(
+    '"name": "Hoe werkt de Running Dinner Planner?"',
+    '"name": "How does the Running Dinner Planner work?"'
+  );
+  html = html.replace(
+    '"text": "Je voert deelnemers in, configureert de gangenstructuur en de planner wijst automatisch tafels en routes toe zodat iedereen zoveel mogelijk nieuwe tafelgenoten ontmoet. Daarna druk je de envelop-kaartjes af."',
+    '"text": "You enter participants, configure the course structure and the planner automatically assigns tables and routes so everyone meets as many new tablemates as possible. Then you print the envelope cards."'
+  );
+  html = html.replace(
+    '"name": "Hoeveel kost de Running Dinner Planner?"',
+    '"name": "How much does the Running Dinner Planner cost?"'
+  );
+  html = html.replace(
+    '"text": "Het abonnement kost slechts €5 per jaar. Je kunt daarmee onbeperkt evenementen organiseren."',
+    '"text": "The subscription costs only €5 per year. You can organize unlimited events with it."'
+  );
+
+  homeHtmlEN = html;
+  console.log('[boot] English homepage SEO variant generated');
+} catch (e) {
+  console.warn('[boot] Could not generate English homepage variant:', e.message);
+}
+
+// Serve English homepage with SEO-optimized <head>
 app.get('/en/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/en', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
-app.get('/en/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
+app.get(['/en', '/en/'], (req, res) => {
+  if (homeHtmlEN) {
+    res.type('html').send(homeHtmlEN);
+  } else {
+    res.sendFile(homeHtmlPath);
+  }
+});
 app.get('/en/:page.html', (req, res) => {
   const file = path.join(__dirname, 'public', `${req.params.page}.html`);
   if (fs.existsSync(file)) {
     res.sendFile(file);
   } else {
-    res.status(404).sendFile(path.join(__dirname, 'public', 'home.html'));
+    res.status(404).sendFile(homeHtmlPath);
   }
 });
 
@@ -1392,7 +1659,7 @@ async function checkRenewalReminders() {
   const reminderCooldown = now - 13 * 86400000;
 
   const users = db.prepare(`
-    SELECT id, email, license_until
+    SELECT id, email, license_until, language
     FROM users
     WHERE auto_renew = 1
       AND license_until BETWEEN ? AND ?
@@ -1402,21 +1669,35 @@ async function checkRenewalReminders() {
   const priceCents = parseInt(getSetting('subscription_price_cents') || '500', 10);
 
   for (const user of users) {
-    const renewDate = new Date(user.license_until).toLocaleDateString('nl-NL', {
+    const uLang = user.language || 'nl';
+    const uEN = uLang === 'en';
+    const locale = uEN ? 'en-GB' : 'nl-NL';
+    const renewDate = new Date(user.license_until).toLocaleDateString(locale, {
       year: 'numeric', month: 'long', day: 'numeric'
     });
 
     try {
-      await sendMail(user.email, 'Je abonnement wordt binnenkort verlengd - Running Dinner Planner', `
+      await sendMail(user.email,
+        uEN ? 'Your subscription will be renewed soon - Running Dinner Planner' : 'Je abonnement wordt binnenkort verlengd - Running Dinner Planner',
+        wrapHtml(`
         <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-        <p style="color:#374151;line-height:1.6">Hallo,</p>
-        <p style="color:#374151;line-height:1.6">Je abonnement wordt automatisch verlengd op <strong>${renewDate}</strong> voor <strong>${formatEur(priceCents)}</strong>.</p>
-        <p style="color:#374151;line-height:1.6">Je hoeft niets te doen. Wil je de automatische verlenging uitschakelen? Dat kan in je profiel.</p>
+        <p style="color:#374151;line-height:1.6">${uEN ? 'Hi,' : 'Hallo,'}</p>
+        <p style="color:#374151;line-height:1.6">${uEN
+          ? `Your subscription will be automatically renewed on <strong>${renewDate}</strong> for <strong>${formatEur(priceCents)}</strong>.`
+          : `Je abonnement wordt automatisch verlengd op <strong>${renewDate}</strong> voor <strong>${formatEur(priceCents)}</strong>.`
+        }</p>
+        <p style="color:#374151;line-height:1.6">${uEN
+          ? 'No action needed. Want to disable auto-renewal? You can do so in your profile.'
+          : 'Je hoeft niets te doen. Wil je de automatische verlenging uitschakelen? Dat kan in je profiel.'
+        }</p>
         <p style="margin:24px 0;text-align:center">
-          <a href="${BASE_URL}/profile.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">Naar mijn profiel</a>
+          <a href="${BASE_URL}/profile.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${uEN ? 'Go to my profile' : 'Naar mijn profiel'}</a>
         </p>
-        <p style="color:#6b7280;font-size:13px;line-height:1.5">Je ontvangt na verlenging automatisch een factuur per e-mail.</p>
-      `);
+        <p style="color:#6b7280;font-size:13px;line-height:1.5">${uEN
+          ? 'You will automatically receive an invoice by email after renewal.'
+          : 'Je ontvangt na verlenging automatisch een factuur per e-mail.'
+        }</p>
+      `, uLang));
       db.prepare('UPDATE users SET renewal_reminder_sent = ? WHERE id = ?').run(now, user.id);
       console.log(`[scheduler] renewal reminder sent to ${user.email}`);
     } catch (err) {
