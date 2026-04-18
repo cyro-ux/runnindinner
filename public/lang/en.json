@@ -2,5 +2,136 @@
   "_meta": {
     "language": "en",
     "label": "English"
+  },
+
+  "nav": {
+    "features": "Features",
+    "how_it_works": "How it works",
+    "pricing": "Pricing",
+    "login": "Log in",
+    "cta": "Start for €5/year"
+  },
+
+  "hero": {
+    "badge": "👨‍🍳 Built by an organiser, for organisers",
+    "ghost_cta": "See how it works ↓",
+    "hint": "Pay once <span id=\"price-display\">€5</span>/year &bull; Instant access &bull; No auto-renewal &bull; iDEAL &amp; Bancontact",
+    "screenshot_participants": "Manage participants",
+    "screenshot_planning": "Smart planning",
+    "screenshot_envelopes": "Envelope cards"
+  },
+
+  "social_proof": {
+    "label": "Trusted by organisers across the Netherlands",
+    "dinners": "Running dinners planned",
+    "participants": "Participants processed",
+    "rating": "Average rating"
+  },
+
+  "features": {
+    "title": "Everything you need",
+    "routing_title": "Smart route planning",
+    "routing_desc": "My biggest frustration: guests ending up with the same tablemates three times in a row. The algorithm now automatically ensures everyone meets as many new people as possible — dietary requirements included.",
+    "envelopes_title": "Print envelope cards",
+    "envelopes_desc": "The best idea I ever had: guests receive a sealed envelope with the next address at each course. The route stays a surprise. Now you can print them with a single click.",
+    "participants_title": "Manage participants",
+    "participants_desc": "Who's vegetarian? Who has a nut allergy? Who can't make the main course? I used to forget something every time. Now you record everything per participant — partner included.",
+    "dragdrop_title": "Drag & drop adjustments",
+    "dragdrop_desc": "Sometimes you want to tweak things manually — those two neighbours shouldn't be at the same table, or perhaps the new residents should sit together. Drag guests between tables and see the effect instantly.",
+    "overview_title": "Overview per location",
+    "overview_desc": "Every host wants to know: who's coming, and how many? You can send this overview straight away — saves a lot of last-minute messages on the day itself.",
+    "drinks_title": "Pre-dinner & after-party drinks",
+    "drinks_desc": "The first time I forgot to include the pre-dinner drinks in my plan. Never again: set a central location and the planner automatically factors it into the schedule."
+  },
+
+  "how_it_works": {
+    "title": "Done in 4 steps",
+    "subtitle": "What used to take me an entire evening now takes half an hour. Four steps, done.",
+    "step1_title": "Configure your event",
+    "step1_desc": "Set up the course structure: which courses are there, who hosts the pre/after-party drinks, and how many guests per table.",
+    "step2_title": "Enter participants",
+    "step2_desc": "Add participants with name, address, dietary requirements and availability. Or import via an Excel template.",
+    "step3_title": "Generate the plan",
+    "step3_desc": "The planner automatically calculates the optimal seating arrangement. Afterwards, make manual adjustments via drag & drop if needed.",
+    "step4_title": "Print & enjoy",
+    "step4_desc": "Print the envelope cards and the overview. Ready to enjoy a successful running dinner!"
+  },
+
+  "testimonials": {
+    "title": "What organisers say",
+    "quote1": "\"Planning our neighbourhood running dinner used to take an entire evening. Now I'm done in 20 minutes. Fantastic!\"",
+    "role1": "Organiser, Amsterdam",
+    "quote2": "\"The envelope cards are a brilliant idea. The surprise of discovering the next address makes the event even more fun.\"",
+    "role2": "Organiser, Utrecht",
+    "quote3": "\"Finally a tool that accounts for dietary requirements and allergies. A must-have for any running dinner organiser.\"",
+    "role3": "Organiser, Rotterdam"
+  },
+
+  "pricing": {
+    "title": "Simple, fair pricing",
+    "subtitle": "I didn't want to pay a lot for a tool I only use a few times a year either. So: €5 per year, unlimited planning.",
+    "badge": "Most popular",
+    "plan_name": "Annual subscription",
+    "period": "/ year",
+    "feature1": "✓ Organise unlimited running dinners",
+    "feature2": "✓ Smart route planning algorithm",
+    "feature3": "✓ Drag & drop table management",
+    "feature4": "✓ Print envelope cards",
+    "feature5": "✓ Excel import & export template",
+    "feature6": "✓ Save participants as a fixed group",
+    "feature7": "✓ Payment via iDEAL, credit card or SEPA",
+    "cta": "Get a subscription",
+    "note": "Instant access after payment. Invoice sent by email."
+  },
+
+  "faq": {
+    "title": "Frequently asked questions",
+    "q1": "What is a running dinner?",
+    "a1": "A running dinner (also known as a <em>progressive dinner</em> or <em>safari supper</em>) is a social event where participants eat each course at a different host's home. That way, everyone meets new people in a relaxed atmosphere.",
+    "q2": "How many participants can I add?",
+    "a2": "There is no hard limit. The planner works optimally with 12 to 120 participants, which covers most running dinner events.",
+    "q3": "How are the routes calculated?",
+    "a3": "The planner uses a smart algorithm that minimises overlap in tablemates. Each participant meets the widest possible variety of fellow guests throughout the evening.",
+    "q4": "Can I import participants from Excel?",
+    "a4": "Yes! You can download an Excel template with all columns (name, address, dietary requirements, availability, etc.), fill it in and import it. Saves a lot of time.",
+    "q5": "How do the envelope cards work?",
+    "a5": "For each table, a card is printed per course with the next address. Guests may only open the envelope at the end of the course — so the route stays a surprise until the very last moment.",
+    "q6": "How long is my subscription valid?",
+    "a6": "Your subscription is valid for 1 year from the payment date. You can easily renew it afterwards.",
+    "q7": "Which payment methods are accepted?",
+    "a7": "You can pay via iDEAL, credit card (Visa/Mastercard) or SEPA direct debit. After payment you'll immediately receive an invoice by email.",
+    "q8": "Is my data stored?",
+    "a8": "Your account details (email, password) are stored securely. The participant information you enter in the planner is <strong>not</strong> stored permanently — that data only lives in your browser session."
+  },
+
+  "cta": {
+    "title": "Save yourself the spreadsheet evening",
+    "subtitle": "Start planning today and discover why you didn't do it this way sooner.",
+    "button": "Start now for €5/year",
+    "note": "Instant access &bull; iDEAL &bull; Bancontact &bull; PayPal &bull; No auto-renewal"
+  },
+
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Questions or suggestions? I'd love to hear from you and will reply personally.",
+    "name_label": "Name",
+    "name_placeholder": "Your name",
+    "email_label": "Email address",
+    "email_placeholder": "your@email.com",
+    "message_label": "Message",
+    "message_placeholder": "Your question or comment...",
+    "submit": "Send message"
+  },
+
+  "footer": {
+    "product_heading": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "account_heading": "Account",
+    "login": "Log in",
+    "register": "Register",
+    "forgot_password": "Forgot password",
+    "contact_heading": "Contact",
+    "contact_form": "Contact form"
   }
 }
