@@ -445,8 +445,10 @@ app.use('/api/', apiLimiter);
 // The running dinner planner app lives at the repo root (index.html, app.js, style.css)
 app.use('/app', express.static(path.join(__dirname)));
 app.use('/en/app', express.static(path.join(__dirname)));  // English version serves same static files
+app.use('/es/app', express.static(path.join(__dirname)));  // Spanish version serves same static files
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 app.use('/en', express.static(path.join(__dirname, 'public'))); // English public files (CSS, images, lang/)
+app.use('/es', express.static(path.join(__dirname, 'public'))); // Spanish public files (CSS, images, lang/)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Server-side translations ─────────────────────────────────────────────────
