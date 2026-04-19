@@ -511,19 +511,22 @@
   });
 
   // ── Load real stats for social proof bar
-  fetch('/api/public/stats')
-    .then(r => r.ok ? r.json() : null)
-    .then(data => {
-      if (!data) return;
-      const fmt = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', '.') + 'k' : String(n);
-      const dinEl = document.getElementById('sp-dinners');
-      const partEl = document.getElementById('sp-participants');
-      const ratEl = document.getElementById('sp-rating');
-      if (dinEl)  dinEl.textContent  = data.dinners > 0 ? fmt(data.dinners) + '+' : '0';
-      if (partEl) partEl.textContent = data.participants > 0 ? fmt(data.participants) + '+' : '0';
-      if (ratEl)  ratEl.textContent  = data.ratingCount > 0 ? data.avgRating.toFixed(1) + ' \u2605' : I18n.t('social_proof.new', 'Nieuw');
-    })
-    .catch(() => {});
+  // Wait for I18n to be ready so fallback text is translated correctly
+  I18n.onReady(() => {
+    fetch('/api/public/stats')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        const fmt = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', '.') + 'k' : String(n);
+        const dinEl = document.getElementById('sp-dinners');
+        const partEl = document.getElementById('sp-participants');
+        const ratEl = document.getElementById('sp-rating');
+        if (dinEl)  dinEl.textContent  = data.dinners > 0 ? fmt(data.dinners) + '+' : '0';
+        if (partEl) partEl.textContent = data.participants > 0 ? fmt(data.participants) + '+' : '0';
+        if (ratEl)  ratEl.textContent  = data.ratingCount > 0 ? data.avgRating.toFixed(1) + ' \u2605' : I18n.t('social_proof.new', 'Nieuw');
+      })
+      .catch(() => {});
+  });
 
   // ── Load CMS content + price
   fetch('/api/cms')
