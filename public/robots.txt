@@ -2,6 +2,7 @@
 User-agent: *
 Allow: /
 Allow: /en/
+Allow: /es/
 
 # Auth/account pages – not useful for indexing
 Disallow: /forgot-password.html
@@ -18,5 +19,12 @@ Disallow: /en/reset-password.html
 Disallow: /en/payment-success.html
 Disallow: /en/profile.html
 Disallow: /en/app
+
+# Spanish equivalents
+Disallow: /es/forgot-password.html
+Disallow: /es/reset-password.html
+Disallow: /es/payment-success.html
+Disallow: /es/profile.html
+Disallow: /es/app
 
 Sitemap: https://runningdiner.nl/sitemap.xml

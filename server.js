@@ -143,6 +143,13 @@ cmsDefault.run('features_intro_en', 'Every feature was born from a problem I enc
 cmsDefault.run('price_label_en', '€5 per year', now);
 cmsDefault.run('footer_text_en', 'Built from personal experience. Every feature solves a real problem.', now);
 
+cmsDefault.run('hero_title_es', 'Del caos de hojas de cálculo a la planificación en minutos', now);
+cmsDefault.run('hero_subtitle_es', 'Después de años organizando cenas itinerantes con interminables hojas de cálculo, invitados duplicados y rutas equivocadas, creé esta herramienta. Todo con lo que me topé ya está integrado por defecto.', now);
+cmsDefault.run('hero_cta_es', 'Empieza ahora por €5/año', now);
+cmsDefault.run('features_intro_es', 'Cada función nació de un problema que encontré organizando. Sin adornos innecesarios, solo lo que realmente necesitas.', now);
+cmsDefault.run('price_label_es', '€5 al año', now);
+cmsDefault.run('footer_text_es', 'Creado desde la experiencia personal. Cada función soluciona un problema real.', now);
+
 // Seed admin account (once)
 (async () => {
   const existing = db.prepare('SELECT id FROM users WHERE role = ?').get('admin');
@@ -196,9 +203,12 @@ async function sendMail(to, subject, html, { replyTo } = {}) {
 
 // Wrap HTML content in a proper email document structure
 function wrapHtml(body, lang = 'nl') {
-  const footer = lang === 'en'
-    ? 'You are receiving this email because you have an account or have been invited.'
-    : 'Je ontvangt deze e-mail omdat je een account hebt of bent uitgenodigd.';
+  const footers = {
+    nl: 'Je ontvangt deze e-mail omdat je een account hebt of bent uitgenodigd.',
+    en: 'You are receiving this email because you have an account or have been invited.',
+    es: 'Recibes este correo porque tienes una cuenta o has sido invitado.',
+  };
+  const footer = footers[lang] || footers.nl;
   return `<!DOCTYPE html>
 <html lang="${lang}" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -259,44 +269,79 @@ function formatEur(cents) {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 }
 
+// Email locale helpers
+const EMAIL_LOCALES = { nl: 'nl-NL', en: 'en-GB', es: 'es-ES' };
+
+// Labels for invoice/payment emails by language
+const INVOICE_LABELS = {
+  nl: {
+    hi: 'Hallo,',
+    thanks: (date) => `Bedankt voor je betaling! Je abonnement is actief t/m <strong>${date}</strong>.`,
+    invoice_number: 'Factuurnummer',
+    description: 'Omschrijving',
+    sub_label: '1 jaar abonnement',
+    amount: 'Bedrag',
+    date: 'Datum',
+    open_planner: 'Open de planner',
+    subject: (no) => `Factuur ${no} - Running Dinner Planner`,
+  },
+  en: {
+    hi: 'Hi,',
+    thanks: (date) => `Thank you for your payment! Your subscription is active until <strong>${date}</strong>.`,
+    invoice_number: 'Invoice number',
+    description: 'Description',
+    sub_label: '1 year subscription',
+    amount: 'Amount',
+    date: 'Date',
+    open_planner: 'Open the planner',
+    subject: (no) => `Invoice ${no} - Running Dinner Planner`,
+  },
+  es: {
+    hi: 'Hola,',
+    thanks: (date) => `¡Gracias por tu pago! Tu suscripción está activa hasta el <strong>${date}</strong>.`,
+    invoice_number: 'Número de factura',
+    description: 'Descripción',
+    sub_label: 'Suscripción de 1 año',
+    amount: 'Importe',
+    date: 'Fecha',
+    open_planner: 'Abrir el planificador',
+    subject: (no) => `Factura ${no} - Running Dinner Planner`,
+  },
+};
+
 async function sendInvoiceMail(user, payment) {
   const lang = user.language || 'nl';
-  const locale = lang === 'en' ? 'en-GB' : 'nl-NL';
-  const isEN = lang === 'en';
+  const locale = EMAIL_LOCALES[lang] || EMAIL_LOCALES.nl;
+  const L = INVOICE_LABELS[lang] || INVOICE_LABELS.nl;
+  const untilDate = new Date(user.license_until).toLocaleDateString(locale);
 
   const html = `
           <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-          <p style="color:#374151;line-height:1.6">${isEN ? 'Hi,' : 'Hallo,'}</p>
-          <p style="color:#374151;line-height:1.6">${isEN
-            ? `Thank you for your payment! Your subscription is active until <strong>${new Date(user.license_until).toLocaleDateString(locale)}</strong>.`
-            : `Bedankt voor je betaling! Je abonnement is actief t/m <strong>${new Date(user.license_until).toLocaleDateString(locale)}</strong>.`
-          }</p>
+          <p style="color:#374151;line-height:1.6">${L.hi}</p>
+          <p style="color:#374151;line-height:1.6">${L.thanks(untilDate)}</p>
           <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px">
             <tr style="background:#f3f4f6">
-              <td style="padding:8px 12px;color:#374151">${isEN ? 'Invoice number' : 'Factuurnummer'}</td>
+              <td style="padding:8px 12px;color:#374151">${L.invoice_number}</td>
               <td style="padding:8px 12px;color:#374151"><strong>${payment.invoice_number}</strong></td>
             </tr>
             <tr>
-              <td style="padding:8px 12px;color:#374151">${isEN ? 'Description' : 'Omschrijving'}</td>
-              <td style="padding:8px 12px;color:#374151">Running Dinner Planner - ${isEN ? '1 year subscription' : '1 jaar abonnement'}</td>
+              <td style="padding:8px 12px;color:#374151">${L.description}</td>
+              <td style="padding:8px 12px;color:#374151">Running Dinner Planner - ${L.sub_label}</td>
             </tr>
             <tr style="background:#f3f4f6">
-              <td style="padding:8px 12px;color:#374151">${isEN ? 'Amount' : 'Bedrag'}</td>
+              <td style="padding:8px 12px;color:#374151">${L.amount}</td>
               <td style="padding:8px 12px;color:#374151"><strong>${formatEur(payment.amount_cents)}</strong></td>
             </tr>
             <tr>
-              <td style="padding:8px 12px;color:#374151">${isEN ? 'Date' : 'Datum'}</td>
+              <td style="padding:8px 12px;color:#374151">${L.date}</td>
               <td style="padding:8px 12px;color:#374151">${new Date(payment.created_at).toLocaleDateString(locale)}</td>
             </tr>
           </table>
           <p style="margin:24px 0;text-align:center">
-            <a href="${BASE_URL}/app" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${isEN ? 'Open the planner' : 'Open de planner'}</a>
+            <a href="${BASE_URL}/app" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${L.open_planner}</a>
           </p>
   `;
-  const subject = isEN
-    ? `Invoice ${payment.invoice_number} - Running Dinner Planner`
-    : `Factuur ${payment.invoice_number} - Running Dinner Planner`;
-  await sendMail(user.email, subject, wrapHtml(html, lang));
+  await sendMail(user.email, L.subject(payment.invoice_number), wrapHtml(html, lang));
 }
 
 // ── Express app ───────────────────────────────────────────────────────────────
@@ -307,17 +352,27 @@ app.use(express.urlencoded({ extended: false, limit: '1mb' })); // Mollie webhoo
 app.use(cookieParser());
 
 // ── Language detection middleware ─────────────────────────────────────────────
+const SUPPORTED_LANGS = ['nl', 'en', 'es'];
 function detectLanguage(req, res, next) {
-  // 1. URL path: /en/ prefix = explicit choice
-  if (req.path.startsWith('/en/') || req.path === '/en') {
-    req.lang = 'en';
+  // 1. URL path: /en/, /es/, etc. prefix = explicit choice
+  let matched = null;
+  for (const lang of SUPPORTED_LANGS) {
+    if (lang === 'nl') continue;
+    if (req.path.startsWith(`/${lang}/`) || req.path === `/${lang}`) {
+      matched = lang; break;
+    }
+  }
+  if (matched) {
+    req.lang = matched;
   // 2. Cookie: returning visitor
-  } else if (req.cookies?.lang && ['nl', 'en'].includes(req.cookies.lang)) {
+  } else if (req.cookies?.lang && SUPPORTED_LANGS.includes(req.cookies.lang)) {
     req.lang = req.cookies.lang;
   // 3. Accept-Language header: first visit, browser setting
   } else {
-    const accept = req.headers['accept-language'] || '';
-    req.lang = accept.toLowerCase().startsWith('en') ? 'en' : 'nl';
+    const accept = (req.headers['accept-language'] || '').toLowerCase();
+    if (accept.startsWith('es')) req.lang = 'es';
+    else if (accept.startsWith('en')) req.lang = 'en';
+    else req.lang = 'nl';
   }
   // Set/update cookie if needed
   if (!req.cookies?.lang || req.cookies.lang !== req.lang) {
@@ -486,11 +541,59 @@ const T = {
     all_fields_required: 'All fields are required',
     message_sent:        'Your message has been sent!',
     message_send_failed: 'Message could not be sent. Please try again later.',
-    invalid_lang:        'Invalid language. Choose "nl" or "en".',
+    invalid_lang:        'Invalid language. Choose "nl", "en" or "es".',
     too_many_requests:   'Too many requests. Please try again later.',
     no_mandate_needs:    'No mandate found. Please make a payment with auto-renewal enabled first.',
     auto_renew_on:       'Auto-renewal enabled',
     auto_renew_off:      'Auto-renewal disabled',
+  },
+  es: {
+    not_logged_in:       'No has iniciado sesión',
+    session_expired:     'Sesión expirada',
+    no_access:           'Acceso denegado',
+    no_active_sub:       'Sin suscripción activa',
+    email_pw_required:   'Se requieren correo electrónico y contraseña',
+    pw_min_8:            'La contraseña debe tener al menos 8 caracteres',
+    email_in_use:        'La dirección de correo ya está en uso',
+    bad_credentials:     'Correo desconocido o contraseña incorrecta',
+    account_created:     'Cuenta creada. Ya puedes iniciar sesión.',
+    user_not_found:      'Usuario no encontrado',
+    fill_both_fields:    'Rellena ambos campos',
+    new_pw_min_8:        'La nueva contraseña debe tener al menos 8 caracteres',
+    current_pw_wrong:    'La contraseña actual es incorrecta',
+    pw_changed:          'Contraseña cambiada',
+    give_enabled:        'Proporciona { enabled: true/false }',
+    no_mandate_found:    'No se encontró autorización',
+    mandate_revoked:     'Autorización revocada y renovación automática desactivada',
+    reset_email_sent:    'Si este correo es conocido, recibirás un enlace.',
+    token_pw_required:   'Se requieren token y contraseña',
+    invalid_reset_link:  'Enlace no válido o expirado',
+    pw_changed_login:    'Contraseña cambiada. Ya puedes iniciar sesión.',
+    payment_failed:      'No se pudo iniciar el pago',
+    invoice_not_found:   'Factura no encontrada',
+    key_dataurl_req:     'Se requieren key y dataUrl',
+    email_required:      'El correo electrónico es obligatorio',
+    pw_required_invite:  'Contraseña requerida (o elige enlace de invitación)',
+    cannot_edit_admin:   'No se puede editar a otro administrador',
+    user_updated:        'Usuario actualizado',
+    invite_sent:         'Invitación enviada a {email}',
+    email_send_failed:   'No se pudo enviar el correo',
+    min_price:           'Precio mínimo €1,00',
+    invalid_duration:    'Duración no válida',
+    invalid_env:         'Entorno no válido',
+    deploy_registered:   'Despliegue a {env} registrado.',
+    invalid_number:      'Número no válido',
+    score_1_5:           'La puntuación debe ser 1-5',
+    rating_updated:      'Valoración actualizada',
+    thanks_rating:       '¡Gracias por tu valoración!',
+    all_fields_required: 'Todos los campos son obligatorios',
+    message_sent:        '¡Tu mensaje ha sido enviado!',
+    message_send_failed: 'No se pudo enviar el mensaje. Inténtalo más tarde.',
+    invalid_lang:        'Idioma no válido. Elige "nl", "en" o "es".',
+    too_many_requests:   'Demasiadas solicitudes. Inténtalo más tarde.',
+    no_mandate_needs:    'No se encontró autorización. Primero realiza un pago con renovación automática activada.',
+    auto_renew_on:       'Renovación automática activada',
+    auto_renew_off:      'Renovación automática desactivada',
   }
 };
 function t(req, key, replacements) {
@@ -1024,16 +1127,19 @@ app.get('/api/cms', (req, res) => {
   const rows = db.prepare('SELECT key, value FROM cms').all();
   const all  = Object.fromEntries(rows.map(r => [r.key, r.value]));
   const lang = req.lang || 'nl';
+  const LANG_SUFFIXES = ['_en', '_es'];
 
   // Build language-aware CMS object:
-  // For EN: if hero_title_en exists, return it as hero_title (so client code stays simple)
-  // For NL: return base keys as-is, skip _en keys
+  // For non-NL: if hero_title_{lang} exists, return it under `hero_title` (client stays simple)
+  // For NL: return base keys as-is, skip all language-suffixed keys
   const cms = {};
   for (const [key, value] of Object.entries(all)) {
-    if (key.endsWith('_en')) continue;           // skip _en keys from base output
+    // skip language-suffixed keys from base output (they're used as overlays)
+    if (LANG_SUFFIXES.some(s => key.endsWith(s))) continue;
+
     if (lang !== 'nl') {
-      const enKey = key + '_en';
-      if (all[enKey]) { cms[key] = all[enKey]; continue; }
+      const langKey = `${key}_${lang}`;
+      if (all[langKey]) { cms[key] = all[langKey]; continue; }
     }
     cms[key] = value;
   }
@@ -1580,7 +1686,7 @@ app.get('/api/app/access', requireAuth, (req, res) => {
 // ── Language preference API ──────────────────────────────────────────────────
 app.put('/api/user/language', requireAuth, (req, res) => {
   const { language } = req.body || {};
-  if (!language || !['nl', 'en'].includes(language)) {
+  if (!language || !SUPPORTED_LANGS.includes(language)) {
     return res.status(400).json({ error: t(req, 'invalid_lang') });
   }
   db.prepare('UPDATE users SET language = ? WHERE id = ?').run(language, req.user.id);
@@ -1593,35 +1699,31 @@ app.get('/sitemap.xml', (req, res) => {
   const base = 'https://runningdiner.nl';
   const today = new Date().toISOString().split('T')[0];
 
-  // Pages with NL + EN alternates
-  const bilingualPages = [
-    { nl: '/',                  en: '/en/',                  priority: '1.0', changefreq: 'weekly' },
-    { nl: '/login.html',       en: '/en/login.html',       priority: '0.6', changefreq: 'monthly' },
-    { nl: '/register.html',    en: '/en/register.html',    priority: '0.7', changefreq: 'monthly' },
-    { nl: '/subscribe.html',   en: '/en/subscribe.html',   priority: '0.7', changefreq: 'monthly' },
+  // Pages with NL + EN + ES alternates
+  const multilingualPages = [
+    { nl: '/',                en: '/en/',                es: '/es/',                priority: '1.0', changefreq: 'weekly' },
+    { nl: '/login.html',      en: '/en/login.html',      es: '/es/login.html',      priority: '0.6', changefreq: 'monthly' },
+    { nl: '/register.html',   en: '/en/register.html',   es: '/es/register.html',   priority: '0.7', changefreq: 'monthly' },
+    { nl: '/subscribe.html',  en: '/en/subscribe.html',  es: '/es/subscribe.html',  priority: '0.7', changefreq: 'monthly' },
   ];
 
+  const hreflangBlock = (page) => `
+    <xhtml:link rel="alternate" hreflang="nl" href="${base}${page.nl}"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${base}${page.en}"/>
+    <xhtml:link rel="alternate" hreflang="es" href="${base}${page.es}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${base}${page.nl}"/>`;
+
   let urls = '';
-  for (const page of bilingualPages) {
-    urls += `
+  for (const page of multilingualPages) {
+    for (const lang of ['nl', 'en', 'es']) {
+      urls += `
   <url>
-    <loc>${base}${page.nl}</loc>
+    <loc>${base}${page[lang]}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-    <xhtml:link rel="alternate" hreflang="nl" href="${base}${page.nl}"/>
-    <xhtml:link rel="alternate" hreflang="en" href="${base}${page.en}"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="${base}${page.nl}"/>
-  </url>
-  <url>
-    <loc>${base}${page.en}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-    <xhtml:link rel="alternate" hreflang="nl" href="${base}${page.nl}"/>
-    <xhtml:link rel="alternate" hreflang="en" href="${base}${page.en}"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="${base}${page.nl}"/>
+    <priority>${page.priority}</priority>${hreflangBlock(page)}
   </url>`;
+    }
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -1737,6 +1839,108 @@ try {
   console.warn('[boot] Could not generate English homepage variant:', e.message);
 }
 
+// Build Spanish homepage variant at startup (cached in memory for SEO)
+let homeHtmlES = null;
+try {
+  let html = fs.readFileSync(homeHtmlPath, 'utf8');
+
+  // 1. <html lang>
+  html = html.replace('<html lang="nl">', '<html lang="es">');
+
+  // 2. <title>
+  html = html.replace(
+    /<title>[^<]+<\/title>/,
+    '<title>Organiza una Cena Itinerante – El Planificador más Sencillo | Running Dinner Planner</title>'
+  );
+
+  // 3. <meta description>
+  html = html.replace(
+    /<meta name="description" content="[^"]*">/,
+    '<meta name="description" content="Creado por un organizador, para organizadores. Del caos de hojas de cálculo a la planificación en minutos. Suscripción de solo €5 al año.">'
+  );
+
+  // 4. keywords
+  html = html.replace(
+    /<meta name="keywords" content="[^"]*">/,
+    '<meta name="keywords" content="cena itinerante, cena progresiva, organizar cena itinerante, planificador cenas, running dinner español, herramienta cena itinerante">'
+  );
+
+  // 5. canonical
+  html = html.replace(
+    /<link rel="canonical" href="https:\/\/runningdiner\.nl\/">/,
+    '<link rel="canonical" href="https://runningdiner.nl/es/">'
+  );
+
+  // 6. Open Graph
+  html = html.replace(
+    /<meta property="og:url" content="https:\/\/runningdiner\.nl\/">/,
+    '<meta property="og:url" content="https://runningdiner.nl/es/">'
+  );
+  html = html.replace(
+    /<meta property="og:title" content="[^"]*">/,
+    '<meta property="og:title" content="Running Dinner Planner – Del caos de hojas de cálculo a la planificación en minutos">'
+  );
+  html = html.replace(
+    /<meta property="og:description" content="[^"]*">/,
+    '<meta property="og:description" content="Creado por un organizador, para organizadores. Todo con lo que me topé ya está integrado.">'
+  );
+
+  // 7. Twitter Card
+  html = html.replace(
+    /<meta name="twitter:title" content="[^"]*">/,
+    '<meta name="twitter:title" content="Running Dinner Planner – Del caos a la planificación en minutos">'
+  );
+  html = html.replace(
+    /<meta name="twitter:description" content="[^"]*">/,
+    '<meta name="twitter:description" content="Creado por un organizador. Todo lo que necesitas está integrado. €5 al año.">'
+  );
+
+  // 8. Schema.org SoftwareApplication
+  html = html.replace(
+    '"description": "Organiseer een running dinner moeiteloos. Plan routes, wijs tafels toe en druk enveloppen af."',
+    '"description": "Organiza una cena itinerante sin esfuerzo. Planifica rutas, asigna mesas e imprime sobres."'
+  );
+  html = html.replace(
+    '"url": "https://runningdiner.nl/"',
+    '"url": "https://runningdiner.nl/es/"'
+  );
+  html = html.replace(
+    '"description": "1 jaar abonnement"',
+    '"description": "Suscripción de 1 año"'
+  );
+
+  // 9. FAQ structured data
+  html = html.replace(
+    '"name": "Wat is een running dinner?"',
+    '"name": "¿Qué es una cena itinerante?"'
+  );
+  html = html.replace(
+    '"text": "Een running dinner (ook wel lopend diner of diner en route) is een sociaal evenement waarbij deelnemers elke gang van het diner bij een andere gastheer eten. Zo ontmoet iedereen nieuwe mensen."',
+    '"text": "Una cena itinerante (también llamada cena progresiva) es un evento social donde los participantes cenan cada plato en casa de un anfitrión diferente. Así todos conocen a gente nueva."'
+  );
+  html = html.replace(
+    '"name": "Hoe werkt de Running Dinner Planner?"',
+    '"name": "¿Cómo funciona el Running Dinner Planner?"'
+  );
+  html = html.replace(
+    '"text": "Je voert deelnemers in, configureert de gangenstructuur en de planner wijst automatisch tafels en routes toe zodat iedereen zoveel mogelijk nieuwe tafelgenoten ontmoet. Daarna druk je de envelop-kaartjes af."',
+    '"text": "Introduces a los participantes, configuras la estructura de los platos y el planificador asigna automáticamente mesas y rutas para que todos conozcan al máximo de nuevos compañeros de mesa. Después imprimes los sobres."'
+  );
+  html = html.replace(
+    '"name": "Hoeveel kost de Running Dinner Planner?"',
+    '"name": "¿Cuánto cuesta el Running Dinner Planner?"'
+  );
+  html = html.replace(
+    '"text": "Het abonnement kost slechts €5 per jaar. Je kunt daarmee onbeperkt evenementen organiseren."',
+    '"text": "La suscripción cuesta solo €5 al año. Con ella puedes organizar eventos de forma ilimitada."'
+  );
+
+  homeHtmlES = html;
+  console.log('[boot] Spanish homepage SEO variant generated');
+} catch (e) {
+  console.warn('[boot] Could not generate Spanish homepage variant:', e.message);
+}
+
 // Serve English homepage with SEO-optimized <head>
 app.get('/en/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get(['/en', '/en/'], (req, res) => {
@@ -1747,6 +1951,24 @@ app.get(['/en', '/en/'], (req, res) => {
   }
 });
 app.get('/en/:page.html', (req, res) => {
+  const file = path.join(__dirname, 'public', `${req.params.page}.html`);
+  if (fs.existsSync(file)) {
+    res.sendFile(file);
+  } else {
+    res.status(404).sendFile(homeHtmlPath);
+  }
+});
+
+// Serve Spanish homepage with SEO-optimized <head>
+app.get('/es/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get(['/es', '/es/'], (req, res) => {
+  if (homeHtmlES) {
+    res.type('html').send(homeHtmlES);
+  } else {
+    res.sendFile(homeHtmlPath);
+  }
+});
+app.get('/es/:page.html', (req, res) => {
   const file = path.join(__dirname, 'public', `${req.params.page}.html`);
   if (fs.existsSync(file)) {
     res.sendFile(file);

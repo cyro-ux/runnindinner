@@ -19,20 +19,25 @@ const I18n = (() => {
   let _ready = false;
   const _callbacks = [];
 
+  const SUPPORTED = ['nl', 'en', 'es'];
+
   // Detect language from URL path, cookie, or <html lang>
   function detectLang() {
-    // 1. URL path: /en/ or /en
-    if (location.pathname.startsWith('/en/') || location.pathname === '/en') {
-      return 'en';
+    // 1. URL path: /en/, /es/, etc.
+    for (const lang of SUPPORTED) {
+      if (lang === 'nl') continue;
+      if (location.pathname.startsWith(`/${lang}/`) || location.pathname === `/${lang}`) {
+        return lang;
+      }
     }
     // 2. Cookie
     const m = document.cookie.match(/(?:^|;\s*)lang=(\w+)/);
-    if (m && ['nl', 'en'].includes(m[1])) {
+    if (m && SUPPORTED.includes(m[1])) {
       return m[1];
     }
     // 3. <html lang> (set by server)
     const htmlLang = document.documentElement.lang;
-    if (htmlLang && ['nl', 'en'].includes(htmlLang)) {
+    if (htmlLang && SUPPORTED.includes(htmlLang)) {
       return htmlLang;
     }
     return 'nl';
@@ -108,7 +113,7 @@ const I18n = (() => {
       return _lang;
     }
 
-    // Load English translations
+    // Load translations for non-default language (en, es, ...)
     try {
       const resp = await fetch(`/lang/${_lang}.json`);
       if (resp.ok) {
@@ -135,22 +140,33 @@ const I18n = (() => {
     return _lang;
   }
 
+  // Strip any supported language prefix (/en/, /es/, etc.) from a path
+  function stripLangPrefix(path) {
+    for (const lang of SUPPORTED) {
+      if (lang === 'nl') continue;
+      if (path.startsWith(`/${lang}/`) || path === `/${lang}`) {
+        return path.replace(new RegExp(`^/${lang}/?`), '/') || '/';
+      }
+    }
+    return path;
+  }
+
   // Switch language and navigate
   function switchTo(lang) {
+    if (!SUPPORTED.includes(lang)) return;
     setCookie('lang', lang, 365);
-    const path = location.pathname;
+    const basePath = stripLangPrefix(location.pathname);
 
-    if (lang === 'en') {
-      // Add /en/ prefix if not already there
-      if (!path.startsWith('/en/') && path !== '/en') {
-        const newPath = '/en' + (path === '/' ? '/' : path);
-        location.href = newPath + location.search + location.hash;
+    if (lang === 'nl') {
+      // Remove prefix entirely
+      if (basePath !== location.pathname) {
+        location.href = basePath + location.search + location.hash;
         return;
       }
     } else {
-      // Remove /en/ prefix
-      if (path.startsWith('/en/') || path === '/en') {
-        const newPath = path.replace(/^\/en\/?/, '/') || '/';
+      // Apply /lang/ prefix
+      const newPath = `/${lang}` + (basePath === '/' ? '/' : basePath);
+      if (newPath !== location.pathname) {
         location.href = newPath + location.search + location.hash;
         return;
       }
@@ -159,15 +175,19 @@ const I18n = (() => {
     location.reload();
   }
 
-  // Build a language toggle element (NL | EN)
+  // Language display labels (used in toggle)
+  const LANG_LABELS = { nl: 'NL', en: 'EN', es: 'ES' };
+
+  // Build a language toggle element (NL | EN | ES)
   function createToggle() {
     const container = document.createElement('div');
     container.className = 'lang-toggle';
-    container.innerHTML = `
-      <button class="lang-btn${_lang === 'nl' ? ' active' : ''}" data-lang="nl">NL</button>
-      <span class="lang-sep">|</span>
-      <button class="lang-btn${_lang === 'en' ? ' active' : ''}" data-lang="en">EN</button>
-    `;
+    const parts = [];
+    SUPPORTED.forEach((lang, idx) => {
+      if (idx > 0) parts.push('<span class="lang-sep">|</span>');
+      parts.push(`<button class="lang-btn${_lang === lang ? ' active' : ''}" data-lang="${lang}">${LANG_LABELS[lang] || lang.toUpperCase()}</button>`);
+    });
+    container.innerHTML = parts.join('');
     container.querySelectorAll('.lang-btn').forEach(btn => {
       btn.addEventListener('click', () => switchTo(btn.dataset.lang));
     });

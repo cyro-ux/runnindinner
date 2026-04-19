@@ -1,0 +1,638 @@
+{
+  "_meta": {
+    "language": "es",
+    "label": "Español"
+  },
+
+  "nav": {
+    "features": "Funcionalidades",
+    "how_it_works": "Cómo funciona",
+    "pricing": "Precio",
+    "login": "Iniciar sesión",
+    "cta": "Empieza por €5/año"
+  },
+
+  "hero": {
+    "badge": "👨‍🍳 Creado por un organizador, para organizadores",
+    "ghost_cta": "Ver cómo funciona ↓",
+    "hint": "Paga una vez <span id=\"price-display\">€5</span>/año &bull; Acceso inmediato &bull; Sin renovación automática &bull; iDEAL &amp; Bancontact",
+    "screenshot_participants": "Gestiona participantes",
+    "screenshot_planning": "Planificación inteligente",
+    "screenshot_envelopes": "Tarjetas en sobres"
+  },
+
+  "social_proof": {
+    "label": "Utilizado por organizadores en toda Europa",
+    "dinners": "Cenas itinerantes planificadas",
+    "participants": "Participantes procesados",
+    "rating": "Valoración media",
+    "new": "Nuevo"
+  },
+
+  "features": {
+    "title": "Todo lo que necesitas",
+    "routing_title": "Planificación inteligente de rutas",
+    "routing_desc": "Mi mayor frustración: que los invitados acabaran tres veces seguidas con los mismos compañeros de mesa. El algoritmo se encarga ahora automáticamente de que todo el mundo conozca al mayor número posible de personas nuevas — teniendo en cuenta también las necesidades dietéticas.",
+    "envelopes_title": "Imprime tarjetas en sobres",
+    "envelopes_desc": "La mejor idea que he tenido nunca: los invitados reciben un sobre cerrado con la siguiente dirección en cada plato. La ruta sigue siendo una sorpresa. Ahora puedes imprimirlos con un solo clic.",
+    "participants_title": "Gestiona participantes",
+    "participants_desc": "¿Quién es vegetariano? ¿Quién tiene alergia a los frutos secos? ¿Quién no puede venir al plato principal? Antes siempre me olvidaba de algo. Ahora lo registras todo por participante — pareja incluida.",
+    "dragdrop_title": "Ajustes con arrastrar y soltar",
+    "dragdrop_desc": "A veces quieres ajustar cosas manualmente — esos dos vecinos no deberían estar en la misma mesa, o quizá los recién llegados deberían sentarse juntos. Arrastra invitados entre mesas y ve el efecto al instante.",
+    "overview_title": "Resumen por ubicación",
+    "overview_desc": "Todo anfitrión quiere saber: ¿quién viene y cuántos? Puedes enviar este resumen de inmediato — te ahorra muchos mensajes de última hora el mismo día.",
+    "drinks_title": "Aperitivo previo y copas finales",
+    "drinks_desc": "La primera vez se me olvidó incluir el aperitivo previo en mi plan. Nunca más: fija una ubicación central y el planificador lo incluye automáticamente en el horario."
+  },
+
+  "how_it_works": {
+    "title": "Listo en 4 pasos",
+    "subtitle": "Lo que antes me llevaba una tarde entera, ahora se hace en media hora. Cuatro pasos, y listo.",
+    "step1_title": "Configura tu evento",
+    "step1_desc": "Define la estructura de los platos: cuáles hay, quién acoge el aperitivo previo y las copas finales, y cuántos invitados por mesa.",
+    "step2_title": "Introduce los participantes",
+    "step2_desc": "Añade participantes con nombre, dirección, necesidades dietéticas y disponibilidad. O impórtalos mediante una plantilla de Excel.",
+    "step3_title": "Genera el plan",
+    "step3_desc": "El planificador calcula automáticamente la distribución óptima. Después, haz ajustes manuales mediante arrastrar y soltar si lo necesitas.",
+    "step4_title": "Imprime y disfruta",
+    "step4_desc": "Imprime las tarjetas en sobres y el resumen. ¡Listo para disfrutar de una cena itinerante de éxito!"
+  },
+
+  "testimonials": {
+    "title": "Lo que dicen los organizadores",
+    "quote1": "\"Planificar la cena itinerante de nuestro barrio me llevaba toda una tarde. Ahora lo hago en 20 minutos. ¡Fantástico!\"",
+    "role1": "Organizadora, Ámsterdam",
+    "quote2": "\"Las tarjetas en sobres son una idea genial. La sorpresa de descubrir la siguiente dirección hace el evento aún más divertido.\"",
+    "role2": "Organizador, Utrecht",
+    "quote3": "\"Por fin una herramienta que tiene en cuenta las necesidades dietéticas y alergias. Imprescindible para cualquier organizador de cenas itinerantes.\"",
+    "role3": "Organizadora, Róterdam"
+  },
+
+  "pricing": {
+    "title": "Precio sencillo y justo",
+    "subtitle": "Yo tampoco quería pagar mucho por una herramienta que solo uso unas pocas veces al año. Así que: €5 al año, planificaciones ilimitadas.",
+    "badge": "Más popular",
+    "plan_name": "Suscripción anual",
+    "period": "/ año",
+    "feature1": "✓ Organiza cenas itinerantes ilimitadas",
+    "feature2": "✓ Algoritmo inteligente de planificación de rutas",
+    "feature3": "✓ Gestión de mesas con arrastrar y soltar",
+    "feature4": "✓ Imprime tarjetas en sobres",
+    "feature5": "✓ Plantilla de importación y exportación en Excel",
+    "feature6": "✓ Guarda los participantes como grupo fijo",
+    "feature7": "✓ Pago con iDEAL, tarjeta de crédito o SEPA",
+    "cta": "Suscríbete",
+    "note": "Acceso inmediato tras el pago. Factura enviada por correo electrónico."
+  },
+
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "q1": "¿Qué es una cena itinerante?",
+    "a1": "Una cena itinerante (también conocida como <em>cena progresiva</em> o <em>safari supper</em>) es un evento social en el que los participantes comen cada plato en casa de un anfitrión distinto. Así, todos conocen a gente nueva en un ambiente relajado.",
+    "q2": "¿Cuántos participantes puedo añadir?",
+    "a2": "No hay un límite estricto. El planificador funciona de forma óptima con entre 12 y 120 participantes, lo que cubre la mayoría de cenas itinerantes.",
+    "q3": "¿Cómo se calculan las rutas?",
+    "a3": "El planificador utiliza un algoritmo inteligente que minimiza la repetición de compañeros de mesa. Cada participante conoce a la mayor variedad posible de comensales a lo largo de la velada.",
+    "q4": "¿Puedo importar participantes desde Excel?",
+    "a4": "¡Sí! Puedes descargar una plantilla de Excel con todas las columnas (nombre, dirección, necesidades dietéticas, disponibilidad, etc.), rellenarla e importarla. Ahorra mucho tiempo.",
+    "q5": "¿Cómo funcionan las tarjetas en sobres?",
+    "a5": "Para cada mesa, se imprime una tarjeta por plato con la siguiente dirección. Los invitados solo pueden abrir el sobre al final del plato — así, la ruta sigue siendo una sorpresa hasta el último momento.",
+    "q6": "¿Cuánto tiempo es válida mi suscripción?",
+    "a6": "Tu suscripción es válida durante 1 año desde la fecha de pago. Después puedes renovarla fácilmente.",
+    "q7": "¿Qué métodos de pago se aceptan?",
+    "a7": "Puedes pagar con iDEAL, tarjeta de crédito (Visa/Mastercard) o domiciliación SEPA. Tras el pago recibirás inmediatamente una factura por correo electrónico.",
+    "q8": "¿Se almacenan mis datos?",
+    "a8": "Los datos de tu cuenta (correo, contraseña) se almacenan de forma segura. La información de los participantes que introduces en el planificador <strong>no</strong> se guarda de forma permanente — esos datos solo viven en la sesión de tu navegador."
+  },
+
+  "cta": {
+    "title": "Ahórrate la tarde de hojas de cálculo",
+    "subtitle": "Empieza a planificar hoy y descubre por qué no lo hiciste así antes.",
+    "button": "Empieza ahora por €5/año",
+    "note": "Acceso inmediato &bull; iDEAL &bull; Bancontact &bull; PayPal &bull; Sin renovación automática"
+  },
+
+  "contact": {
+    "title": "Contacto",
+    "subtitle": "¿Preguntas o sugerencias? Me encantará saber de ti y responderé personalmente.",
+    "name_label": "Nombre",
+    "name_placeholder": "Tu nombre",
+    "email_label": "Correo electrónico",
+    "email_placeholder": "tu@correo.com",
+    "message_label": "Mensaje",
+    "message_placeholder": "Tu pregunta o comentario...",
+    "submit": "Enviar mensaje",
+    "sending": "Enviando...",
+    "success": "¡Mensaje enviado!",
+    "error": "Algo ha ido mal.",
+    "network_error": "Error de red. Inténtalo de nuevo más tarde."
+  },
+
+  "footer": {
+    "product_heading": "Producto",
+    "features": "Funcionalidades",
+    "pricing": "Precio",
+    "account_heading": "Cuenta",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "forgot_password": "He olvidado mi contraseña",
+    "contact_heading": "Contacto",
+    "contact_form": "Formulario de contacto"
+  },
+
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "subtitle": "Bienvenido de nuevo a Running Dinner Planner",
+      "email_label": "Correo electrónico",
+      "email_placeholder": "tu@correo.com",
+      "password_label": "Contraseña",
+      "submit": "Iniciar sesión",
+      "logging_in": "Iniciando sesión...",
+      "forgot_password": "¿Has olvidado tu contraseña?",
+      "no_account": "¿No tienes cuenta?",
+      "register_link": "Regístrate gratis",
+      "error_failed": "Error al iniciar sesión",
+      "error_network": "Error de red. Inténtalo de nuevo."
+    },
+
+    "register": {
+      "title": "Crear cuenta",
+      "subtitle": "Paso 1 de 2 — regístrate y luego paga",
+      "step_account": "Cuenta",
+      "step_payment": "Pago",
+      "payment_info": "💳 Tras crear tu cuenta serás redirigido a la página de pago. El acceso cuesta <strong>€5 al año</strong>.",
+      "email_label": "Correo electrónico",
+      "email_placeholder": "tu@correo.com",
+      "password_label": "Contraseña <span style=\"font-weight:400;color:#6b7280\">(mín. 8 caracteres)</span>",
+      "password2_label": "Repite la contraseña",
+      "submit": "Crear cuenta → continuar al pago",
+      "creating": "Creando cuenta…",
+      "redirecting_payment": "Redirigiendo a la página de pago…",
+      "success_redirect": "¡Cuenta creada! Redirigiendo a la página de pago…",
+      "payment_methods_label": "Métodos de pago",
+      "have_account": "¿Ya tienes cuenta?",
+      "login_link": "Iniciar sesión",
+      "error_mismatch": "Las contraseñas no coinciden",
+      "error_failed": "Error en el registro",
+      "error_network": "Error de red. Inténtalo de nuevo."
+    },
+
+    "subscribe": {
+      "title": "Suscripción anual",
+      "subtitle": "Paga una vez y obtén acceso inmediato durante 1 año.",
+      "cancelled": "Pago cancelado. Puedes intentarlo de nuevo.",
+      "price": "€5 <span>/ año</span>",
+      "per_year": "/ año",
+      "feature_unlimited": "Organiza eventos ilimitados",
+      "feature_routing": "Planificación inteligente de rutas y arrastrar y soltar",
+      "feature_envelopes": "Imprime tarjetas en sobres",
+      "feature_excel": "Importar y exportar a Excel",
+      "feature_instant": "Acceso inmediato tras el pago",
+      "feature_invoice": "Factura enviada por correo electrónico",
+      "auto_renew_label": "Renovar automáticamente cada año",
+      "auto_renew_info": "Recibirás un aviso 14 días antes de la renovación. Siempre puedes desactivarlo en tu perfil.",
+      "pay_button": "Pagar ahora &amp; acceso inmediato",
+      "pay_button_text": "Pagar ahora & acceso inmediato",
+      "note": "Pago seguro mediante Mollie &bull; Factura enviada por correo electrónico",
+      "redirecting": "Redirigiendo a la página de pago...",
+      "already_active_prefix": "Ya tienes una suscripción activa hasta ",
+      "already_active_suffix": ". Al pagar de nuevo, tu suscripción se amplía 1 año.",
+      "error_payment": "No se pudo iniciar el pago.",
+      "error_network": "Error de red. Inténtalo de nuevo."
+    },
+
+    "profile": {
+      "title": "Mi perfil",
+      "nav_planner": "Ir al planificador",
+      "nav_logout": "Cerrar sesión",
+      "account_heading": "Datos de la cuenta",
+      "label_email": "Correo",
+      "label_member_since": "Miembro desde",
+      "label_subscription": "Suscripción",
+      "password_heading": "Cambiar contraseña",
+      "current_password": "Contraseña actual",
+      "new_password": "Nueva contraseña",
+      "save_button": "Guardar",
+      "password_changed": "¡Contraseña cambiada!",
+      "auto_renew_heading": "Renovación automática",
+      "label_status": "Estado",
+      "loading": "Cargando...",
+      "label_next_renewal": "Próxima renovación",
+      "badge_active": "Activa",
+      "badge_expired": "Caducada",
+      "badge_none": "Sin suscripción",
+      "until_prefix": "hasta",
+      "ar_enabled": "Activada",
+      "ar_disabled": "Desactivada",
+      "ar_mandate_active": "mandato activo",
+      "ar_enable": "Activar",
+      "ar_disable": "Desactivar",
+      "ar_unavailable": "No disponible",
+      "ar_activate_hint": "Activa la renovación automática con tu",
+      "ar_next_payment_link": "próximo pago",
+      "invoices_heading": "Facturas",
+      "invoices_loading": "Cargando facturas...",
+      "no_invoices": "Aún no tienes facturas.",
+      "invoice_number": "Número de factura",
+      "invoice_date": "Fecha",
+      "invoice_amount": "Importe",
+      "error_generic": "Algo ha ido mal.",
+      "error_connection": "Error de conexión."
+    },
+
+    "forgot": {
+      "title": "¿Has olvidado tu contraseña?",
+      "subtitle": "Introduce tu correo electrónico. Si está registrado, te enviaremos un enlace para restablecerla.",
+      "email_label": "Correo electrónico",
+      "email_placeholder": "tu@correo.com",
+      "submit": "Enviar enlace de restablecimiento",
+      "sending": "Enviando...",
+      "success": "Si esta dirección está registrada, recibirás un correo.",
+      "back_to_login": "← Volver al inicio de sesión",
+      "error_network": "Error de red. Inténtalo de nuevo."
+    },
+
+    "reset": {
+      "title": "Nueva contraseña",
+      "subtitle": "Elige una nueva contraseña para tu cuenta.",
+      "password_label": "Nueva contraseña <span style=\"font-weight:400;color:#6b7280\">(mín. 8 caracteres)</span>",
+      "password2_label": "Repite la contraseña",
+      "submit": "Guardar contraseña",
+      "saving": "Guardando...",
+      "success": "¡Contraseña cambiada!",
+      "go_to_login": "Ir al inicio de sesión →",
+      "error_invalid_link": "Enlace de restablecimiento no válido. Solicita uno nuevo mediante \"He olvidado mi contraseña\".",
+      "error_mismatch": "Las contraseñas no coinciden",
+      "error_failed": "Error al restablecer",
+      "error_network": "Error de red. Inténtalo de nuevo."
+    },
+
+    "payment_success": {
+      "title": "¡Pago correcto!",
+      "message": "Gracias por suscribirte. Ya tienes acceso completo a Running Dinner Planner.",
+      "loading": "Cargando los detalles de la suscripción…",
+      "subscription_active": "Suscripción activa",
+      "valid_until": "Válida hasta",
+      "auto_renew_on": "Renovación automática activada",
+      "processing": "Se está procesando tu suscripción. Puede tardar un momento.",
+      "processing_email": "Se está procesando tu suscripción. Revisa tu correo para la factura.",
+      "open_planner": "Abrir el planificador →",
+      "invoice_note": "Recibirás una factura por correo electrónico."
+    }
+  },
+
+  "app": {
+    "courses": {
+      "voorborrel": "Aperitivo previo",
+      "voorgerecht": "Entrante",
+      "hoofdgerecht": "Plato principal",
+      "nagerecht": "Postre",
+      "naborrel": "Copas finales"
+    },
+
+    "steps": {
+      "step1_btn": "1. Configuración",
+      "step2_btn": "2. Participantes",
+      "step3_btn": "3. Planificación",
+      "step4_btn": "4. Resumen",
+      "step1_title": "Paso 1: Configuración",
+      "step2_title": "Paso 2: Participantes",
+      "step3_title": "Paso 3: Planificación automática",
+      "step4_title": "Paso 4: Resumen"
+    },
+
+    "nav": {
+      "next_participants": "Siguiente: Participantes →",
+      "next_planning": "Siguiente: Planificación →",
+      "next_overview": "Siguiente: Resumen →",
+      "back": "← Atrás",
+      "back_to_planning": "← Volver a la planificación"
+    },
+
+    "config": {
+      "select_courses": "Selecciona los platos activos",
+      "optional": "Opcional",
+      "required": "Obligatorio",
+      "time_settings": "Ajustes de hora",
+      "time_voorborrel": "Hora de inicio del aperitivo previo",
+      "time_voorgerecht": "Hora de inicio del entrante",
+      "time_hoofdgerecht": "Hora de inicio del plato principal",
+      "time_nagerecht": "Hora de inicio del postre",
+      "time_naborrel": "Hora de inicio de las copas finales",
+      "duration": "Duración",
+      "table_size": "Tamaño de la mesa",
+      "min_guests": "Invitados mínimos por mesa",
+      "max_guests": "Invitados máximos por mesa",
+      "host_not_counted": "El anfitrión <strong>no</strong> se incluye en este número.",
+      "event_details": "Detalles del evento",
+      "event_name": "Nombre del evento",
+      "event_date": "Fecha",
+      "event_city": "Ciudad/localidad"
+    },
+
+    "participants": {
+      "title": "Participantes",
+      "add_btn": "+ Añadir participante",
+      "empty_state": "Aún no se han añadido participantes. Haz clic en \"+ Añadir participante\" para empezar.",
+      "forced_combos": "Combinaciones forzadas",
+      "forced_combos_hint": "Indica los participantes que siempre deben sentarse en la misma mesa.",
+      "add_combo": "+ Añadir combinación",
+      "select_person1": "Selecciona persona 1...",
+      "select_person2": "Selecciona persona 2...",
+      "always_together": "siempre junto a",
+      "host_label": "Anfitrión",
+      "unavailable": "No disponible",
+      "edit_btn": "Editar"
+    },
+
+    "import": {
+      "title": "Importar / Exportar",
+      "hint": "Descarga la plantilla de Excel, rellena los participantes e importa el archivo de nuevo. Elimina la fila de ejemplo antes de importar.",
+      "download_template": "📋 Descargar plantilla de Excel",
+      "import_excel": "📥 Importar Excel",
+      "xlsx_not_loaded": "La biblioteca de Excel no se ha cargado. Comprueba tu conexión a internet.",
+      "no_data": "El archivo no contiene datos (se requiere al menos una fila de encabezado y una fila de datos).",
+      "imported_suffix": "participante(s) importado(s) correctamente",
+      "skipped": "omitido(s)",
+      "failed": "Error al importar"
+    },
+
+    "groups": {
+      "title": "Gestión de grupos",
+      "hint": "Guarda la lista actual de participantes para reutilizarla el año que viene.",
+      "save_group": "💾 Guardar grupo",
+      "load_group": "📂 Cargar grupo",
+      "delete_all": "🗑️ Eliminar todos los participantes",
+      "save_title": "💾 Guardar grupo de participantes",
+      "save_placeholder": "Nombre para este grupo (p. ej. 'Edición 2026')",
+      "existing_groups": "Grupos existentes (haz clic para reutilizar un nombre)",
+      "no_groups": "No hay grupos guardados.",
+      "no_groups_hint": "No hay grupos guardados. Guarda primero un grupo mediante \"Guardar grupo\".",
+      "load_title": "📂 Cargar grupo de participantes",
+      "load_btn": "Cargar",
+      "saved_at": "guardado"
+    },
+
+    "planning": {
+      "social_locations": "Ubicaciones de los momentos sociales",
+      "social_locations_hint": "Selecciona qué participante acoge el momento social, o introduce una dirección personalizada.",
+      "generate_title": "Generar planificación",
+      "generate_desc": "Haz clic en el botón de abajo para generar una distribución óptima. El algoritmo maximiza la variedad de compañeros de mesa.",
+      "generate_btn": "⚡ Generar planificación",
+      "regenerate_btn": "🔄 Regenerar",
+      "table_layout": "Distribución de mesas por plato",
+      "change_log": "Registro de cambios",
+      "attention_points": "Puntos de atención",
+      "everyone_together": "Todos juntos",
+      "table": "Mesa",
+      "drag_to_move": "Arrastra para mover",
+      "drag_guest_here": "Arrastra un invitado aquí",
+      "no_changes": "Aún no hay cambios manuales. Arrastra invitados (⠿) entre mesas para intercambiarlos.",
+      "changes": "cambio(s)",
+      "undo_all": "Deshacer todo",
+      "moved_from": "movido desde",
+      "undo": "Deshacer"
+    },
+
+    "overview": {
+      "tab_per_person": "📋 Ruta por participante",
+      "tab_per_location": "📍 Por ubicación",
+      "tab_envelope": "✉️ Tarjetas en sobres",
+      "organizer_note": "🔒 Resumen del organizador — muestra la ruta completa por participante durante toda la velada.",
+      "print_routes": "🖨️ Imprimir rutas",
+      "print_locations": "🖨️ Imprimir resumen de ubicaciones",
+      "envelope_hint": "✉️ <strong>Tarjetas en sobres</strong> — por mesa, por plato. Coloca las tarjetas <strong>cerradas</strong> en la mesa. Los invitados abren el sobre al final del plato y descubren su siguiente destino.",
+      "print_all_cards": "🖨️ Imprimir todas las tarjetas",
+      "print_per_course": "🖨️ Imprimir por plato (páginas separadas)",
+      "no_planning": "Ve primero al paso 3 y genera una planificación.",
+      "yourself": "tú mismo",
+      "you_are_host": "Eres el anfitrión",
+      "host": "Anfitrión",
+      "tablemates": "Compañeros de mesa",
+      "social_moment": "Momento social",
+      "all_together": "Todos los participantes juntos",
+      "name": "Nombre",
+      "role": "Rol",
+      "dietary": "Necesidades dietéticas",
+      "guest": "Invitado"
+    },
+
+    "envelope": {
+      "no_cards": "No hay tarjetas en sobres disponibles para la planificación actual.",
+      "location_unknown": "Ubicación desconocida",
+      "next": "siguiente",
+      "table_at": "Mesa en",
+      "open_at_end": "abrir al final de este plato",
+      "your_next_destination": "Tu siguiente destino",
+      "at": "En"
+    },
+
+    "snapshots": {
+      "title": "Instantáneas",
+      "hint": "Guarda la planificación actual como instantánea para revisarla más tarde.",
+      "save": "💾 Guardar instantánea",
+      "load": "📂 Cargar instantánea",
+      "name_prompt": "Nombre para esta instantánea:",
+      "load_title": "📂 Cargar instantánea",
+      "no_snapshots": "No hay instantáneas guardadas."
+    },
+
+    "modal": {
+      "add_participant": "Añadir participante",
+      "edit_participant": "Editar participante",
+      "personal_details": "Datos personales",
+      "name_person1": "Nombre persona 1 *",
+      "name_partner": "Nombre de la pareja (opcional)",
+      "name1_placeholder": "Juan García",
+      "name2_placeholder": "María García",
+      "address": "Dirección",
+      "postcode": "Código postal *",
+      "housenumber": "Número *",
+      "lookup_btn": "🔍 Buscar",
+      "street": "Nombre de la calle *",
+      "city": "Ciudad *",
+      "auto_filled": "Rellenado automáticamente desde el código postal",
+      "availability": "Disponibilidad",
+      "availability_hint": "Indica en qué platos pueden asistir la persona 1 y, opcionalmente, la pareja.",
+      "person1": "Persona 1",
+      "partner": "Pareja",
+      "host_preference": "Preferencia como anfitrión",
+      "host_preference_label": "¿Para qué plato te gustaría ser el anfitrión?",
+      "no_preference": "Sin preferencia",
+      "diet_title": "Necesidades dietéticas y alergias",
+      "diet_person1": "Persona 1 – necesidades dietéticas/alergias",
+      "diet_partner": "Pareja – necesidades dietéticas/alergias",
+      "diet1_placeholder": "p. ej. vegetariano, alergia a los frutos secos",
+      "diet2_placeholder": "p. ej. intolerante a la lactosa",
+      "tablemate_prefs": "Preferencias de compañeros de mesa",
+      "prefer_with": "Le gustaría cenar con:",
+      "avoid": "NO le gustaría cenar con:",
+      "names_comma_separated": "Nombres separados por comas",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "manage": "Gestionar"
+    },
+
+    "social": {
+      "unknown_location": "Ubicación desconocida / rellenar más tarde",
+      "participant_host": "Participante como anfitrión",
+      "custom_address": "Dirección personalizada",
+      "select_participant": "Selecciona participante…",
+      "name_desc": "Nombre / descripción",
+      "street_nr": "Calle + número",
+      "postcode": "Código postal",
+      "city": "Ciudad"
+    },
+
+    "postcode": {
+      "loading": "Buscando…",
+      "found": "✓ Dirección encontrada",
+      "not_found": "Dirección no encontrada. Rellénala manualmente.",
+      "failed": "Error en la búsqueda. Rellénala manualmente."
+    },
+
+    "stats": {
+      "participants": "Participantes",
+      "couples": "Parejas",
+      "avg_new_tablemates": "Media de nuevos compañeros de mesa",
+      "courses": "Platos"
+    },
+
+    "alert": {
+      "min_participants": "Añade al menos 3 participantes para generar una planificación.",
+      "same_course_only": "Los invitados solo pueden moverse dentro del mismo plato.",
+      "enter_name": "Introduce un nombre.",
+      "group_saved_prefix": "Grupo",
+      "saved": "¡guardado!",
+      "snapshot_prefix": "Instantánea",
+      "generate_first": "Genera primero una planificación en el paso 3.",
+      "xlsx_not_loaded": "La biblioteca de Excel aún no está cargada. Comprueba tu conexión a internet e inténtalo de nuevo."
+    },
+
+    "confirm": {
+      "delete_participant": "¿Eliminar participante?",
+      "undo_all": "¿Deshacer todos los cambios manuales?",
+      "delete_group": "Grupo",
+      "delete_suffix": "¿eliminar?",
+      "load_group_prefix": "Grupo",
+      "load_group_suffix": "¿cargar? Los participantes actuales serán reemplazados.",
+      "delete_all_prefix": "Todos los",
+      "delete_all_suffix": "¿eliminar participantes? Esta acción no se puede deshacer.",
+      "load_snapshot_suffix": "¿cargar? El estado actual será sobrescrito."
+    },
+
+    "warning": {
+      "not_enough_hosts": "No hay suficientes anfitriones disponibles para",
+      "consider_more_participants": "Considera añadir más participantes.",
+      "table_full": "Mesa llena en",
+      "increase_max": "Aumenta el número máximo de invitados por mesa o añade un anfitrión adicional.",
+      "table_underfilled_prefix": "La mesa de",
+      "table_underfilled_at": "en",
+      "table_underfilled_suffix": "solo tiene",
+      "guests": "invitado(s)",
+      "guideline_min": "mínimo recomendado"
+    },
+
+    "rating": {
+      "title": "Valoración",
+      "update_title": "Actualiza tu valoración",
+      "ask_title": "¿Qué te parece el planificador?",
+      "feedback_helps": "Tus comentarios nos ayudan a mejorar la herramienta",
+      "comment_label": "Comentario (opcional)",
+      "comment_placeholder": "¿Qué te gusta? ¿Qué se podría mejorar?",
+      "later": "Más tarde",
+      "submit": "Enviar valoración",
+      "submitting": "Enviando...",
+      "select_star": "Selecciona al menos 1 estrella",
+      "thanks": "¡Gracias!",
+      "error": "Algo ha ido mal",
+      "network_error": "Error de red"
+    },
+
+    "auth": {
+      "subscribe": "Suscribirse",
+      "profile": "Perfil",
+      "logout": "Cerrar sesión",
+      "subscription_required": "Se requiere suscripción",
+      "subscription_desc": "Para usar Running Dinner Planner necesitas una suscripción activa.",
+      "subscribe_cta": "Suscribirse – €5/año",
+      "login_other": "Inicia sesión con otra cuenta",
+      "subscription_valid": "Suscripción válida hasta"
+    },
+
+    "excel": {
+      "sheet_participants": "Participantes",
+      "sheet_instructions": "Instrucciones",
+      "filename": "plantilla-cena-itinerante-participantes.xlsx",
+      "name_person1": "Nombre persona 1*",
+      "name_partner": "Nombre de la pareja",
+      "postcode": "Código postal*",
+      "housenumber": "Número*",
+      "street": "Nombre de la calle",
+      "city": "Ciudad",
+      "host_preference": "Preferencia como anfitrión",
+      "avail_p1_voorborrel": "Disp. P1: aperitivo previo",
+      "avail_p1_voorgerecht": "Disp. P1: entrante",
+      "avail_p1_hoofdgerecht": "Disp. P1: plato principal",
+      "avail_p1_nagerecht": "Disp. P1: postre",
+      "avail_p1_naborrel": "Disp. P1: copas finales",
+      "avail_partner_voorborrel": "Disp. pareja: aperitivo previo",
+      "avail_partner_voorgerecht": "Disp. pareja: entrante",
+      "avail_partner_hoofdgerecht": "Disp. pareja: plato principal",
+      "avail_partner_nagerecht": "Disp. pareja: postre",
+      "avail_partner_naborrel": "Disp. pareja: copas finales",
+      "diet_person1": "Necesidades dietéticas persona 1",
+      "diet_partner": "Necesidades dietéticas pareja",
+      "prefer_with": "Le gustaría sentarse con",
+      "avoid": "NO le gustaría sentarse con",
+      "yes": "sí",
+      "no": "no",
+      "example_vegetarian": "vegetariano",
+      "instr_yes": "Sí",
+      "instr_no": "No",
+      "instr_column": "Columna",
+      "instr_required": "Obligatorio",
+      "instr_explanation": "Explicación",
+      "instr_valid_values": "Valores válidos",
+      "instr_name1": "Nombre persona 1",
+      "instr_name1_desc": "Nombre completo de la primera persona",
+      "instr_partner": "Nombre de la pareja",
+      "instr_partner_desc": "Nombre completo de la pareja (dejar vacío si no hay pareja)",
+      "instr_postcode": "Código postal",
+      "instr_postcode_desc": "Código postal sin espacios",
+      "instr_postcode_eg": "p. ej. 28001",
+      "instr_housenr": "Número",
+      "instr_housenr_desc": "Solo el número (incluido el sufijo)",
+      "instr_housenr_eg": "p. ej. 45 o 45A",
+      "instr_street": "Nombre de la calle",
+      "instr_street_desc": "Se rellena automáticamente mediante el código postal si se deja vacío",
+      "instr_city": "Ciudad",
+      "instr_city_desc": "Se rellena automáticamente mediante el código postal si se deja vacío",
+      "instr_host": "Preferencia como anfitrión",
+      "instr_host_desc": "¿Para qué plato quiere la persona ser el anfitrión?",
+      "instr_empty": "vacío",
+      "instr_avail_p1": "Disp. P1: *",
+      "instr_avail_p1_desc": "¿Asiste la persona 1 a este plato?",
+      "instr_avail_partner": "Disp. pareja: *",
+      "instr_avail_partner_desc": "¿Asiste la pareja a este plato?",
+      "instr_yes_no": "sí / no  (vacío = sí)",
+      "instr_diet1": "Necesidades dietéticas persona 1",
+      "instr_diet1_desc": "Alergias o necesidades dietéticas de la persona 1",
+      "instr_diet2": "Necesidades dietéticas pareja",
+      "instr_diet2_desc": "Alergias o necesidades dietéticas de la pareja",
+      "instr_free_text": "Texto libre",
+      "instr_prefer": "Le gustaría sentarse con",
+      "instr_prefer_desc": "Nombres de las personas con las que le gustaría sentarse (separados por comas)",
+      "instr_prefer_eg": "p. ej. Lisa Rodríguez, Tomás García",
+      "instr_avoid": "NO le gustaría sentarse con",
+      "instr_avoid_desc": "Nombres de las personas con las que NO quiere sentarse (separados por comas)",
+      "instr_avoid_eg": "p. ej. Kevin Pérez",
+      "instr_warning": "NOTA: ¡Elimina la fila de ejemplo (fila 2 en la hoja de Participantes) antes de importar!"
+    },
+
+    "dev": {
+      "load_sample": "📋 Cargar datos de ejemplo"
+    }
+  }
+}
