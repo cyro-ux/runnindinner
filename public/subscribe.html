@@ -112,11 +112,11 @@
     })
     .catch(() => { window.location.href = '/login.html?next=/subscribe.html'; });
 
-  // Load actual price
-  fetch('/api/mollie/price')
+  // Load actual price (multi-currency aware)
+  fetch('/api/pricing')
     .then(r => r.ok ? r.json() : null)
     .then(data => {
-      if (data) document.getElementById('price-display').innerHTML = data.formatted + ' <span>' + I18n.t('auth.subscribe.per_year', '/ jaar') + '</span>';
+      if (data) document.getElementById('price-display').innerHTML = data.displayPrice + ' <span>' + I18n.t('auth.subscribe.per_year', '/ jaar') + '</span>';
     })
     .catch(() => {});
 

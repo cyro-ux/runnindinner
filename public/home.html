@@ -547,18 +547,42 @@
     })
     .catch(() => {});
 
-  fetch('/api/mollie/price')
+  // ── Multi-currency pricing: detect bezoeker-land via Cloudflare,
+  //    update alle prijs-elementen met lokale valuta
+  function updatePriceElements(price) {
+    if (!price) return;
+    ['price-display', 'price-display2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = price.displayPrice;
+    });
+    // Update CTA-button prijslabel als de basis-tekst Nederlands is
+    const cmsPriceLabel = document.getElementById('cms-price-label');
+    if (cmsPriceLabel) cmsPriceLabel.textContent = price.displayPrice;
+    // Update alle CTA-buttons met prijs in de tekst
+    document.querySelectorAll('[data-i18n="nav.cta"], [data-i18n="cta.button"]').forEach(el => {
+      // Alleen bijwerken als er al een prijs in staat (€ of £ etc.)
+      if (/[€£$]\d/.test(el.textContent)) {
+        el.textContent = el.textContent.replace(/[€£$][A-Z]{0,2}\d+[.,]?\d*/, price.displayPrice);
+      }
+    });
+    window._currentPrice = price;
+  }
+
+  fetch('/api/pricing')
     .then(r => r.ok ? r.json() : null)
-    .then(data => {
-      if (!data) return;
-      ['price-display', 'price-display2'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = data.formatted;
-      });
-      const pl = document.getElementById('cms-price-label');
-      if (pl) pl.textContent = data.formatted;
-    })
+    .then(updatePriceElements)
     .catch(() => {});
+
+  // Expose manual override for the currency switcher (niet-modaal)
+  window.setCurrency = async (currency) => {
+    const r = await fetch('/api/pricing/preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currency }),
+    });
+    const data = await r.json();
+    if (data.ok) updatePriceElements(data);
+  };
 
   // ── Contact form
   document.getElementById('contact-form').addEventListener('submit', async e => {
@@ -614,6 +638,28 @@
     if (desktop) desktop.appendChild(I18n.createToggle());
     if (mobile) mobile.appendChild(I18n.createToggle());
   });
+
+  // ── Currency switcher (mini-dropdown, zichtbaar na eerste prijs-fetch) ──
+  function buildCurrencySwitcher(currencies, current) {
+    const sel = document.createElement('select');
+    sel.className = 'currency-switcher';
+    sel.style.cssText = 'margin-left:8px;border:1px solid #e2e8f0;border-radius:6px;padding:2px 6px;font-size:.78rem;background:#fff;color:#475569;cursor:pointer';
+    sel.innerHTML = currencies.map(c =>
+      `<option value="${c.code}"${c.code === current ? ' selected' : ''}>${c.symbol} ${c.code}</option>`
+    ).join('');
+    sel.addEventListener('change', () => window.setCurrency(sel.value));
+    return sel;
+  }
+  fetch('/api/pricing')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data?.availableCurrencies) return;
+      ['lang-toggle-desktop', 'lang-toggle-mobile'].forEach(id => {
+        const container = document.getElementById(id);
+        if (container) container.appendChild(buildCurrencySwitcher(data.availableCurrencies, data.currency));
+      });
+    })
+    .catch(() => {});
 </script>
 </body>
 </html>

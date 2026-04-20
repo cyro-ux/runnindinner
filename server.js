@@ -24,6 +24,7 @@ const PDFDocument  = require('pdfkit');
 const { createMollieClient } = require('@mollie/api-client');
 const zohoSync = require('./lib/zoho-sync');
 const zohoClient = require('./lib/zoho-client');
+const priceResolver = require('./lib/price-resolver');
 
 // ── Active sessions (in-memory, resets on server restart) ────────────────────
 // Map<userId, { email, loginAt, lastSeen }>
@@ -396,6 +397,33 @@ function detectLanguage(req, res, next) {
   next();
 }
 app.use(detectLanguage);
+
+// ── Country detection middleware ─────────────────────────────────────────────
+// Cloudflare populates CF-IPCountry; accept-language suffix as fallback.
+function detectCountry(req, res, next) {
+  // 1. Explicit cookie (user chose a currency/country manually)
+  if (req.cookies?.country && /^[A-Z]{2}$/i.test(req.cookies.country)) {
+    req.country = req.cookies.country.toUpperCase();
+  // 2. Cloudflare header (free, accurate IP geolocation)
+  } else if (req.headers['cf-ipcountry']) {
+    const cfc = String(req.headers['cf-ipcountry']).toUpperCase();
+    req.country = cfc === 'XX' || cfc === 'T1' ? 'NL' : cfc;
+  // 3. Accept-Language heuristic (last resort)
+  } else {
+    const al = (req.headers['accept-language'] || '').toLowerCase();
+    if (al.startsWith('en-gb')) req.country = 'GB';
+    else if (al.startsWith('en-us')) req.country = 'US';
+    else if (al.startsWith('en-ca')) req.country = 'CA';
+    else if (al.startsWith('en-au')) req.country = 'AU';
+    else if (al.startsWith('en-nz')) req.country = 'NZ';
+    else if (al.startsWith('es')) req.country = 'ES';
+    else if (al.startsWith('de')) req.country = 'DE';
+    else if (al.startsWith('fr')) req.country = 'FR';
+    else req.country = 'NL';
+  }
+  next();
+}
+app.use(detectCountry);
 
 // Security headers
 app.use(helmet({
@@ -860,17 +888,33 @@ app.post('/api/auth/reset-password', async (req, res) => {
 // POST /api/mollie/create-payment
 app.post('/api/mollie/create-payment', requireAuth, async (req, res) => {
   const user       = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
-  const priceCents = parseInt(getSetting('subscription_price_cents') || '500', 10);
-  const amountValue = (priceCents / 100).toFixed(2); // Mollie expects string like "5.00"
   const autoRenew  = req.body?.autoRenew === true;
+
+  // Determine price + currency based on user's detected/chosen country
+  // Priority: user profile country > request country > default NL
+  const userCountry = user.country || req.country || 'NL';
+  const preferredCurrency = req.cookies?.currency || null;
+  const price = priceResolver.resolve({ country: userCountry, currency: preferredCurrency });
+
+  // Store country on the user if not yet set (for invoices + Zoho)
+  if (!user.country) {
+    db.prepare('UPDATE users SET country = ? WHERE id = ?').run(userCountry, user.id);
+  }
+
+  const amountValue = (price.cents / 100).toFixed(2); // Mollie expects "5.00"
 
   try {
     const paymentOpts = {
-      amount:      { currency: 'EUR', value: amountValue },
-      description: 'Running Dinner Planner - 1 jaar abonnement',
+      amount:      { currency: price.currency, value: amountValue },
+      description: 'Running Dinner Planner - 1 year subscription',
       redirectUrl: `${BASE_URL}/payment-success.html`,
       webhookUrl:  `${BASE_URL}/api/mollie/webhook`,
-      metadata:    { user_id: user.id, autoRenew },
+      metadata:    { user_id: user.id, autoRenew, country: userCountry },
+      // Restrict to locale-appropriate methods (order = preference)
+      method:      price.mollieMethods,
+      locale:      { NL: 'nl_NL', BE: 'nl_BE', DE: 'de_DE', FR: 'fr_FR',
+                     ES: 'es_ES', GB: 'en_GB', US: 'en_US', CA: 'en_CA',
+                     AU: 'en_GB', NZ: 'en_GB', IE: 'en_GB' }[userCountry] || 'en_GB',
     };
 
     // If auto-renew requested: create/reuse Mollie Customer and use sequenceType 'first'
@@ -912,6 +956,49 @@ app.post('/api/mollie/webhook', async (req, res) => {
 
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
     if (!user) return res.send('ok');
+
+    // ── Refund / chargeback handling (idempotent via stored flag in DB) ────
+    const refundedCents = payment.amountRefunded ? Math.round(parseFloat(payment.amountRefunded.value) * 100) : 0;
+    const chargebackCents = payment.amountChargedBack ? Math.round(parseFloat(payment.amountChargedBack.value) * 100) : 0;
+
+    if (refundedCents > 0 || chargebackCents > 0) {
+      const localPayment = db.prepare('SELECT * FROM payments WHERE mollie_payment_id = ?').get(payment.id);
+      if (localPayment && !localPayment.zoho_sync_error?.includes('refunded')) {
+        const reason = chargebackCents > 0 ? 'Chargeback' : 'Refund';
+        console.log(`[mollie] ${reason} detected for payment ${payment.id}: ${refundedCents || chargebackCents} cents`);
+
+        // Create credit note in Zoho (idempotency: check if already done via sync_status)
+        zohoSync.syncRefund(db, localPayment.id, reason).then((r) => {
+          if (r.synced) {
+            db.prepare('UPDATE payments SET status = ?, zoho_sync_error = ? WHERE id = ?')
+              .run(chargebackCents > 0 ? 'chargeback' : 'refunded',
+                   `${reason} processed; credit_note=${r.creditnote_id}`,
+                   localPayment.id);
+          }
+        }).catch((err) => console.error('[zoho] refund sync error:', err.message));
+
+        // If refund/chargeback voids the entire payment, also revoke license
+        const paidCents = Math.round(parseFloat(payment.amount.value) * 100);
+        if ((refundedCents + chargebackCents) >= paidCents) {
+          db.prepare('UPDATE users SET auto_renew = 0 WHERE id = ?').run(userId);
+        }
+
+        // Notify customer (in their language)
+        const lang = user.language || 'nl';
+        const subjectMap = {
+          nl: `${reason === 'Chargeback' ? 'Chargeback' : 'Terugbetaling'} verwerkt - Running Dinner Planner`,
+          en: `${reason} processed - Running Dinner Planner`,
+          es: `${reason === 'Chargeback' ? 'Contracargo' : 'Reembolso'} procesado - Running Dinner Planner`,
+        };
+        const bodyMap = {
+          nl: `<p>Hallo,</p><p>We hebben een ${reason === 'Chargeback' ? 'chargeback' : 'terugbetaling'} verwerkt voor je betaling. De creditnota is in je boekhouding opgenomen.</p>`,
+          en: `<p>Hi,</p><p>We've processed a ${reason.toLowerCase()} for your payment. A credit note has been registered.</p>`,
+          es: `<p>Hola,</p><p>Hemos procesado un ${reason === 'Chargeback' ? 'contracargo' : 'reembolso'} de tu pago. Se ha registrado una nota de crédito.</p>`,
+        };
+        sendMail(user.email, subjectMap[lang] || subjectMap.nl, wrapHtml(bodyMap[lang] || bodyMap.nl, lang)).catch(console.error);
+      }
+      return res.send('ok');
+    }
 
     // Handle failed recurring payments
     if (payment.status === 'failed' && payment.sequenceType === 'recurring') {
@@ -1750,6 +1837,32 @@ app.get('/api/admin/analytics/events', requireAdmin, async (req, res) => {
     const custom = (r.body.results || []).filter(e => e.name !== 'pageview');
     res.json({ ok: true, results: custom });
   } catch { res.json({ ok: false, results: [] }); }
+});
+
+// ── Pricing (public, language/country-aware) ─────────────────────────────────
+
+// GET /api/pricing  – returns price based on detected or chosen country
+app.get('/api/pricing', (req, res) => {
+  const currency = req.query.currency || req.cookies?.currency || null;
+  const country  = req.query.country  || req.cookies?.country  || req.country;
+  const price = priceResolver.resolve({ country, currency });
+  res.json({
+    ok: true,
+    ...price,
+    availableCurrencies: priceResolver.availableCurrencies(),
+  });
+});
+
+// POST /api/pricing/preference  – user explicitly selected currency/country
+app.post('/api/pricing/preference', (req, res) => {
+  const { currency, country } = req.body || {};
+  if (currency) res.cookie('currency', String(currency).toUpperCase(), { maxAge: 365 * 86400000, sameSite: 'lax' });
+  if (country)  res.cookie('country',  String(country).toUpperCase(),  { maxAge: 365 * 86400000, sameSite: 'lax' });
+  const price = priceResolver.resolve({
+    country:  country  || req.country,
+    currency: currency || req.cookies?.currency,
+  });
+  res.json({ ok: true, ...price });
 });
 
 // ── Public stats (for homepage) ──────────────────────────────────────────────
