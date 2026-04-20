@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Zoho Bootstrap – Running Dinner Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 20px; background: #f8fafc; }
+    h1 { font-size: 1.3rem; margin-bottom: 20px; }
+    .box { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+    input, select { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 7px; margin-bottom: 12px; font-family: monospace; font-size: .85rem; }
+    label { display: block; margin-top: 12px; font-size: .82rem; font-weight: 600; color: #1e293b; }
+    button { background: #E85D3A; color: #fff; border: none; border-radius: 7px; padding: 10px 20px; font-weight: 600; cursor: pointer; font-size: .9rem; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .result { margin-top: 16px; padding: 14px; border-radius: 8px; font-size: .88rem; display: none; }
+    .result.ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .result.err { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: .85em; }
+    .small { font-size: .8rem; color: #64748b; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>🧾 Zoho Books — OAuth bootstrap</h1>
+
+  <div class="box">
+    <p style="font-size:.9rem;color:#475569;line-height:1.6;margin-bottom:18px">
+      Deze pagina ruilt eenmalig de authorization-code uit Zoho's API Console
+      om voor een permanente refresh-token. De credentials worden direct in de
+      server-<code>.env</code> geschreven. Na succes ontvangt elke Mollie-betaling
+      automatisch een factuur in Zoho Books.
+    </p>
+
+    <label>Client ID</label>
+    <input id="clientId" placeholder="1000.XXXXXXXX...">
+
+    <label>Client Secret</label>
+    <input id="clientSecret" placeholder="hex secret...">
+
+    <label>Authorization Code <span class="small">(van Generate Code, geldig 10 min)</span></label>
+    <input id="code" placeholder="1000.XXXXX... (plak hier)">
+
+    <label>Region</label>
+    <select id="region">
+      <option value="com" selected>com (US / global — runningdinner.app)</option>
+      <option value="eu">eu</option>
+      <option value="in">in</option>
+      <option value="com.au">com.au</option>
+    </select>
+
+    <label>Organization ID <span class="small">(optioneel; leeg laten = automatisch detecteren)</span></label>
+    <input id="orgId" placeholder="leeg laten als je maar 1 organisatie hebt">
+
+    <div style="margin-top:18px">
+      <button id="go">Credentials opslaan</button>
+    </div>
+
+    <div id="result" class="result"></div>
+  </div>
+
+  <div class="box" id="orgPicker" style="display:none">
+    <h3 style="margin-bottom:10px">Kies organisatie</h3>
+    <p class="small">Je account heeft meerdere Zoho-organisaties. Kies welke bij runningdinner.app hoort:</p>
+    <div id="orgList"></div>
+  </div>
+
+<script>
+// Prefill code from URL fragment (safer than query string — fragment isn't sent to server)
+(() => {
+  const hash = location.hash.replace(/^#/, '');
+  if (hash) document.getElementById('code').value = hash;
+})();
+
+const $ = (id) => document.getElementById(id);
+
+async function doBootstrap(extraOrgId) {
+  const btn = $('go'); btn.disabled = true;
+  const result = $('result');
+  result.style.display = 'none';
+
+  const body = {
+    clientId:     $('clientId').value.trim(),
+    clientSecret: $('clientSecret').value.trim(),
+    code:         $('code').value.trim(),
+    region:       $('region').value,
+    orgId:        extraOrgId || $('orgId').value.trim() || undefined,
+  };
+
+  try {
+    const r = await fetch('/api/admin/zoho/bootstrap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+
+    if (d.needOrgSelection) {
+      const picker = $('orgPicker');
+      const list = $('orgList');
+      list.innerHTML = d.organizations.map(o =>
+        `<div style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-top:8px;cursor:pointer"
+              onclick="doBootstrap('${o.id}')">
+          <strong>${o.name}</strong> <span style="color:#64748b">(${o.id}, ${o.currency})</span>
+        </div>`
+      ).join('');
+      picker.style.display = 'block';
+      result.className = 'result';
+      btn.disabled = false;
+      return;
+    }
+
+    if (d.ok) {
+      result.className = 'result ok';
+      result.textContent = '✓ Gelukt! Organization ID: ' + d.orgId + '. Credentials opgeslagen in .env. Integratie is nu live — de eerstvolgende Mollie-betaling wordt automatisch naar Zoho Books gestuurd.';
+      result.style.display = 'block';
+    } else {
+      result.className = 'result err';
+      result.textContent = 'Mislukt: ' + (d.error || JSON.stringify(d.detail));
+      result.style.display = 'block';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    result.className = 'result err';
+    result.textContent = 'Netwerkfout: ' + err.message;
+    result.style.display = 'block';
+    btn.disabled = false;
+  }
+}
+
+$('go').addEventListener('click', () => doBootstrap());
+window.doBootstrap = doBootstrap; // for inline onclick on orgList
+</script>
+</body>
+</html>

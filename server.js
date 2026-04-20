@@ -1437,6 +1437,109 @@ app.put('/api/admin/settings', requireAdmin, (req, res) => {
 
 // ── Zoho Books (admin) ───────────────────────────────────────────────────────
 
+// POST /api/admin/zoho/bootstrap  – one-time OAuth setup
+// Accepts { clientId, clientSecret, code, region? } → exchanges authorization code
+// for refresh-token, fetches org ID, writes all credentials to .env, updates
+// process.env so the current process picks up the new values immediately.
+app.post('/api/admin/zoho/bootstrap', requireAdmin, async (req, res) => {
+  const { clientId, clientSecret, code, region = 'com', orgId } = req.body || {};
+  if (!clientId || !clientSecret || !code) {
+    return res.status(400).json({ error: 'missing clientId/clientSecret/code' });
+  }
+  const accountsHost = region === 'eu' ? 'accounts.zoho.eu'
+    : region === 'in' ? 'accounts.zoho.in'
+    : region === 'com.au' ? 'accounts.zoho.com.au'
+    : 'accounts.zoho.com';
+  const apiHost = region === 'eu' ? 'www.zohoapis.eu'
+    : region === 'in' ? 'www.zohoapis.in'
+    : region === 'com.au' ? 'www.zohoapis.com.au'
+    : 'www.zohoapis.com';
+
+  const httpsReq = (opts, body = null) => new Promise((resolve, reject) => {
+    const req = require('node:https').request(opts, (resp) => {
+      let data = '';
+      resp.on('data', (c) => { data += c; });
+      resp.on('end', () => {
+        try { resolve({ status: resp.statusCode, body: JSON.parse(data) }); }
+        catch { resolve({ status: resp.statusCode, body: data }); }
+      });
+    });
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
+  });
+
+  try {
+    // 1. Exchange authorization code for refresh_token
+    const params = new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: clientId, client_secret: clientSecret, code,
+    });
+    const tokenResp = await httpsReq({
+      host: accountsHost, method: 'POST',
+      path: '/oauth/v2/token?' + params.toString(),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    if (tokenResp.status !== 200 || !tokenResp.body?.refresh_token) {
+      return res.status(400).json({ error: 'token exchange failed', detail: tokenResp.body });
+    }
+    const { refresh_token, access_token } = tokenResp.body;
+
+    // 2. Fetch organizations if orgId not provided
+    let finalOrgId = orgId;
+    if (!finalOrgId) {
+      const orgResp = await httpsReq({
+        host: apiHost, method: 'GET',
+        path: '/books/v3/organizations',
+        headers: { Authorization: `Zoho-oauthtoken ${access_token}` },
+      });
+      const orgs = orgResp.body?.organizations || [];
+      if (!orgs.length) {
+        return res.status(400).json({ error: 'no organizations found in Zoho account' });
+      }
+      if (orgs.length === 1) {
+        finalOrgId = String(orgs[0].organization_id);
+      } else {
+        // Multiple orgs — return them so user can pick
+        return res.json({
+          ok: false,
+          needOrgSelection: true,
+          organizations: orgs.map(o => ({ id: String(o.organization_id), name: o.name, currency: o.currency_code })),
+        });
+      }
+    }
+
+    // 3. Update .env file on disk + process.env (current process)
+    const envPath = path.join(__dirname, '.env');
+    let envContent = '';
+    try { envContent = fs.readFileSync(envPath, 'utf8'); } catch { /* no .env yet */ }
+    const updates = {
+      ZOHO_CLIENT_ID:     clientId,
+      ZOHO_CLIENT_SECRET: clientSecret,
+      ZOHO_REFRESH_TOKEN: refresh_token,
+      ZOHO_ORG_ID:        finalOrgId,
+      ZOHO_REGION:        region,
+    };
+    for (const [k, v] of Object.entries(updates)) {
+      const re = new RegExp(`^${k}=.*$`, 'm');
+      if (re.test(envContent)) envContent = envContent.replace(re, `${k}=${v}`);
+      else envContent += (envContent.endsWith('\n') || envContent === '' ? '' : '\n') + `${k}=${v}\n`;
+      process.env[k] = v; // immediate activation in current process
+    }
+    fs.writeFileSync(envPath, envContent, { encoding: 'utf8', mode: 0o600 });
+
+    // 4. Reset the cached token in zoho-client (forces re-read of new env)
+    try { zohoClient._resetTokenCache(); } catch { /* noop */ }
+    // Re-require to pick up new process.env values (Node caches module state)
+    delete require.cache[require.resolve('./lib/zoho-client')];
+    delete require.cache[require.resolve('./lib/zoho-sync')];
+
+    res.json({ ok: true, orgId: finalOrgId, region });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/admin/zoho/status  – last 50 transactions + sync state
 app.get('/api/admin/zoho/status', requireAdmin, (req, res) => {
   const rows = db.prepare(`

@@ -75,14 +75,24 @@ ZOHO_CLIENT_ID=1000.XXXXXXXXXXXXXXXXXXXXXXXX
 ZOHO_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ZOHO_REFRESH_TOKEN=1000.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.xxxxxxxxxxxxxx
 ZOHO_ORG_ID=12345678
-ZOHO_REGION=eu
+ZOHO_REGION=com
 ```
+
+`ZOHO_REGION` wordt gebruikt om de juiste API-endpoints te kiezen:
+- `com` → `accounts.zoho.com` + `www.zohoapis.com` (US/global; huidige keuze)
+- `eu` → `accounts.zoho.eu` + `www.zohoapis.eu` (EU-datacenter)
+- `in` → `accounts.zoho.in` (India)
+- `com.au` → `accounts.zoho.com.au` (Australië)
 
 ### Zoho-zijde opzet (eenmalig)
 
 Volg blok B tot en met H van de opstart-checklist (requirements sectie 14b):
 
-1. **Datacenter** = `zoho.eu` (kritisch — niet wijzigbaar achteraf)
+1. **Datacenter** = afhankelijk van waar je Zoho-account is aangemaakt.
+   Runningdinner.app zit op `zoho.com` (reeds 1,5 jaar in gebruik voor meerdere
+   ondernemingen). AVG-compliance wordt afgedekt via Zoho's Standard
+   Contractual Clauses (SCC) en Data Processing Addendum (DPA) — eenmalig te
+   accepteren onder *Organization Profile → Compliance*.
 2. **Professional plan** actief
 3. **Tax codes** aangemaakt voor:
    - `NL_STANDARD_21` — NL 21%
@@ -92,7 +102,7 @@ Volg blok B tot en met H van de opstart-checklist (requirements sectie 14b):
    - `EXPORT_ZERO` — 0% export
 4. **Multi-currency**: EUR (basis) + GBP + USD + CAD + AUD + NZD
 5. **Dedicated API-gebruiker** (`api@runningdinner.app`) aangemaakt met rol Admin
-6. **OAuth Self-Client** bij [api-console.zoho.eu](https://api-console.zoho.eu) met scopes:
+6. **OAuth Self-Client** bij [api-console.zoho.com](https://api-console.zoho.com) (of `.eu`, afhankelijk van datacenter) met scopes:
    - `ZohoBooks.invoices.ALL`
    - `ZohoBooks.customers.ALL`
    - `ZohoBooks.creditnotes.ALL`
