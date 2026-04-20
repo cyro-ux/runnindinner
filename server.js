@@ -1729,6 +1729,90 @@ app.post('/api/admin/zoho/bootstrap', requireAdmin, async (req, res) => {
   }
 });
 
+// POST /api/admin/zoho/ensure-eu-taxes  – idempotent: creates EU OSS tax codes,
+// reverse-charge, UK-zero and export-zero tax codes in Zoho if they don't exist yet.
+// This maps 1-on-1 with what VatResolver can produce.
+app.post('/api/admin/zoho/ensure-eu-taxes', requireAdmin, async (req, res) => {
+  if (!zohoClient.isConfigured()) {
+    return res.status(400).json({ error: 'Zoho not configured' });
+  }
+
+  // Import at runtime to avoid circular deps on boot
+  const { EU_B2C_RATES } = require('./lib/vat-resolver');
+
+  try {
+    // Fetch existing taxes so we can skip duplicates
+    const existing = await zohoClient.call('GET', '/books/v3/settings/taxes');
+    const existingTaxes = existing.taxes || [];
+    const existingByKey = new Set(existingTaxes.map(t => `${t.tax_name}|${t.tax_percentage}`));
+
+    const plan = [];
+
+    // 1. EU OSS rates (skip NL — that already exists as "BTW hoog 21%")
+    for (const [cc, rate] of Object.entries(EU_B2C_RATES)) {
+      if (cc === 'NL') continue;
+      const name = `OSS ${cc} ${rate}%`;
+      if (!existingByKey.has(`${name}|${rate}`)) {
+        plan.push({ action: 'create', name, rate, type: 'tax', scheme: 'OSS', country: cc });
+      }
+    }
+
+    // 2. Reverse charge 0%
+    if (!existingTaxes.some(t => /reverse|verlegd/i.test(t.tax_name))) {
+      plan.push({ action: 'create', name: 'EU Reverse Charge 0%', rate: 0, type: 'tax', scheme: 'REVERSE_CHARGE' });
+    }
+
+    // 3. UK zero
+    if (!existingTaxes.some(t => /uk.*zero|uk.*0/i.test(t.tax_name))) {
+      plan.push({ action: 'create', name: 'UK Zero Rate 0%', rate: 0, type: 'tax', scheme: 'UK' });
+    }
+
+    // 4. Export zero
+    if (!existingTaxes.some(t => /export.*zero|export.*0/i.test(t.tax_name))) {
+      plan.push({ action: 'create', name: 'Export Zero Rate 0%', rate: 0, type: 'tax', scheme: 'EXPORT' });
+    }
+
+    // Dry-run mode: return plan without executing
+    if (req.query.dryRun === '1') {
+      return res.json({ ok: true, dryRun: true, totalExisting: existingTaxes.length, plan });
+    }
+
+    // Execute
+    const results = [];
+    for (const item of plan) {
+      try {
+        const created = await zohoClient.call('POST', '/books/v3/settings/taxes', {
+          body: {
+            tax_name: item.name,
+            tax_percentage: item.rate,
+            tax_type: 'tax',
+          },
+        });
+        results.push({ ...item, success: true, tax_id: created?.tax?.tax_id });
+      } catch (err) {
+        results.push({ ...item, success: false, error: err.message });
+      }
+      // Small delay to avoid rate limits
+      await new Promise(r => setTimeout(r, 300));
+    }
+
+    // Invalidate the tax-mapper cache so next sync picks up the new codes
+    const taxMapper = require('./lib/zoho-tax-mapper');
+    taxMapper.invalidate();
+
+    res.json({
+      ok: true,
+      totalExisting: existingTaxes.length,
+      totalPlanned: plan.length,
+      created: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+      results,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/admin/zoho/status  – last 50 transactions + sync state
 app.get('/api/admin/zoho/status', requireAdmin, (req, res) => {
   const rows = db.prepare(`

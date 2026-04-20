@@ -569,6 +569,22 @@
         </div>
       </div>
 
+      <div class="card" id="zoho-tax-setup">
+        <div class="card-title">BTW-tarieven (Zoho)</div>
+        <p style="font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:14px">
+          Runningdinner.app werkt in alle EU-landen, UK en wereldwijd. Voor
+          correcte facturatie moeten de bijpassende tax codes in Zoho bestaan.
+          Deze knop maakt in één keer 26 EU OSS-tarieven, een reverse-charge-code,
+          een UK-zero-code en een export-zero-code aan. Veilig herbruikbaar
+          (idempotent): bestaande codes worden overgeslagen.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-outline" id="zoho-plan-btn">👁️ Toon plan (dry-run)</button>
+          <button class="btn btn-blue" id="zoho-create-taxes-btn">✓ Aanmaken in Zoho</button>
+        </div>
+        <div id="zoho-tax-result" style="margin-top:14px;font-size:.85rem"></div>
+      </div>
+
       <div class="card" id="zoho-config-help" style="display:none">
         <div class="card-title">Configuratie ontbreekt</div>
         <p style="font-size:.88rem;color:var(--muted);line-height:1.6">
@@ -1385,6 +1401,38 @@ async function retryZoho(paymentId) {
 }
 
 document.getElementById('refresh-zoho-btn').addEventListener('click', loadAccounting);
+
+// ── Zoho EU tax bulk-setup ─────────────────────────────────────────────────
+async function zohoTaxSetup(dryRun) {
+  const btn = dryRun ? document.getElementById('zoho-plan-btn') : document.getElementById('zoho-create-taxes-btn');
+  const result = document.getElementById('zoho-tax-result');
+  btn.disabled = true;
+  result.innerHTML = '<span style="color:var(--muted)">Bezig…</span>';
+  try {
+    const url = '/api/admin/zoho/ensure-eu-taxes' + (dryRun ? '?dryRun=1' : '');
+    const r = await fetch(url, { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) {
+      result.innerHTML = '<span style="color:var(--red)">Fout: ' + escH(d.error || 'onbekend') + '</span>';
+    } else if (d.dryRun) {
+      const rows = d.plan.map(p => `<tr><td>${escH(p.name)}</td><td style="text-align:right">${p.rate}%</td><td>${escH(p.scheme)}</td></tr>`).join('');
+      result.innerHTML = `<div style="margin-bottom:8px"><strong>${d.plan.length}</strong> nieuwe tarieven zullen worden aangemaakt (${d.totalExisting} bestaan al)</div>
+        <div class="tbl-wrap" style="max-height:280px;overflow-y:auto"><table><thead><tr><th>Naam</th><th>Tarief</th><th>Regeling</th></tr></thead><tbody>${rows || '<tr class="empty-row"><td colspan="3">Alles bestaat al!</td></tr>'}</tbody></table></div>`;
+    } else {
+      const summary = `<div style="color:var(--green);margin-bottom:8px">✓ ${d.created} aangemaakt${d.failed > 0 ? ', <span style="color:var(--red)">' + d.failed + ' gefaald</span>' : ''} (${d.totalExisting} bestonden al)</div>`;
+      const failedRows = d.results.filter(r => !r.success).map(r => `<tr><td>${escH(r.name)}</td><td style="color:var(--red);font-size:.75rem">${escH(r.error || '')}</td></tr>`).join('');
+      result.innerHTML = summary + (failedRows ? `<div class="tbl-wrap"><table><thead><tr><th>Naam</th><th>Fout</th></tr></thead><tbody>${failedRows}</tbody></table></div>` : '');
+      loadAccounting(); // refresh the status view
+    }
+  } catch (err) {
+    result.innerHTML = '<span style="color:var(--red)">Netwerkfout: ' + escH(err.message) + '</span>';
+  }
+  btn.disabled = false;
+}
+document.getElementById('zoho-plan-btn').addEventListener('click', () => zohoTaxSetup(true));
+document.getElementById('zoho-create-taxes-btn').addEventListener('click', () => {
+  if (confirm('Dit maakt ~30 nieuwe tax codes aan in Zoho Books. Doorgaan?')) zohoTaxSetup(false);
+});
 
 // ── Init ───────────────────────────────────────────────────────────────────
 (async () => {
