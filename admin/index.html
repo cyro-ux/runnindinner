@@ -220,6 +220,7 @@
     <button class="nav-item" data-page="settings"><span class="icon">⚙️</span>Instellingen</button>
     <button class="nav-item" data-page="cms"><span class="icon">✏️</span>Paginabeheer</button>
     <button class="nav-item" data-page="analytics"><span class="icon">📈</span>Analytics</button>
+    <button class="nav-item" data-page="referrals"><span class="icon">🎁</span>Referrals</button>
     <button class="nav-item" data-page="accounting"><span class="icon">🧾</span>Boekhouding</button>
     <button class="nav-item" data-page="deploy"><span class="icon">🚀</span>Deployment</button>
   </nav>
@@ -530,6 +531,25 @@
       </div>
     </div>
 
+    <!-- REFERRALS -->
+    <div class="page" id="page-referrals">
+      <h1 class="page-title">🎁 Referrals</h1>
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">Uitnodigingen geaccepteerd</div><div class="stat-val blue" id="ref-total-referred">–</div><div class="stat-sub">Accounts aangemaakt via invite-link</div></div>
+        <div class="stat"><div class="stat-label">Betaald (geconverteerd)</div><div class="stat-val green" id="ref-total-converted">–</div><div class="stat-sub">Hebben minimaal 1x betaald</div></div>
+        <div class="stat"><div class="stat-label">Gratis jaren uitgekeerd</div><div class="stat-val amber" id="ref-total-rewards">–</div><div class="stat-sub">3 conversies = 1 jaar</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Top referrers</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>E-mail</th><th>Code</th><th style="text-align:right">Uitgenodigd</th><th style="text-align:right">Betaald</th><th style="text-align:right">Jaren</th><th>Lid sinds</th></tr></thead>
+            <tbody id="referrals-tbody"><tr class="load-row"><td colspan="6">Laden…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- BOEKHOUDING (Zoho Books) -->
     <div class="page" id="page-accounting">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
@@ -710,7 +730,7 @@ function showPage(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelector(`.nav-item[data-page="${name}"]`).classList.add('active');
-  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, accounting: loadAccounting, deploy: loadDeploy };
+  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, referrals: loadReferrals, accounting: loadAccounting, deploy: loadDeploy };
   loaders[name]?.();
 }
 document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
@@ -1401,6 +1421,34 @@ async function retryZoho(paymentId) {
 }
 
 document.getElementById('refresh-zoho-btn').addEventListener('click', loadAccounting);
+
+// ── REFERRALS ─────────────────────────────────────────────────────────────
+async function loadReferrals() {
+  const tbody = document.getElementById('referrals-tbody');
+  tbody.innerHTML = '<tr class="load-row"><td colspan="6">Laden…</td></tr>';
+  try {
+    const r = await fetch('/api/admin/referrals');
+    const d = await r.json();
+    document.getElementById('ref-total-referred').textContent  = d.totals.total_referred || 0;
+    document.getElementById('ref-total-converted').textContent = d.totals.total_converted || 0;
+    document.getElementById('ref-total-rewards').textContent   = d.totals.total_rewards_applied || 0;
+
+    const rows = d.topReferrers || [];
+    if (!rows.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Nog geen referrals</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>${escH(r.email)}</td>
+        <td><code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;font-size:.78rem">${escH(r.referral_code || '-')}</code></td>
+        <td style="text-align:right">${r.referred_total}</td>
+        <td style="text-align:right"><strong>${r.converted}</strong></td>
+        <td style="text-align:right">${r.rewards > 0 ? '<span class="badge active">🎁 ' + r.rewards + '</span>' : '–'}</td>
+        <td>${fmtDate(r.created_at)}</td>
+      </tr>`).join('');
+  } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Laden mislukt</td></tr>'; }
+}
 
 // ── Zoho EU tax bulk-setup ─────────────────────────────────────────────────
 async function zohoTaxSetup(dryRun) {

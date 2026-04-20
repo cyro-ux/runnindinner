@@ -281,6 +281,43 @@
       </div>
     </div>
 
+    <!-- Referral programma -->
+    <div class="card" id="referral-card">
+      <h2 data-i18n="auth.profile.referral_heading">🎁 Nodig vrienden uit — krijg gratis jaren</h2>
+      <p style="font-size:.88rem;color:#64748b;line-height:1.6;margin-bottom:16px" data-i18n="auth.profile.referral_intro">Deel je persoonlijke uitnodigingslink. Voor elke 3 vrienden die een abonnement nemen, krijg je <strong>1 jaar gratis</strong> cadeau op je abonnement.</p>
+
+      <div id="referral-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+        <div style="flex:1;min-width:100px;background:#fff1ed;border:1px solid #E85D3A33;border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:#E85D3A" id="ref-stat-converted">–</div>
+          <div style="font-size:.72rem;color:#64748b" data-i18n="auth.profile.referral_converted">Betaald</div>
+        </div>
+        <div style="flex:1;min-width:100px;background:#f0fdf4;border:1px solid #10b98133;border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:#10b981" id="ref-stat-rewards">–</div>
+          <div style="font-size:.72rem;color:#64748b" data-i18n="auth.profile.referral_rewards">Jaren verdiend</div>
+        </div>
+        <div style="flex:1;min-width:100px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:#64748b" id="ref-stat-needed">–</div>
+          <div style="font-size:.72rem;color:#64748b" data-i18n="auth.profile.referral_needed">Tot volgende beloning</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label data-i18n="auth.profile.referral_link_label">Jouw uitnodigingslink</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="ref-url" readonly style="flex:1;font-family:monospace;font-size:.82rem;background:#f8fafc">
+          <button class="btn-secondary" id="ref-copy-btn" data-i18n="auth.profile.referral_copy">📋 Kopieer</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn-secondary" id="share-whatsapp" style="background:#25d366;color:#fff;border:none">💬 WhatsApp</button>
+        <button class="btn-secondary" id="share-email" style="background:#6366f1;color:#fff;border:none">📧 <span data-i18n="auth.profile.referral_email">E-mail</span></button>
+        <button class="btn-secondary" id="share-facebook" style="background:#1877f2;color:#fff;border:none">📘 Facebook</button>
+        <button class="btn-secondary" id="share-linkedin" style="background:#0a66c2;color:#fff;border:none">💼 LinkedIn</button>
+        <button class="btn-secondary" id="share-native" style="display:none" data-i18n="auth.profile.referral_share_more">📤 Meer…</button>
+      </div>
+    </div>
+
     <!-- Privacy / GDPR self-service -->
     <div class="card">
       <h2 data-i18n="auth.profile.privacy_heading">Privacy &amp; data</h2>
@@ -438,6 +475,53 @@
   }
 
   loadProfile();
+
+  // ── Referral programma ──────────────────────────────────────────────────
+  async function loadReferral() {
+    try {
+      const r = await fetch('/api/user/referral');
+      const d = await r.json();
+      if (!d.ok) return;
+      document.getElementById('ref-url').value = d.inviteUrl;
+      document.getElementById('ref-stat-converted').textContent = d.stats.converted;
+      document.getElementById('ref-stat-rewards').textContent = d.stats.rewardsEarned;
+      document.getElementById('ref-stat-needed').textContent = d.stats.neededForNextReward;
+
+      const shareText = I18n.t('auth.profile.referral_share_text',
+        'Ik gebruik Running Dinner Planner om een running dinner te organiseren — supermakkelijk en maar €5 per jaar. Meld je aan via deze link dan krijgen we allebei een bonus:') + ' ' + d.inviteUrl;
+      const utm = '&utm_source={src}&utm_medium=referral&utm_campaign=invite';
+
+      const hookShare = (id, getUrl) => {
+        const btn = document.getElementById(id);
+        if (btn) btn.addEventListener('click', () => window.open(getUrl(), '_blank'));
+      };
+      hookShare('share-whatsapp', () => `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + utm.replace('{src}', 'whatsapp'))}`);
+      hookShare('share-email',    () => `mailto:?subject=${encodeURIComponent('Running Dinner Planner')}&body=${encodeURIComponent(shareText)}`);
+      hookShare('share-facebook', () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(d.inviteUrl + '?utm_source=facebook&utm_medium=referral&utm_campaign=invite')}`);
+      hookShare('share-linkedin', () => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(d.inviteUrl + '?utm_source=linkedin&utm_medium=referral&utm_campaign=invite')}`);
+
+      // Web Share API on mobile
+      if (navigator.share) {
+        const nativeBtn = document.getElementById('share-native');
+        nativeBtn.style.display = 'inline-flex';
+        nativeBtn.addEventListener('click', () => {
+          navigator.share({ title: 'Running Dinner Planner', text: shareText, url: d.inviteUrl }).catch(() => {});
+        });
+      }
+
+      // Copy button
+      document.getElementById('ref-copy-btn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(d.inviteUrl);
+          const btn = document.getElementById('ref-copy-btn');
+          const orig = btn.textContent;
+          btn.textContent = '✓ ' + I18n.t('auth.profile.referral_copied', 'Gekopieerd');
+          setTimeout(() => { btn.textContent = orig; }, 1500);
+        } catch { /* fallback: select the text */ document.getElementById('ref-url').select(); }
+      });
+    } catch { /* silent fail */ }
+  }
+  loadReferral();
 
   // ── GDPR: delete account flow ──────────────────────────────────────────
   const delModal = document.getElementById('delete-modal');

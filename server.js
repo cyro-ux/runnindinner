@@ -102,6 +102,14 @@ db.exec(`
     comment     TEXT,
     created_at  INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS referral_rewards (
+    id                   TEXT PRIMARY KEY,
+    user_id              TEXT NOT NULL,        -- referrer who earned the reward
+    referred_user_ids    TEXT NOT NULL,        -- JSON array of 3 referred users
+    reward_days          INTEGER NOT NULL DEFAULT 365,
+    applied_at           INTEGER NOT NULL
+  );
 `);
 
 // Migrate existing DB: add columns if missing (SQLite has limited ALTER TABLE)
@@ -119,6 +127,28 @@ if (!userCols.includes('vat_id'))                 db.exec("ALTER TABLE users ADD
 if (!userCols.includes('vat_id_valid'))           db.exec("ALTER TABLE users ADD COLUMN vat_id_valid INTEGER NOT NULL DEFAULT 0");
 if (!userCols.includes('zoho_customer_id'))       db.exec("ALTER TABLE users ADD COLUMN zoho_customer_id TEXT");
 if (!userCols.includes('company_name'))           db.exec("ALTER TABLE users ADD COLUMN company_name TEXT");
+if (!userCols.includes('referral_code'))          db.exec("ALTER TABLE users ADD COLUMN referral_code TEXT");
+if (!userCols.includes('referred_by'))            db.exec("ALTER TABLE users ADD COLUMN referred_by TEXT");
+// Create unique index on referral_code (nullable values allowed but unique when set)
+db.exec('CREATE UNIQUE INDEX IF NOT EXISTS users_referral_code_idx ON users(referral_code) WHERE referral_code IS NOT NULL');
+// Backfill referral codes for existing users
+const usersWithoutCode = db.prepare("SELECT id FROM users WHERE referral_code IS NULL").all();
+if (usersWithoutCode.length > 0) {
+  const genCode = () => Math.random().toString(36).slice(2, 8); // 6-char alphanumeric
+  const upd = db.prepare('UPDATE users SET referral_code = ? WHERE id = ?');
+  for (const u of usersWithoutCode) {
+    let code, attempts = 0;
+    do {
+      code = genCode();
+      attempts++;
+      if (attempts > 10) throw new Error('Could not generate unique referral code');
+      const exists = db.prepare('SELECT 1 FROM users WHERE referral_code = ?').get(code);
+      if (!exists) break;
+    } while (true);
+    upd.run(code, u.id);
+  }
+  console.log(`[boot] Generated ${usersWithoutCode.length} referral codes for existing users`);
+}
 const paymentCols = db.prepare("PRAGMA table_info(payments)").all().map(c => c.name);
 if (!paymentCols.includes('mollie_payment_id')) db.exec("ALTER TABLE payments ADD COLUMN mollie_payment_id TEXT");
 if (!paymentCols.includes('payment_type'))      db.exec("ALTER TABLE payments ADD COLUMN payment_type TEXT NOT NULL DEFAULT 'one-time'");
@@ -695,21 +725,40 @@ function requireLicense(req, res, next) {
 
 // ── Auth routes ───────────────────────────────────────────────────────────────
 
+// Helper: generate a unique referral code
+function generateReferralCode() {
+  for (let i = 0; i < 10; i++) {
+    const code = Math.random().toString(36).slice(2, 8);
+    if (!db.prepare('SELECT 1 FROM users WHERE referral_code = ?').get(code)) {
+      return code;
+    }
+  }
+  throw new Error('Could not generate unique referral code');
+}
+
 // POST /api/auth/register
 app.post('/api/auth/register', async (req, res) => {
-  const { email, password } = req.body || {};
+  const { email, password, referralCode } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: t(req, 'email_pw_required') });
   if (password.length < 8) return res.status(400).json({ error: t(req, 'pw_min_8') });
 
   const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
   if (exists) return res.status(409).json({ error: t(req, 'email_in_use') });
 
+  // Validate referral code if provided
+  let referredBy = null;
+  if (referralCode) {
+    const refUser = db.prepare('SELECT id FROM users WHERE referral_code = ?').get(String(referralCode).trim());
+    if (refUser) referredBy = refUser.id;
+  }
+
   const hash = await bcrypt.hash(password, 12);
   const id   = uuidv4();
   const lang = req.lang || 'nl';
+  const code = generateReferralCode();
   db.prepare(
-    'INSERT INTO users (id, email, password_hash, role, created_at, language) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(id, email.toLowerCase(), hash, 'user', Date.now(), lang);
+    'INSERT INTO users (id, email, password_hash, role, created_at, language, referral_code, referred_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(id, email.toLowerCase(), hash, 'user', Date.now(), lang, code, referredBy);
 
   res.json({ ok: true, message: t(req, 'account_created') });
 });
@@ -1105,6 +1154,12 @@ app.post('/api/mollie/webhook', async (req, res) => {
     const updatedUser = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
     sendInvoiceMail(updatedUser, { invoice_number: invNr, amount_cents: priceCents, created_at: now }).catch(console.error);
 
+    // Check referral reward: if this was a first-time payment for this user AND
+    // they were referred, the referrer may have hit the 3-conversion threshold.
+    if (updatedUser.referred_by && seqType !== 'recurring') {
+      try { checkReferralReward(updatedUser.referred_by); } catch (e) { console.error('[referral]', e.message); }
+    }
+
     // Sync to Zoho Books (fire-and-forget; reconciliation-cron vangt fouten op)
     zohoSync.syncPayment(db, payId).then((r) => {
       if (!r.synced && !r.skipped) {
@@ -1118,6 +1173,105 @@ app.post('/api/mollie/webhook', async (req, res) => {
   }
 
   res.send('ok');
+});
+
+// ── Referral system ──────────────────────────────────────────────────────────
+const REFERRAL_THRESHOLD = 3;        // converted referrals needed per reward
+const REFERRAL_REWARD_DAYS = 365;    // extension granted per reward
+
+/**
+ * Check if a user has earned a new referral reward and apply it.
+ * Idempotent: counts total rewards already applied vs total conversions.
+ * If (conversions) ≥ (rewards_earned + 1) * threshold → apply next reward.
+ */
+function checkReferralReward(referrerId) {
+  const referrer = db.prepare('SELECT * FROM users WHERE id = ?').get(referrerId);
+  if (!referrer) return;
+
+  // Converted referrals = referred users who have paid at least once (license_until set)
+  const converted = db.prepare(`
+    SELECT id FROM users
+    WHERE referred_by = ?
+      AND license_until IS NOT NULL
+      AND license_until > 0
+    ORDER BY created_at ASC
+  `).all(referrerId);
+
+  const rewardsEarned = db.prepare(
+    'SELECT COUNT(*) as c FROM referral_rewards WHERE user_id = ?'
+  ).get(referrerId).c;
+
+  const expectedRewards = Math.floor(converted.length / REFERRAL_THRESHOLD);
+  if (expectedRewards <= rewardsEarned) return; // no new reward
+
+  // Apply rewards for each batch of 3 not yet rewarded
+  for (let i = rewardsEarned; i < expectedRewards; i++) {
+    const batch = converted.slice(i * REFERRAL_THRESHOLD, (i + 1) * REFERRAL_THRESHOLD);
+    const ids = batch.map(u => u.id);
+
+    // Extend license by 365 days (from later of now / current license end)
+    const now = Date.now();
+    const base = (referrer.license_until && referrer.license_until > now) ? referrer.license_until : now;
+    const newUntil = base + REFERRAL_REWARD_DAYS * 86400000;
+    db.prepare('UPDATE users SET license_until = ? WHERE id = ?').run(newUntil, referrerId);
+
+    db.prepare(`
+      INSERT INTO referral_rewards (id, user_id, referred_user_ids, reward_days, applied_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(uuidv4(), referrerId, JSON.stringify(ids), REFERRAL_REWARD_DAYS, now);
+
+    // Notify the referrer in their language
+    const lang = referrer.language || 'nl';
+    const subj = { nl: '🎉 Gratis jaar verdiend via referrals',
+                   en: '🎉 Free year earned through referrals',
+                   es: '🎉 Año gratis ganado gracias a referidos' }[lang] || 'Free year earned';
+    const body = {
+      nl: `<p>Hallo,</p><p>Super nieuws! Drie mensen hebben via jouw uitnodigingslink een abonnement genomen, dus je hebt <strong>1 gratis jaar</strong> cadeau gekregen. Je abonnement loopt nu tot <strong>${new Date(newUntil).toLocaleDateString('nl-NL')}</strong>.</p><p>Bedankt dat je Running Dinner Planner aanbeveelt!</p>`,
+      en: `<p>Hi,</p><p>Great news! Three people signed up through your invitation link, so you've earned <strong>1 free year</strong> as a thank-you. Your subscription now runs until <strong>${new Date(newUntil).toLocaleDateString('en-GB')}</strong>.</p><p>Thanks for recommending Running Dinner Planner!</p>`,
+      es: `<p>Hola,</p><p>¡Buenas noticias! Tres personas se suscribieron a través de tu enlace de invitación, así que has ganado <strong>1 año gratis</strong>. Tu suscripción ahora dura hasta el <strong>${new Date(newUntil).toLocaleDateString('es-ES')}</strong>.</p><p>¡Gracias por recomendar Running Dinner Planner!</p>`,
+    }[lang];
+    sendMail(referrer.email, subj, wrapHtml(body, lang)).catch(console.error);
+
+    console.log(`[referral] Applied reward #${i + 1} to user ${referrerId} (${batch.length} conversions)`);
+  }
+}
+
+// GET /api/user/referral  – returns code, stats, invite URL
+app.get('/api/user/referral', requireAuth, (req, res) => {
+  let user = db.prepare('SELECT referral_code FROM users WHERE id = ?').get(req.user.id);
+  if (!user?.referral_code) {
+    // Backfill code if missing (shouldn't happen after migration)
+    const code = generateReferralCode();
+    db.prepare('UPDATE users SET referral_code = ? WHERE id = ?').run(code, req.user.id);
+    user = { referral_code: code };
+  }
+
+  const referredTotal = db.prepare('SELECT COUNT(*) as c FROM users WHERE referred_by = ?').get(req.user.id).c;
+  const converted = db.prepare(
+    "SELECT COUNT(*) as c FROM users WHERE referred_by = ? AND license_until IS NOT NULL AND license_until > 0"
+  ).get(req.user.id).c;
+  const rewardsEarned = db.prepare(
+    'SELECT COUNT(*) as c FROM referral_rewards WHERE user_id = ?'
+  ).get(req.user.id).c;
+
+  const inviteUrl = `${BASE_URL}/register.html?ref=${user.referral_code}`;
+  const progressToNext = converted % REFERRAL_THRESHOLD;
+  const needed = REFERRAL_THRESHOLD - progressToNext;
+
+  res.json({
+    ok: true,
+    code: user.referral_code,
+    inviteUrl,
+    stats: {
+      referredTotal,
+      converted,
+      rewardsEarned,
+      progressToNext,         // 0-2
+      neededForNextReward: needed, // 1-3
+      threshold: REFERRAL_THRESHOLD,
+      rewardDays: REFERRAL_REWARD_DAYS,
+    },
+  });
 });
 
 // ── GDPR: self-service data portability + account deletion ──────────────────
@@ -1622,6 +1776,30 @@ app.put('/api/admin/settings', requireAdmin, (req, res) => {
       .run('subscription_duration_days', String(days));
   }
   res.json({ ok: true });
+});
+
+// ── Admin: referral overview ────────────────────────────────────────────────
+app.get('/api/admin/referrals', requireAdmin, (req, res) => {
+  const topReferrers = db.prepare(`
+    SELECT u.id, u.email, u.referral_code, u.created_at,
+           (SELECT COUNT(*) FROM users WHERE referred_by = u.id) as referred_total,
+           (SELECT COUNT(*) FROM users WHERE referred_by = u.id AND license_until IS NOT NULL AND license_until > 0) as converted,
+           (SELECT COUNT(*) FROM referral_rewards WHERE user_id = u.id) as rewards
+    FROM users u
+    WHERE u.role = 'user'
+    HAVING referred_total > 0
+    ORDER BY converted DESC, referred_total DESC
+    LIMIT 50
+  `).all();
+
+  const totals = db.prepare(`
+    SELECT
+      (SELECT COUNT(*) FROM users WHERE referred_by IS NOT NULL) as total_referred,
+      (SELECT COUNT(*) FROM users WHERE referred_by IS NOT NULL AND license_until > 0) as total_converted,
+      (SELECT COUNT(*) FROM referral_rewards) as total_rewards_applied
+  `).get();
+
+  res.json({ ok: true, totals, topReferrers });
 });
 
 // ── Zoho Books (admin) ───────────────────────────────────────────────────────

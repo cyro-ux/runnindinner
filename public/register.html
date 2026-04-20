@@ -102,6 +102,20 @@
     if (c) c.appendChild(I18n.createToggle());
   });
 
+  // Capture referral code from URL if present (persist in sessionStorage in case
+  // user navigates away and back)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlRef = urlParams.get('ref');
+  if (urlRef) {
+    sessionStorage.setItem('rd_ref', urlRef);
+    // Show a subtle "invited by a friend" banner
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:.85rem;color:#166534;margin-bottom:16px;text-align:center';
+    banner.innerHTML = '🎉 ' + I18n.t('auth.register.invited', 'Je bent uitgenodigd door een vriend!');
+    const form = document.getElementById('register-form');
+    form.parentElement.insertBefore(banner, form);
+  }
+
   document.getElementById('register-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn    = document.getElementById('submit-btn');
@@ -121,10 +135,15 @@
     btn.textContent = I18n.t('auth.register.creating', 'Account aanmaken…');
 
     try {
+      const refCode = sessionStorage.getItem('rd_ref') || urlRef || null;
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: document.getElementById('email').value, password }),
+        body: JSON.stringify({
+          email: document.getElementById('email').value,
+          password,
+          referralCode: refCode,
+        }),
       });
       const data = await res.json();
 

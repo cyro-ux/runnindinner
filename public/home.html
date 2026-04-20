@@ -398,6 +398,14 @@
       <p data-i18n="cta.subtitle">Begin vandaag nog met plannen en ontdek waarom je het niet eerder zo deed.</p>
       <a href="/register.html" class="btn-hero" data-i18n="cta.button">Nu starten voor €5/jaar</a>
       <p class="cta-note" data-i18n-html="cta.note">Direct toegang &bull; iDEAL &bull; Bancontact &bull; PayPal &bull; Geen automatische verlenging</p>
+      <div style="margin-top:24px;padding-top:24px;border-top:1px solid rgba(255,255,255,.15)">
+        <p style="font-size:.9rem;margin-bottom:10px;opacity:.9" data-i18n="cta.share_prompt">Ken je iemand die een running dinner organiseert?</p>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <button id="homepage-share-whatsapp" style="background:#25d366;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:.88rem;font-weight:600;cursor:pointer">💬 WhatsApp</button>
+          <button id="homepage-share-email" style="background:#6366f1;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:.88rem;font-weight:600;cursor:pointer">📧 <span data-i18n="cta.share_email">E-mail</span></button>
+          <button id="homepage-share-native" style="display:none;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:10px 18px;border-radius:8px;font-size:.88rem;font-weight:600;cursor:pointer" data-i18n="cta.share_more">📤 Meer…</button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -643,6 +651,38 @@
     if (desktop) desktop.appendChild(I18n.createToggle());
     if (mobile) mobile.appendChild(I18n.createToggle());
   });
+
+  // ── Homepage WhatsApp/email share (no login needed, generic) ─────────────
+  (function() {
+    const shareText = () => I18n.t(
+      'cta.share_text',
+      'Gezien? Een tool die running dinners voor je plant. €5 per jaar, super handig:'
+    ) + ' https://runningdiner.nl/';
+    const waBtn = document.getElementById('homepage-share-whatsapp');
+    const mailBtn = document.getElementById('homepage-share-email');
+    const natBtn = document.getElementById('homepage-share-native');
+    if (waBtn) waBtn.addEventListener('click', () => {
+      const text = shareText() + '?utm_source=whatsapp&utm_medium=organic_share&utm_campaign=homepage_share';
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+      if (window.plausible) plausible('Homepage-Share', { props: { channel: 'whatsapp' } });
+    });
+    if (mailBtn) mailBtn.addEventListener('click', () => {
+      const text = shareText() + '?utm_source=email&utm_medium=organic_share&utm_campaign=homepage_share';
+      window.open(`mailto:?subject=${encodeURIComponent('Running Dinner Planner')}&body=${encodeURIComponent(text)}`, '_blank');
+      if (window.plausible) plausible('Homepage-Share', { props: { channel: 'email' } });
+    });
+    if (natBtn && navigator.share) {
+      natBtn.style.display = 'inline-flex';
+      natBtn.addEventListener('click', () => {
+        navigator.share({
+          title: 'Running Dinner Planner',
+          text: shareText(),
+          url: 'https://runningdiner.nl/?utm_source=native_share&utm_medium=organic_share&utm_campaign=homepage_share',
+        }).catch(() => {});
+        if (window.plausible) plausible('Homepage-Share', { props: { channel: 'native' } });
+      });
+    }
+  })();
 
   // ── Currency switcher (mini-dropdown, zichtbaar na eerste prijs-fetch) ──
   function buildCurrencySwitcher(currencies, current) {
