@@ -22,6 +22,8 @@ const Database     = require('better-sqlite3');
 const nodemailer   = require('nodemailer');
 const PDFDocument  = require('pdfkit');
 const { createMollieClient } = require('@mollie/api-client');
+const zohoSync = require('./lib/zoho-sync');
+const zohoClient = require('./lib/zoho-client');
 
 // ── Active sessions (in-memory, resets on server restart) ────────────────────
 // Map<userId, { email, loginAt, lastSeen }>
@@ -110,9 +112,22 @@ if (!userCols.includes('auto_renew'))         db.exec("ALTER TABLE users ADD COL
 if (!userCols.includes('mollie_mandate_id'))  db.exec("ALTER TABLE users ADD COLUMN mollie_mandate_id TEXT");
 if (!userCols.includes('renewal_reminder_sent')) db.exec("ALTER TABLE users ADD COLUMN renewal_reminder_sent INTEGER");
 if (!userCols.includes('language'))              db.exec("ALTER TABLE users ADD COLUMN language TEXT NOT NULL DEFAULT 'nl'");
+if (!userCols.includes('country'))                db.exec("ALTER TABLE users ADD COLUMN country TEXT");
+if (!userCols.includes('is_business'))            db.exec("ALTER TABLE users ADD COLUMN is_business INTEGER NOT NULL DEFAULT 0");
+if (!userCols.includes('vat_id'))                 db.exec("ALTER TABLE users ADD COLUMN vat_id TEXT");
+if (!userCols.includes('vat_id_valid'))           db.exec("ALTER TABLE users ADD COLUMN vat_id_valid INTEGER NOT NULL DEFAULT 0");
+if (!userCols.includes('zoho_customer_id'))       db.exec("ALTER TABLE users ADD COLUMN zoho_customer_id TEXT");
+if (!userCols.includes('company_name'))           db.exec("ALTER TABLE users ADD COLUMN company_name TEXT");
 const paymentCols = db.prepare("PRAGMA table_info(payments)").all().map(c => c.name);
 if (!paymentCols.includes('mollie_payment_id')) db.exec("ALTER TABLE payments ADD COLUMN mollie_payment_id TEXT");
 if (!paymentCols.includes('payment_type'))      db.exec("ALTER TABLE payments ADD COLUMN payment_type TEXT NOT NULL DEFAULT 'one-time'");
+if (!paymentCols.includes('vat_rate'))          db.exec("ALTER TABLE payments ADD COLUMN vat_rate REAL");
+if (!paymentCols.includes('vat_scheme'))        db.exec("ALTER TABLE payments ADD COLUMN vat_scheme TEXT");
+if (!paymentCols.includes('country'))           db.exec("ALTER TABLE payments ADD COLUMN country TEXT");
+if (!paymentCols.includes('zoho_invoice_id'))   db.exec("ALTER TABLE payments ADD COLUMN zoho_invoice_id TEXT");
+if (!paymentCols.includes('zoho_sync_status')) db.exec("ALTER TABLE payments ADD COLUMN zoho_sync_status TEXT NOT NULL DEFAULT 'pending'");
+if (!paymentCols.includes('zoho_sync_error'))  db.exec("ALTER TABLE payments ADD COLUMN zoho_sync_error TEXT");
+if (!paymentCols.includes('zoho_synced_at'))   db.exec("ALTER TABLE payments ADD COLUMN zoho_synced_at INTEGER");
 
 // Seed default settings
 const setDefault = db.prepare(
@@ -1002,6 +1017,15 @@ app.post('/api/mollie/webhook', async (req, res) => {
 
     const updatedUser = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
     sendInvoiceMail(updatedUser, { invoice_number: invNr, amount_cents: priceCents, created_at: now }).catch(console.error);
+
+    // Sync to Zoho Books (fire-and-forget; reconciliation-cron vangt fouten op)
+    zohoSync.syncPayment(db, payId).then((r) => {
+      if (!r.synced && !r.skipped) {
+        console.warn('[zoho] sync failed for', payId, r.error);
+      }
+    }).catch((err) => {
+      console.error('[zoho] sync error for', payId, err.message);
+    });
   } catch (err) {
     console.error('[mollie] webhook error:', err.message);
   }
@@ -1409,6 +1433,53 @@ app.put('/api/admin/settings', requireAdmin, (req, res) => {
       .run('subscription_duration_days', String(days));
   }
   res.json({ ok: true });
+});
+
+// ── Zoho Books (admin) ───────────────────────────────────────────────────────
+
+// GET /api/admin/zoho/status  – last 50 transactions + sync state
+app.get('/api/admin/zoho/status', requireAdmin, (req, res) => {
+  const rows = db.prepare(`
+    SELECT p.id, p.invoice_number, p.amount_cents, p.currency, p.status,
+           p.created_at, p.country, p.vat_rate, p.vat_scheme,
+           p.zoho_invoice_id, p.zoho_sync_status, p.zoho_sync_error, p.zoho_synced_at,
+           u.email
+    FROM payments p
+    JOIN users u ON u.id = p.user_id
+    WHERE p.status = 'paid'
+    ORDER BY p.created_at DESC
+    LIMIT 50
+  `).all();
+
+  const counts = db.prepare(`
+    SELECT zoho_sync_status, COUNT(*) as c
+    FROM payments WHERE status='paid'
+    GROUP BY zoho_sync_status
+  `).all();
+
+  res.json({
+    ok: true,
+    configured: zohoClient.isConfigured(),
+    counts: Object.fromEntries(counts.map(r => [r.zoho_sync_status, r.c])),
+    transactions: rows,
+  });
+});
+
+// POST /api/admin/zoho/retry/:paymentId  – manual retry of a failed sync
+app.post('/api/admin/zoho/retry/:paymentId', requireAdmin, async (req, res) => {
+  try {
+    const result = await zohoSync.syncPayment(db, req.params.paymentId);
+    res.json({ ok: result.synced, ...result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/admin/zoho/discrepancies  – recent payments missing from Zoho
+app.get('/api/admin/zoho/discrepancies', requireAdmin, (req, res) => {
+  const days = Math.min(parseInt(req.query.days || '7', 10), 90);
+  const rows = zohoSync.listDiscrepancies(db, days);
+  res.json({ ok: true, days, count: rows.length, discrepancies: rows });
 });
 
 // GET /api/admin/deployments
@@ -2079,17 +2150,42 @@ async function checkRenewalReminders() {
   }
 }
 
+// Daily Zoho reconciliation: retry failed/missing syncs from the last 7 days
+async function reconcileZoho() {
+  if (!zohoClient.isConfigured()) return;
+  const failed = zohoSync.listDiscrepancies(db, 7);
+  if (!failed.length) return;
+  console.log(`[zoho] reconciliation: retrying ${failed.length} failed syncs`);
+  for (const p of failed) {
+    try {
+      const r = await zohoSync.syncPayment(db, p.id);
+      if (r.synced) console.log(`[zoho] reconciled ${p.id} → ${r.zoho_invoice_id}`);
+      // small delay to avoid rate limits
+      await new Promise(r => setTimeout(r, 1000));
+    } catch (err) {
+      console.error(`[zoho] reconciliation failed for ${p.id}:`, err.message);
+    }
+  }
+}
+
 // Run scheduler every hour (only in production to avoid double runs during dev)
 if (ENV === 'production') {
   const SCHEDULER_INTERVAL = 60 * 60 * 1000; // 1 hour
+  let zohoTicker = 0;
   setInterval(async () => {
     try { await checkRenewalReminders(); } catch (e) { console.error('[scheduler] reminder error:', e.message); }
     try { await processAutoRenewals(); } catch (e) { console.error('[scheduler] renewal error:', e.message); }
+    // Zoho reconciliation once per 24h (every 24 ticks)
+    zohoTicker++;
+    if (zohoTicker % 24 === 0) {
+      try { await reconcileZoho(); } catch (e) { console.error('[scheduler] zoho reconcile error:', e.message); }
+    }
   }, SCHEDULER_INTERVAL);
   // Also run once 30 seconds after startup
   setTimeout(async () => {
     try { await checkRenewalReminders(); } catch (e) { console.error('[scheduler] reminder error:', e.message); }
     try { await processAutoRenewals(); } catch (e) { console.error('[scheduler] renewal error:', e.message); }
+    try { await reconcileZoho(); } catch (e) { console.error('[scheduler] zoho reconcile error:', e.message); }
   }, 30000);
 }
 

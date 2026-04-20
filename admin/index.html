@@ -220,6 +220,7 @@
     <button class="nav-item" data-page="settings"><span class="icon">⚙️</span>Instellingen</button>
     <button class="nav-item" data-page="cms"><span class="icon">✏️</span>Paginabeheer</button>
     <button class="nav-item" data-page="analytics"><span class="icon">📈</span>Analytics</button>
+    <button class="nav-item" data-page="accounting"><span class="icon">🧾</span>Boekhouding</button>
     <button class="nav-item" data-page="deploy"><span class="icon">🚀</span>Deployment</button>
   </nav>
 
@@ -529,6 +530,61 @@
       </div>
     </div>
 
+    <!-- BOEKHOUDING (Zoho Books) -->
+    <div class="page" id="page-accounting">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <h1 class="page-title" style="margin-bottom:0">Boekhouding — Zoho Books</h1>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="zoho-config-badge" style="padding:4px 12px;border-radius:8px;font-size:.78rem;font-weight:700"></span>
+          <button class="btn btn-outline" id="refresh-zoho-btn" style="font-size:.8rem;padding:6px 12px">↻</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">Gesynchroniseerd</div><div class="stat-val green" id="zoho-count-synced">–</div></div>
+        <div class="stat"><div class="stat-label">Wachtrij</div><div class="stat-val amber" id="zoho-count-pending">–</div></div>
+        <div class="stat"><div class="stat-label">Gefaald</div><div class="stat-val red" id="zoho-count-failed">–</div></div>
+        <div class="stat"><div class="stat-label">Overgeslagen</div><div class="stat-val" id="zoho-count-skipped" style="color:var(--muted)">–</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Laatste 50 transacties</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Factuur</th>
+                <th>Klant</th>
+                <th>Bedrag</th>
+                <th>Land</th>
+                <th>BTW</th>
+                <th>Regeling</th>
+                <th>Datum</th>
+                <th>Zoho-status</th>
+                <th>Actie</th>
+              </tr>
+            </thead>
+            <tbody id="zoho-tbody"><tr class="load-row"><td colspan="9">Laden…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" id="zoho-config-help" style="display:none">
+        <div class="card-title">Configuratie ontbreekt</div>
+        <p style="font-size:.88rem;color:var(--muted);line-height:1.6">
+          Zoho Books is nog niet geconfigureerd. Stel de volgende environment-variabelen in op de server:
+        </p>
+        <pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:.82rem;overflow-x:auto">ZOHO_CLIENT_ID=...
+ZOHO_CLIENT_SECRET=...
+ZOHO_REFRESH_TOKEN=...
+ZOHO_ORG_ID=...
+ZOHO_REGION=eu</pre>
+        <p style="font-size:.85rem;color:var(--muted);margin-top:10px">
+          Zie <code>docs/accounting.md</code> voor de volledige opstart-checklist (datacenter, scopes, OAuth-flow).
+        </p>
+      </div>
+    </div>
+
     <!-- DEPLOYMENT -->
     <div class="page" id="page-deploy">
       <h1 class="page-title">Deployment</h1>
@@ -638,7 +694,7 @@ function showPage(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelector(`.nav-item[data-page="${name}"]`).classList.add('active');
-  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, deploy: loadDeploy };
+  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, accounting: loadAccounting, deploy: loadDeploy };
   loaders[name]?.();
 }
 document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
@@ -1244,6 +1300,91 @@ async function loadAnalytics() {
 
 document.getElementById('analytics-period').addEventListener('change', loadAnalytics);
 document.getElementById('refresh-analytics-btn').addEventListener('click', loadAnalytics);
+
+// ── BOEKHOUDING (Zoho Books) ─────────────────────────────────────────────
+async function loadAccounting() {
+  const tbody = document.getElementById('zoho-tbody');
+  const helpBox = document.getElementById('zoho-config-help');
+  const badge = document.getElementById('zoho-config-badge');
+  tbody.innerHTML = '<tr class="load-row"><td colspan="9">Laden…</td></tr>';
+  try {
+    const r = await fetch('/api/admin/zoho/status');
+    const d = await r.json();
+
+    // Config badge
+    if (d.configured) {
+      badge.textContent = '● Verbonden';
+      badge.style.background = '#dcfce7';
+      badge.style.color = '#166534';
+      helpBox.style.display = 'none';
+    } else {
+      badge.textContent = '● Niet geconfigureerd';
+      badge.style.background = '#fef2f2';
+      badge.style.color = '#dc2626';
+      helpBox.style.display = 'block';
+    }
+
+    // Stats counts
+    const c = d.counts || {};
+    document.getElementById('zoho-count-synced').textContent  = c.synced  || 0;
+    document.getElementById('zoho-count-pending').textContent = c.pending || 0;
+    document.getElementById('zoho-count-failed').textContent  = c.failed  || 0;
+    document.getElementById('zoho-count-skipped').textContent = c.skipped || 0;
+
+    // Transactions table
+    const rows = d.transactions || [];
+    if (!rows.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Nog geen betaalde transacties</td></tr>';
+      return;
+    }
+    const statusLabel = {
+      synced:  '<span class="badge active">✓ Gesynchroniseerd</span>',
+      pending: '<span class="badge manual">⏳ Wachtrij</span>',
+      failed:  '<span class="badge expired">✕ Gefaald</span>',
+      skipped: '<span class="badge test">– Overgeslagen</span>',
+    };
+    tbody.innerHTML = rows.map(t => {
+      const st = t.zoho_sync_status || 'pending';
+      const action = (st === 'failed' || st === 'pending')
+        ? `<button class="btn-sm btn-edit" onclick="retryZoho('${t.id}')">↻ Retry</button>`
+        : (t.zoho_invoice_id
+            ? `<span style="font-size:.72rem;color:var(--muted)">${escH(t.zoho_invoice_id)}</span>`
+            : '–');
+      const vat = t.vat_rate != null ? `${t.vat_rate}%` : '–';
+      const scheme = t.vat_scheme ? `<span style="font-size:.7rem;color:var(--muted)">${escH(t.vat_scheme)}</span>` : '–';
+      const errorHint = t.zoho_sync_error
+        ? `<br><span style="font-size:.68rem;color:var(--red)" title="${escH(t.zoho_sync_error)}">${escH(t.zoho_sync_error.slice(0,40))}…</span>`
+        : '';
+      return `<tr>
+        <td><strong>${escH(t.invoice_number || '–')}</strong></td>
+        <td>${escH(t.email)}</td>
+        <td>${fmtEur(t.amount_cents)} ${escH((t.currency||'').toUpperCase())}</td>
+        <td>${escH(t.country || '–')}</td>
+        <td>${vat}</td>
+        <td>${scheme}</td>
+        <td>${fmtDate(t.created_at)}</td>
+        <td>${statusLabel[st] || st}${errorHint}</td>
+        <td>${action}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">Laden mislukt: ${escH(err.message)}</td></tr>`;
+  }
+}
+
+async function retryZoho(paymentId) {
+  try {
+    const r = await fetch(`/api/admin/zoho/retry/${paymentId}`, { method: 'POST' });
+    const d = await r.json();
+    if (d.synced) alert('Gelukt: Zoho-invoice aangemaakt (' + d.zoho_invoice_id + ')');
+    else alert('Mislukt: ' + (d.error || 'onbekende fout'));
+    loadAccounting();
+  } catch (err) {
+    alert('Netwerkfout: ' + err.message);
+  }
+}
+
+document.getElementById('refresh-zoho-btn').addEventListener('click', loadAccounting);
 
 // ── Init ───────────────────────────────────────────────────────────────────
 (async () => {
