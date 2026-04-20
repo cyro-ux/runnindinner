@@ -1777,9 +1777,16 @@ app.post('/api/admin/zoho/ensure-eu-taxes', requireAdmin, async (req, res) => {
       return res.json({ ok: true, dryRun: true, totalExisting: existingTaxes.length, plan });
     }
 
-    // Execute
+    // Execute serially with 1s delay between calls to stay under Zoho rate limits.
+    // If any call fails with "Access Denied" (rate limit hit), abort early and
+    // return partial results so we don't bang into a longer ban.
     const results = [];
+    let rateLimited = false;
     for (const item of plan) {
+      if (rateLimited) {
+        results.push({ ...item, success: false, error: 'Skipped (rate limit reached earlier in batch)' });
+        continue;
+      }
       try {
         const created = await zohoClient.call('POST', '/books/v3/settings/taxes', {
           body: {
@@ -1791,9 +1798,12 @@ app.post('/api/admin/zoho/ensure-eu-taxes', requireAdmin, async (req, res) => {
         results.push({ ...item, success: true, tax_id: created?.tax?.tax_id });
       } catch (err) {
         results.push({ ...item, success: false, error: err.message });
+        // Detect rate limit / auth issue — abort early to prevent longer ban
+        if (/Access Denied|too many requests|401/.test(err.message)) {
+          rateLimited = true;
+        }
       }
-      // Small delay to avoid rate limits
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 1000)); // 1s between calls
     }
 
     // Invalidate the tax-mapper cache so next sync picks up the new codes
