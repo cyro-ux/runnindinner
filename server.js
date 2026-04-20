@@ -1781,13 +1781,15 @@ app.put('/api/admin/settings', requireAdmin, (req, res) => {
 // ── Admin: referral overview ────────────────────────────────────────────────
 app.get('/api/admin/referrals', requireAdmin, (req, res) => {
   const topReferrers = db.prepare(`
-    SELECT u.id, u.email, u.referral_code, u.created_at,
-           (SELECT COUNT(*) FROM users WHERE referred_by = u.id) as referred_total,
-           (SELECT COUNT(*) FROM users WHERE referred_by = u.id AND license_until IS NOT NULL AND license_until > 0) as converted,
-           (SELECT COUNT(*) FROM referral_rewards WHERE user_id = u.id) as rewards
-    FROM users u
-    WHERE u.role = 'user'
-    HAVING referred_total > 0
+    SELECT * FROM (
+      SELECT u.id, u.email, u.referral_code, u.created_at,
+             (SELECT COUNT(*) FROM users WHERE referred_by = u.id) as referred_total,
+             (SELECT COUNT(*) FROM users WHERE referred_by = u.id AND license_until IS NOT NULL AND license_until > 0) as converted,
+             (SELECT COUNT(*) FROM referral_rewards WHERE user_id = u.id) as rewards
+      FROM users u
+      WHERE u.role = 'user'
+    )
+    WHERE referred_total > 0
     ORDER BY converted DESC, referred_total DESC
     LIMIT 50
   `).all();
