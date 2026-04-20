@@ -2519,28 +2519,50 @@ app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body || {};
   if (!name || !email || !message) return res.status(400).json({ error: t(req, 'all_fields_required') });
 
+  // Basic email-format validation to prevent spam / header-injection attempts
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {
+    return res.status(400).json({ error: t(req, 'all_fields_required') });
+  }
+
   const contactEmail = process.env.CONTACT_EMAIL || 'cyro@vanmalsen.net';
-  const safeName = escHtml(name);
-  const safeEmail = escHtml(email);
-  const safeMessage = escHtml(message).replace(/\n/g, '<br>');
+  const safeName    = escHtml(name).slice(0, 200);
+  const safeEmail   = escHtml(email).slice(0, 200);
+  const safeMessage = escHtml(message).slice(0, 5000).replace(/\n/g, '<br>');
+  const lang = req.lang || 'nl';
+
+  // Labels per locale for the admin-notification email (body stays pragmatic —
+  // primary goal is readability for the recipient, not a fully localised mail).
+  const LBL = {
+    nl: { title: 'Nieuw contactbericht', name: 'Naam', email: 'E-mail', message: 'Bericht', language: 'Taal' },
+    en: { title: 'New contact message',   name: 'Name', email: 'Email', message: 'Message', language: 'Language' },
+    es: { title: 'Nuevo mensaje de contacto', name: 'Nombre', email: 'Correo', message: 'Mensaje', language: 'Idioma' },
+  }[lang] || { title: 'New contact message', name: 'Name', email: 'Email', message: 'Message', language: 'Language' };
+
   const html = `
-          <h2 style="color:#1a56db;margin:0 0 16px">Nieuw contactbericht</h2>
+          <h2 style="color:#1a56db;margin:0 0 16px">${LBL.title}</h2>
           <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px">
             <tr style="background:#f3f4f6">
-              <td style="padding:8px 12px;color:#374151;font-weight:bold;width:80px">Naam</td>
+              <td style="padding:8px 12px;color:#374151;font-weight:bold;width:110px">${LBL.name}</td>
               <td style="padding:8px 12px;color:#374151">${safeName}</td>
             </tr>
             <tr>
-              <td style="padding:8px 12px;color:#374151;font-weight:bold">E-mail</td>
+              <td style="padding:8px 12px;color:#374151;font-weight:bold">${LBL.email}</td>
               <td style="padding:8px 12px;color:#374151"><a href="mailto:${safeEmail}" style="color:#1a56db">${safeEmail}</a></td>
             </tr>
+            <tr style="background:#f3f4f6">
+              <td style="padding:8px 12px;color:#374151;font-weight:bold">${LBL.language}</td>
+              <td style="padding:8px 12px;color:#374151">${lang.toUpperCase()}</td>
+            </tr>
           </table>
-          <p style="color:#374151;font-weight:bold;margin:16px 0 8px">Bericht:</p>
+          <p style="color:#374151;font-weight:bold;margin:16px 0 8px">${LBL.message}:</p>
           <div style="border-left:3px solid #1a56db;padding:12px 16px;margin:0;background:#f9fafb;color:#374151;line-height:1.6">${safeMessage}</div>
   `;
 
+  // Subject always starts with "RDA" + locale tag so Cyro can triage in Gmail
+  const subject = `RDA [${lang.toUpperCase()}] ${LBL.title}: ${safeName}`;
+
   try {
-    await sendMail(contactEmail, `Contactformulier: ${name} - Running Dinner Planner`, html, { replyTo: email });
+    await sendMail(contactEmail, subject, html, { replyTo: email });
     res.json({ ok: true, message: t(req, 'message_sent') });
   } catch (err) {
     console.error('[contact] mail error:', err.message);
