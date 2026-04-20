@@ -220,6 +220,8 @@
     <button class="nav-item" data-page="settings"><span class="icon">⚙️</span>Instellingen</button>
     <button class="nav-item" data-page="cms"><span class="icon">✏️</span>Paginabeheer</button>
     <button class="nav-item" data-page="analytics"><span class="icon">📈</span>Analytics</button>
+    <button class="nav-item" data-page="blog"><span class="icon">📝</span>Blog</button>
+    <button class="nav-item" data-page="vouchers"><span class="icon">🎟️</span>Vouchers</button>
     <button class="nav-item" data-page="referrals"><span class="icon">🎁</span>Referrals</button>
     <button class="nav-item" data-page="accounting"><span class="icon">🧾</span>Boekhouding</button>
     <button class="nav-item" data-page="deploy"><span class="icon">🚀</span>Deployment</button>
@@ -531,6 +533,98 @@
       </div>
     </div>
 
+    <!-- BLOG -->
+    <div class="page" id="page-blog">
+      <h1 class="page-title">📝 Blog</h1>
+      <div class="card">
+        <p style="font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:14px">
+          Blogposts leven als Markdown-bestanden in <code>content/blog/</code>. Drafts zijn niet
+          zichtbaar voor bezoekers, maar kunnen voorvertoond worden via <code>/blog/[slug]</code>
+          als je admin bent. Zet een post op <strong>Published</strong> om hem live te zetten.
+        </p>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Titel</th>
+                <th>Slug</th>
+                <th>Taal</th>
+                <th>Datum</th>
+                <th>Status</th>
+                <th>Actie</th>
+              </tr>
+            </thead>
+            <tbody id="blog-tbody"><tr class="load-row"><td colspan="6">Laden…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOUCHERS -->
+    <div class="page" id="page-vouchers">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h1 class="page-title" style="margin-bottom:0">🎟️ Vouchers</h1>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="vouchers-enabled-badge" style="padding:4px 12px;border-radius:8px;font-size:.78rem;font-weight:700"></span>
+          <button class="btn btn-outline" id="toggle-vouchers-btn">Schakel feature</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Nieuwe voucher</div>
+        <div class="alert" id="voucher-alert"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Code</label>
+            <input type="text" id="nv-code" placeholder="WELKOM2026" style="text-transform:uppercase">
+          </div>
+          <div class="form-group">
+            <label>Omschrijving</label>
+            <input type="text" id="nv-description" placeholder="Lancering NL-markt">
+          </div>
+          <div class="form-group">
+            <label>Korting (%)</label>
+            <input type="number" id="nv-discount" min="0" max="100" placeholder="50">
+            <span class="form-hint">Of vul "Gratis dagen" hieronder in</span>
+          </div>
+          <div class="form-group">
+            <label>Gratis dagen (licentie)</label>
+            <input type="number" id="nv-free-days" min="1" placeholder="365">
+          </div>
+          <div class="form-group">
+            <label>Max. gebruik</label>
+            <input type="number" id="nv-max-uses" min="1" placeholder="100">
+            <span class="form-hint">Leeg = onbeperkt</span>
+          </div>
+          <div class="form-group">
+            <label>Vervaldatum</label>
+            <input type="date" id="nv-expires">
+          </div>
+        </div>
+        <button class="btn btn-blue" id="create-voucher-btn">Voucher aanmaken</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Alle vouchers</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Omschrijving</th>
+                <th>Korting/Gratis</th>
+                <th style="text-align:right">Gebruikt</th>
+                <th>Max</th>
+                <th>Vervalt</th>
+                <th>Actie</th>
+              </tr>
+            </thead>
+            <tbody id="vouchers-tbody"><tr class="load-row"><td colspan="7">Laden…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- REFERRALS -->
     <div class="page" id="page-referrals">
       <h1 class="page-title">🎁 Referrals</h1>
@@ -730,7 +824,7 @@ function showPage(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelector(`.nav-item[data-page="${name}"]`).classList.add('active');
-  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, referrals: loadReferrals, accounting: loadAccounting, deploy: loadDeploy };
+  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, blog: loadBlog, vouchers: loadVouchers, referrals: loadReferrals, accounting: loadAccounting, deploy: loadDeploy };
   loaders[name]?.();
 }
 document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
@@ -1421,6 +1515,141 @@ async function retryZoho(paymentId) {
 }
 
 document.getElementById('refresh-zoho-btn').addEventListener('click', loadAccounting);
+
+// ── BLOG ──────────────────────────────────────────────────────────────────
+async function loadBlog() {
+  const tbody = document.getElementById('blog-tbody');
+  tbody.innerHTML = '<tr class="load-row"><td colspan="6">Laden…</td></tr>';
+  try {
+    const r = await fetch('/api/admin/blog');
+    const d = await r.json();
+    const posts = d.posts || [];
+    if (!posts.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Geen blogposts gevonden in content/blog/</td></tr>';
+      return;
+    }
+    tbody.innerHTML = posts.map(p => {
+      const statusBadge = p.draft
+        ? '<span class="badge test">📝 Draft</span>'
+        : '<span class="badge active">✓ Published</span>';
+      const toggleLabel = p.draft ? '🚀 Publiceer' : '📝 Zet naar draft';
+      return `<tr>
+        <td><a href="/blog/${escH(p.slug)}" target="_blank" style="color:var(--blue);text-decoration:none">${escH(p.title)}</a></td>
+        <td><code style="font-size:.78rem;color:var(--muted)">${escH(p.slug)}</code></td>
+        <td>${escH(p.locale)}</td>
+        <td>${escH(p.date || '–')}</td>
+        <td>${statusBadge}</td>
+        <td><button class="btn-sm btn-edit" onclick="toggleBlogDraft('${escH(p.filename)}', ${!p.draft})">${toggleLabel}</button></td>
+      </tr>`;
+    }).join('');
+  } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Laden mislukt</td></tr>'; }
+}
+
+async function toggleBlogDraft(filename, makeDraft) {
+  try {
+    const r = await fetch(`/api/admin/blog/${encodeURIComponent(filename)}/draft`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft: makeDraft }),
+    });
+    if (r.ok) loadBlog();
+    else alert('Toggle mislukt');
+  } catch (err) { alert('Netwerkfout: ' + err.message); }
+}
+
+// ── VOUCHERS ─────────────────────────────────────────────────────────────
+async function loadVouchers() {
+  const tbody = document.getElementById('vouchers-tbody');
+  const badge = document.getElementById('vouchers-enabled-badge');
+  tbody.innerHTML = '<tr class="load-row"><td colspan="7">Laden…</td></tr>';
+  try {
+    const r = await fetch('/api/admin/vouchers');
+    const d = await r.json();
+    if (d.enabled) {
+      badge.textContent = '● Actief';
+      badge.style.background = '#dcfce7';
+      badge.style.color = '#166534';
+    } else {
+      badge.textContent = '○ Uitgeschakeld';
+      badge.style.background = '#fef2f2';
+      badge.style.color = '#dc2626';
+    }
+    const rows = d.vouchers || [];
+    if (!rows.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Geen vouchers aangemaakt</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(v => {
+      const reward = v.discount_percent
+        ? `<span class="badge manual">${v.discount_percent}% korting</span>`
+        : v.free_days
+        ? `<span class="badge active">${v.free_days} gratis dagen</span>`
+        : '–';
+      const expiry = v.expires_at ? fmtDate(v.expires_at) : '–';
+      const max = v.max_uses || '∞';
+      return `<tr>
+        <td><strong><code style="font-family:monospace;background:#fff1ed;padding:3px 8px;border-radius:4px;color:#E85D3A">${escH(v.code)}</code></strong></td>
+        <td>${escH(v.description || '–')}</td>
+        <td>${reward}</td>
+        <td style="text-align:right"><strong>${v.redeemed_count}</strong></td>
+        <td>${max}</td>
+        <td>${expiry}</td>
+        <td><button class="btn-sm btn-del" onclick="deleteVoucher('${v.id}', '${escH(v.code)}')">🗑️ Verwijder</button></td>
+      </tr>`;
+    }).join('');
+  } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Laden mislukt</td></tr>'; }
+}
+
+async function deleteVoucher(id, code) {
+  if (!confirm(`Voucher "${code}" verwijderen?`)) return;
+  await fetch(`/api/admin/vouchers/${id}`, { method: 'DELETE' });
+  loadVouchers();
+}
+
+document.getElementById('create-voucher-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('create-voucher-btn');
+  btn.disabled = true;
+  const body = {
+    code:            document.getElementById('nv-code').value.trim().toUpperCase(),
+    description:     document.getElementById('nv-description').value.trim() || null,
+    discountPercent: document.getElementById('nv-discount').value ? parseInt(document.getElementById('nv-discount').value, 10) : null,
+    freeDays:        document.getElementById('nv-free-days').value ? parseInt(document.getElementById('nv-free-days').value, 10) : null,
+    maxUses:         document.getElementById('nv-max-uses').value ? parseInt(document.getElementById('nv-max-uses').value, 10) : null,
+    expiresAt:       document.getElementById('nv-expires').value ? new Date(document.getElementById('nv-expires').value + 'T23:59:59').getTime() : null,
+  };
+  try {
+    const res = await fetch('/api/admin/vouchers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert('voucher-alert', 'Voucher aangemaakt', 'ok');
+      document.getElementById('nv-code').value = '';
+      document.getElementById('nv-description').value = '';
+      document.getElementById('nv-discount').value = '';
+      document.getElementById('nv-free-days').value = '';
+      document.getElementById('nv-max-uses').value = '';
+      document.getElementById('nv-expires').value = '';
+      loadVouchers();
+    } else {
+      showAlert('voucher-alert', data.error || 'Mislukt', 'err');
+    }
+  } catch { showAlert('voucher-alert', 'Netwerkfout', 'err'); }
+  btn.disabled = false;
+});
+
+document.getElementById('toggle-vouchers-btn').addEventListener('click', async () => {
+  const currentBadge = document.getElementById('vouchers-enabled-badge').textContent;
+  const nowEnabled = currentBadge.includes('Uitgeschakeld');
+  await fetch('/api/admin/vouchers/enabled', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled: nowEnabled }),
+  });
+  loadVouchers();
+});
 
 // ── REFERRALS ─────────────────────────────────────────────────────────────
 async function loadReferrals() {

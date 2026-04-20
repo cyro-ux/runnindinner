@@ -25,6 +25,7 @@ const { createMollieClient } = require('@mollie/api-client');
 const zohoSync = require('./lib/zoho-sync');
 const zohoClient = require('./lib/zoho-client');
 const priceResolver = require('./lib/price-resolver');
+const blog = require('./lib/blog');
 
 // ── Active sessions (in-memory, resets on server restart) ────────────────────
 // Map<userId, { email, loginAt, lastSeen }>
@@ -109,6 +110,58 @@ db.exec(`
     referred_user_ids    TEXT NOT NULL,        -- JSON array of 3 referred users
     reward_days          INTEGER NOT NULL DEFAULT 365,
     applied_at           INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS vouchers (
+    id                   TEXT PRIMARY KEY,
+    code                 TEXT UNIQUE NOT NULL,
+    description          TEXT,
+    discount_percent     INTEGER,       -- 0-100; NULL if not a percentage
+    free_days            INTEGER,       -- gratis licentie-dagen; NULL if a discount
+    max_uses             INTEGER,       -- NULL = unlimited
+    expires_at           INTEGER,       -- timestamp; NULL = no expiry
+    created_at           INTEGER NOT NULL,
+    created_by           TEXT            -- admin user_id
+  );
+
+  CREATE TABLE IF NOT EXISTS voucher_redemptions (
+    id                   TEXT PRIMARY KEY,
+    voucher_id           TEXT NOT NULL,
+    user_id              TEXT NOT NULL,
+    payment_id           TEXT,           -- NULL for free_days voucher without payment
+    redeemed_at          INTEGER NOT NULL,
+    FOREIGN KEY (voucher_id) REFERENCES vouchers(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS events (
+    id                   TEXT PRIMARY KEY,
+    user_id              TEXT NOT NULL,   -- organiser
+    name                 TEXT NOT NULL,
+    date                 TEXT,            -- ISO date
+    max_participants     INTEGER,
+    courses              INTEGER NOT NULL DEFAULT 3,
+    location_note        TEXT,
+    donation_goal_cents  INTEGER,
+    donation_raised_cents INTEGER NOT NULL DEFAULT 0,
+    logo_url             TEXT,
+    created_at           INTEGER NOT NULL,
+    updated_at           INTEGER NOT NULL,
+    archived_at          INTEGER
+  );
+
+  CREATE TABLE IF NOT EXISTS event_participants (
+    id                   TEXT PRIMARY KEY,
+    event_id             TEXT NOT NULL,
+    name                 TEXT NOT NULL,
+    email                TEXT,
+    phone                TEXT,              -- opt-in only, for WhatsApp share
+    address              TEXT,
+    diet_notes           TEXT,
+    availability_json    TEXT,               -- JSON array of courses they can attend
+    is_host_for          TEXT,               -- course name (Voorgerecht/Hoofdgerecht/...)
+    token                TEXT UNIQUE,        -- for personalised page URL
+    created_at           INTEGER NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
   );
 `);
 
@@ -221,6 +274,17 @@ const mailer = nodemailer.createTransport({
 });
 
 async function sendMail(to, subject, html, { replyTo } = {}) {
+  const brevo = require('./lib/brevo');
+  // If Brevo is configured, prefer it over SMTP (better deliverability + analytics)
+  if (brevo.isConfigured()) {
+    try {
+      await brevo.sendTransactional({ to, subject, html: wrapHtml(html), replyTo });
+      return;
+    } catch (err) {
+      console.error('[mail] Brevo failed, falling back to SMTP:', err.message);
+      // fall through to SMTP
+    }
+  }
   if (!process.env.SMTP_HOST) {
     console.log(`[mail] SMTP not configured – would send to ${to}: ${subject}`);
     return;
@@ -1173,6 +1237,160 @@ app.post('/api/mollie/webhook', async (req, res) => {
   }
 
   res.send('ok');
+});
+
+// ── Vouchers / discount codes (feature-flagged) ─────────────────────────────
+// Enabled when setting vouchers_enabled = '1'. Default: off.
+
+function vouchersEnabled() {
+  return getSetting('vouchers_enabled') === '1';
+}
+
+// Public: validate a voucher code (returns info without applying it)
+app.get('/api/vouchers/validate/:code', (req, res) => {
+  if (!vouchersEnabled()) return res.status(404).json({ error: 'Vouchers not enabled' });
+  const code = String(req.params.code || '').trim().toUpperCase();
+  const v = db.prepare('SELECT * FROM vouchers WHERE UPPER(code) = ?').get(code);
+  if (!v) return res.status(404).json({ error: 'Invalid voucher' });
+  if (v.expires_at && v.expires_at < Date.now()) return res.status(410).json({ error: 'Voucher expired' });
+  const used = db.prepare('SELECT COUNT(*) as c FROM voucher_redemptions WHERE voucher_id = ?').get(v.id).c;
+  if (v.max_uses && used >= v.max_uses) return res.status(409).json({ error: 'Voucher fully redeemed' });
+  res.json({
+    ok: true,
+    code:            v.code,
+    description:     v.description,
+    discountPercent: v.discount_percent,
+    freeDays:        v.free_days,
+  });
+});
+
+// Admin: list all vouchers with usage stats
+app.get('/api/admin/vouchers', requireAdmin, (req, res) => {
+  const rows = db.prepare(`
+    SELECT v.*,
+      (SELECT COUNT(*) FROM voucher_redemptions WHERE voucher_id = v.id) as redeemed_count
+    FROM vouchers v
+    ORDER BY v.created_at DESC
+  `).all();
+  res.json({ ok: true, vouchers: rows, enabled: vouchersEnabled() });
+});
+
+// Admin: create voucher
+app.post('/api/admin/vouchers', requireAdmin, (req, res) => {
+  const { code, description, discountPercent, freeDays, maxUses, expiresAt } = req.body || {};
+  if (!code) return res.status(400).json({ error: 'Code required' });
+  if (discountPercent == null && freeDays == null) return res.status(400).json({ error: 'Specify discount_percent or free_days' });
+  const id = uuidv4();
+  try {
+    db.prepare(`
+      INSERT INTO vouchers (id, code, description, discount_percent, free_days, max_uses, expires_at, created_at, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, code.trim().toUpperCase(), description || null,
+           discountPercent ?? null, freeDays ?? null, maxUses ?? null, expiresAt ?? null,
+           Date.now(), req.user.id);
+    res.json({ ok: true, id });
+  } catch (err) {
+    res.status(409).json({ error: err.message });
+  }
+});
+
+// Admin: delete voucher
+app.delete('/api/admin/vouchers/:id', requireAdmin, (req, res) => {
+  db.prepare('DELETE FROM vouchers WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+// Admin: toggle vouchers feature flag
+app.put('/api/admin/vouchers/enabled', requireAdmin, (req, res) => {
+  const { enabled } = req.body || {};
+  db.prepare("INSERT INTO settings (key, value) VALUES ('vouchers_enabled', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+    .run(enabled ? '1' : '0');
+  res.json({ ok: true, enabled: Boolean(enabled) });
+});
+
+// ── Event CRUD (backend-only — frontend app.js blijft client-side voor nu) ──
+// Deze endpoints zijn klaar, maar de planner-index.html gebruikt ze nog niet.
+// Wanneer Sprint 6b actief wordt (persistent events), dan haakt de frontend
+// hier op aan.
+
+app.post('/api/events', requireAuth, (req, res) => {
+  const { name, date, maxParticipants, courses = 3, locationNote, donationGoalCents, logoUrl } = req.body || {};
+  if (!name) return res.status(400).json({ error: 'Name required' });
+  const id = uuidv4();
+  const now = Date.now();
+  db.prepare(`
+    INSERT INTO events (id, user_id, name, date, max_participants, courses, location_note,
+                       donation_goal_cents, logo_url, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, req.user.id, name, date || null, maxParticipants ?? null, courses,
+         locationNote || null, donationGoalCents ?? null, logoUrl || null, now, now);
+  res.json({ ok: true, id });
+});
+
+app.get('/api/events', requireAuth, (req, res) => {
+  const rows = db.prepare(
+    'SELECT * FROM events WHERE user_id = ? AND archived_at IS NULL ORDER BY date DESC, created_at DESC'
+  ).all(req.user.id);
+  res.json({ ok: true, events: rows });
+});
+
+app.get('/api/events/:id', requireAuth, (req, res) => {
+  const ev = db.prepare('SELECT * FROM events WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (!ev) return res.status(404).json({ error: 'Not found' });
+  const participants = db.prepare('SELECT * FROM event_participants WHERE event_id = ? ORDER BY name').all(ev.id);
+  res.json({ ok: true, event: ev, participants });
+});
+
+app.put('/api/events/:id', requireAuth, (req, res) => {
+  const { name, date, maxParticipants, courses, locationNote, donationGoalCents, logoUrl } = req.body || {};
+  const result = db.prepare(`
+    UPDATE events SET
+      name = COALESCE(?, name),
+      date = COALESCE(?, date),
+      max_participants = COALESCE(?, max_participants),
+      courses = COALESCE(?, courses),
+      location_note = COALESCE(?, location_note),
+      donation_goal_cents = COALESCE(?, donation_goal_cents),
+      logo_url = COALESCE(?, logo_url),
+      updated_at = ?
+    WHERE id = ? AND user_id = ?
+  `).run(name ?? null, date ?? null, maxParticipants ?? null, courses ?? null,
+         locationNote ?? null, donationGoalCents ?? null, logoUrl ?? null,
+         Date.now(), req.params.id, req.user.id);
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
+app.delete('/api/events/:id', requireAuth, (req, res) => {
+  const result = db.prepare('DELETE FROM events WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
+// Participants sub-resource
+app.post('/api/events/:id/participants', requireAuth, (req, res) => {
+  const ev = db.prepare('SELECT id FROM events WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (!ev) return res.status(404).json({ error: 'Event not found' });
+  const { name, email, phone, address, dietNotes, availability, isHostFor } = req.body || {};
+  if (!name) return res.status(400).json({ error: 'Name required' });
+  const id = uuidv4();
+  const token = uuidv4().replace(/-/g, '').slice(0, 16); // personalised page URL token
+  db.prepare(`
+    INSERT INTO event_participants
+      (id, event_id, name, email, phone, address, diet_notes, availability_json, is_host_for, token, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, ev.id, name, email || null, phone || null, address || null,
+         dietNotes || null, availability ? JSON.stringify(availability) : null,
+         isHostFor || null, token, Date.now());
+  res.json({ ok: true, id, token });
+});
+
+app.delete('/api/events/:eventId/participants/:id', requireAuth, (req, res) => {
+  // Verify ownership via event
+  const ev = db.prepare('SELECT id FROM events WHERE id = ? AND user_id = ?').get(req.params.eventId, req.user.id);
+  if (!ev) return res.status(404).json({ error: 'Event not found' });
+  db.prepare('DELETE FROM event_participants WHERE id = ? AND event_id = ?').run(req.params.id, ev.id);
+  res.json({ ok: true });
 });
 
 // ── Referral system ──────────────────────────────────────────────────────────
@@ -2640,6 +2858,113 @@ app.get('/es/:page.html', (req, res) => {
   } else {
     res.status(404).sendFile(homeHtmlPath);
   }
+});
+
+// ── Blog (preview: drafts zijn niet in de publieke listing) ─────────────────
+const BLOG_STYLE = `
+  .blog-page { max-width: 780px; margin: 50px auto; padding: 0 20px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E293B; }
+  .blog-page h1 { font-size: 2.2rem; letter-spacing: -.02em; margin-bottom: 10px; }
+  .blog-page h2 { font-size: 1.4rem; margin: 32px 0 12px; }
+  .blog-page h3 { font-size: 1.1rem; margin: 22px 0 8px; font-weight: 700; }
+  .blog-page p, .blog-page li { font-size: 1rem; line-height: 1.7; color: #334155; }
+  .blog-page ul { margin: 10px 0 10px 22px; }
+  .blog-page a { color: #E85D3A; }
+  .blog-page code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .88em; }
+  .blog-page pre { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; overflow-x: auto; }
+  .blog-meta { color: #94A3B8; font-size: .9rem; margin-bottom: 28px; border-bottom: 1px solid #F1F5F9; padding-bottom: 18px; }
+  .blog-nav { margin-bottom: 20px; font-size: .9rem; }
+  .blog-nav a { color: #64748B; text-decoration: none; }
+  .blog-nav a:hover { color: #E85D3A; }
+  .blog-list-item { padding: 24px 0; border-bottom: 1px solid #F1F5F9; }
+  .blog-list-item a { color: #1E293B; text-decoration: none; }
+  .blog-list-item h3 { font-size: 1.2rem; margin-bottom: 6px; }
+  .blog-list-item .desc { color: #64748B; font-size: .95rem; }
+  .blog-draft-badge { background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 4px; font-size: .72rem; margin-left: 8px; font-weight: 600; }
+`;
+
+function renderBlogShell(title, content, locale) {
+  const headerLinks = `<a href="/">← ${locale === 'en' ? 'Back to home' : locale === 'es' ? 'Volver al inicio' : 'Terug naar home'}</a>`;
+  return `<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex"><!-- blog preview-only -->
+<title>${title}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>${BLOG_STYLE}</style>
+</head>
+<body>
+<article class="blog-page">
+<div class="blog-nav">${headerLinks}</div>
+${content}
+</article>
+</body>
+</html>`;
+}
+
+// Public blog listing (only published posts)
+app.get('/blog', (req, res) => {
+  const locale = req.lang || 'nl';
+  const posts = blog.listPublished(locale);
+  const listTitle = locale === 'en' ? 'Blog' : locale === 'es' ? 'Blog' : 'Blog';
+  const emptyText = locale === 'en' ? 'No posts yet. Come back soon.'
+    : locale === 'es' ? 'Aún no hay artículos. Vuelve pronto.'
+    : 'Nog geen artikelen. Kom binnenkort terug.';
+  let content = `<h1>${listTitle}</h1>`;
+  if (!posts.length) {
+    content += `<p style="color:#64748B;margin-top:20px">${emptyText}</p>`;
+  } else {
+    for (const p of posts) {
+      content += `
+        <div class="blog-list-item">
+          <a href="/blog/${p.slug}">
+            <h3>${p.title}</h3>
+            <p class="desc">${p.description}</p>
+          </a>
+        </div>`;
+    }
+  }
+  res.type('html').send(renderBlogShell(listTitle, content, locale));
+});
+
+// Individual blog post
+app.get('/blog/:slug', (req, res) => {
+  const locale = req.lang || 'nl';
+  const post = blog.getBySlug(req.params.slug, locale);
+  if (!post) return res.status(404).type('html').send(renderBlogShell('Not found', '<h1>Not found</h1><p>Dit artikel bestaat niet of is nog niet gepubliceerd.</p>', locale));
+  // Admins may preview drafts; everyone else gets 404 on draft
+  const isAdminPreview = req.cookies?.token; // crude check: any logged-in user; tighter check below would require verifying the JWT
+  if (post.draft && !isAdminPreview) {
+    return res.status(404).type('html').send(renderBlogShell('Not found', '<h1>Not found</h1>', locale));
+  }
+  const html = blog.render(post);
+  const meta = `<div class="blog-meta">${post.date || ''} • ${post.author}${post.draft ? ' <span class="blog-draft-badge">DRAFT</span>' : ''}</div>`;
+  const content = meta + html;
+  res.type('html').send(renderBlogShell(post.title, content, locale));
+});
+
+// Admin API: list all posts (including drafts) for content management
+app.get('/api/admin/blog', requireAdmin, (req, res) => {
+  const posts = blog.listAll().map(({ body, ...rest }) => rest); // omit body for list view
+  res.json({ ok: true, posts });
+});
+
+// Admin API: toggle draft state
+app.put('/api/admin/blog/:filename/draft', requireAdmin, (req, res) => {
+  try {
+    const { draft } = req.body || {};
+    blog.setDraft(req.params.filename, Boolean(draft));
+    res.json({ ok: true });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// ── Segment-landingspagina's (preview: noindex, niet in sitemap) ────────────
+['service-clubs', 'verenigingen', 'vriendengroepen'].forEach(slug => {
+  app.get('/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
+  app.get('/en/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
+  app.get('/es/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
 });
 
 // ── SPA fallbacks ─────────────────────────────────────────────────────────────
