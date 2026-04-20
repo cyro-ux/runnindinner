@@ -280,6 +280,35 @@
         <div class="empty-state" data-i18n="auth.profile.invoices_loading">Facturen worden geladen...</div>
       </div>
     </div>
+
+    <!-- Privacy / GDPR self-service -->
+    <div class="card">
+      <h2 data-i18n="auth.profile.privacy_heading">Privacy &amp; data</h2>
+      <p style="font-size:.88rem;color:#64748b;line-height:1.6;margin-bottom:16px" data-i18n="auth.profile.privacy_intro">Je hebt het recht om je persoonlijke data te exporteren of je account te verwijderen.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="/api/user/data-export" class="btn-primary" style="text-decoration:none;display:inline-block" download data-i18n="auth.profile.data_export">📦 Download mijn data (JSON)</a>
+        <button class="btn-secondary" id="delete-account-btn" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca" data-i18n="auth.profile.delete_account">🗑️ Verwijder mijn account</button>
+      </div>
+      <div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:12px;padding:24px;max-width:480px;width:90%">
+          <h3 style="margin-bottom:10px" data-i18n="auth.profile.delete_confirm_title">Account permanent verwijderen</h3>
+          <p style="font-size:.88rem;color:#475569;line-height:1.5;margin-bottom:14px" data-i18n="auth.profile.delete_confirm_text">Je account wordt permanent verwijderd. Facturen blijven bewaard volgens fiscale wetgeving. Typ DELETE en je wachtwoord om te bevestigen.</p>
+          <div class="form-group">
+            <label data-i18n="auth.profile.delete_type_delete">Typ <strong>DELETE</strong> om te bevestigen</label>
+            <input type="text" id="del-confirm" placeholder="DELETE">
+          </div>
+          <div class="form-group">
+            <label data-i18n="auth.profile.delete_password">Huidig wachtwoord</label>
+            <input type="password" id="del-password">
+          </div>
+          <div class="msg" id="del-msg"></div>
+          <div style="display:flex;gap:10px;margin-top:14px">
+            <button class="btn-primary" id="del-confirm-btn" style="background:#dc2626" data-i18n="auth.profile.delete_confirm_button">Definitief verwijderen</button>
+            <button class="btn-secondary" id="del-cancel-btn" data-i18n="auth.profile.delete_cancel">Annuleren</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -409,6 +438,53 @@
   }
 
   loadProfile();
+
+  // ── GDPR: delete account flow ──────────────────────────────────────────
+  const delModal = document.getElementById('delete-modal');
+  document.getElementById('delete-account-btn').addEventListener('click', () => {
+    delModal.style.display = 'flex';
+    document.getElementById('del-confirm').value = '';
+    document.getElementById('del-password').value = '';
+    document.getElementById('del-msg').textContent = '';
+  });
+  document.getElementById('del-cancel-btn').addEventListener('click', () => {
+    delModal.style.display = 'none';
+  });
+  document.getElementById('del-confirm-btn').addEventListener('click', async () => {
+    const confirm = document.getElementById('del-confirm').value;
+    const password = document.getElementById('del-password').value;
+    const msg = document.getElementById('del-msg');
+    msg.textContent = '';
+    if (confirm !== 'DELETE') {
+      msg.textContent = I18n.t('auth.profile.delete_err_type', 'Typ exact "DELETE" om te bevestigen.');
+      msg.className = 'msg msg-err';
+      return;
+    }
+    if (!password) {
+      msg.textContent = I18n.t('auth.profile.delete_err_password', 'Wachtwoord is verplicht.');
+      msg.className = 'msg msg-err';
+      return;
+    }
+    try {
+      const r = await fetch('/api/user/account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm, password }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        msg.textContent = I18n.t('auth.profile.delete_success', 'Account verwijderd. Je wordt uitgelogd…');
+        msg.className = 'msg msg-ok';
+        setTimeout(() => { window.location.href = '/'; }, 1500);
+      } else {
+        msg.textContent = d.error || I18n.t('auth.profile.delete_err_generic', 'Verwijderen mislukt.');
+        msg.className = 'msg msg-err';
+      }
+    } catch {
+      msg.textContent = I18n.t('auth.profile.error_connection', 'Verbindingsfout.');
+      msg.className = 'msg msg-err';
+    }
+  });
 
   // Change password
   $('#pw-form').addEventListener('submit', async e => {

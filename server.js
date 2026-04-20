@@ -1120,6 +1120,108 @@ app.post('/api/mollie/webhook', async (req, res) => {
   res.send('ok');
 });
 
+// ── GDPR: self-service data portability + account deletion ──────────────────
+
+// GET /api/user/data-export  – full JSON dump of user's own data (GDPR Art. 20)
+app.get('/api/user/data-export', requireAuth, (req, res) => {
+  const user = db.prepare(`
+    SELECT id, email, role, user_type, created_at, last_login, license_until,
+           auto_renew, language, country, is_business, vat_id, company_name,
+           mollie_customer_id, mollie_mandate_id
+    FROM users WHERE id = ?
+  `).get(req.user.id);
+
+  if (!user) return res.status(404).json({ error: t(req, 'user_not_found') });
+
+  const payments = db.prepare(`
+    SELECT invoice_number, amount_cents, currency, status, payment_type,
+           created_at, country, vat_rate, vat_scheme
+    FROM payments WHERE user_id = ? ORDER BY created_at DESC
+  `).all(req.user.id);
+
+  const ratings = db.prepare(`
+    SELECT score, comment, created_at FROM ratings WHERE user_id = ?
+  `).all(req.user.id);
+
+  const exportData = {
+    _meta: {
+      exportedAt: new Date().toISOString(),
+      gdprArticle: 'Art. 20 GDPR — Right to data portability',
+      source: 'runningdiner.nl',
+    },
+    profile: {
+      ...user,
+      created_at:   new Date(user.created_at).toISOString(),
+      last_login:   user.last_login ? new Date(user.last_login).toISOString() : null,
+      license_until: user.license_until ? new Date(user.license_until).toISOString() : null,
+    },
+    payments: payments.map(p => ({
+      ...p,
+      amount: (p.amount_cents / 100).toFixed(2),
+      created_at: new Date(p.created_at).toISOString(),
+    })),
+    ratings: ratings.map(r => ({ ...r, created_at: new Date(r.created_at).toISOString() })),
+  };
+
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', `attachment; filename="runningdinner-data-${user.email}-${new Date().toISOString().split('T')[0]}.json"`);
+  res.send(JSON.stringify(exportData, null, 2));
+});
+
+// DELETE /api/user/account  – permanently delete own account (GDPR Art. 17)
+// Requires current password as confirmation to prevent accidental deletion.
+app.delete('/api/user/account', requireAuth, async (req, res) => {
+  const { password, confirm } = req.body || {};
+  if (confirm !== 'DELETE') return res.status(400).json({ error: 'Type DELETE to confirm' });
+  if (!password) return res.status(400).json({ error: t(req, 'email_pw_required') });
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  if (!user) return res.status(404).json({ error: t(req, 'user_not_found') });
+
+  // Don't allow admin self-deletion (safety)
+  if (user.role === 'admin') {
+    return res.status(403).json({ error: 'Admin accounts cannot be deleted via self-service' });
+  }
+
+  const ok = await bcrypt.compare(password, user.password_hash);
+  if (!ok) return res.status(401).json({ error: t(req, 'current_pw_wrong') });
+
+  // Revoke Mollie mandate if present (stops future charges)
+  if (user.mollie_mandate_id && user.mollie_customer_id) {
+    try {
+      await mollie.customerMandates.delete(user.mollie_mandate_id, { customerId: user.mollie_customer_id });
+    } catch (err) {
+      console.warn('[delete-account] mandate revoke failed:', err.message);
+    }
+  }
+
+  // Delete cascade (foreign keys on ratings, sessions, payments)
+  // We KEEP payments for accounting/Zoho retention but anonymize the user link.
+  const anonEmail = `deleted-${uuidv4()}@deleted.local`;
+  db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+  db.prepare('DELETE FROM ratings WHERE user_id = ?').run(user.id);
+  // Anonymize payments instead of deleting (tax law retention)
+  db.prepare('UPDATE payments SET user_id = ?, zoho_sync_error = ? WHERE user_id = ?')
+    .run('deleted-' + user.id, 'User self-deleted account', user.id);
+  db.prepare('DELETE FROM users WHERE id = ?').run(user.id);
+
+  // Clear session cookie
+  res.clearCookie('token');
+  activeSessions.delete(user.id);
+
+  // Notify via email (last contact)
+  const lang = user.language || 'nl';
+  const subject = { nl: 'Je account is verwijderd', en: 'Your account has been deleted', es: 'Tu cuenta ha sido eliminada' }[lang] || 'Account deleted';
+  const body = {
+    nl: '<p>Hallo,</p><p>Je Running Dinner Planner-account is permanent verwijderd. Facturen blijven bewaard zoals fiscaal verplicht.</p>',
+    en: '<p>Hi,</p><p>Your Running Dinner Planner account has been permanently deleted. Invoices are retained as required by tax law.</p>',
+    es: '<p>Hola,</p><p>Tu cuenta de Running Dinner Planner ha sido eliminada permanentemente. Las facturas se conservan según la ley fiscal.</p>',
+  }[lang] || '<p>Your account has been deleted.</p>';
+  sendMail(user.email, subject, wrapHtml(body, lang)).catch(console.error);
+
+  res.json({ ok: true, message: 'Account deleted' });
+});
+
 // GET /api/payments/my  – current user's payment history
 app.get('/api/payments/my', requireAuth, (req, res) => {
   const rows = db.prepare(
