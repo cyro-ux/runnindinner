@@ -163,7 +163,7 @@ People cancel. Know how to adjust the seating plan if someone drops out — or u
 
 Guest costs consist of groceries for their course (typically £5–15 / $8–20 per person) plus any event contribution. For fundraising events, £15–30 / $20–40 per person as a contribution is common.
 
-As an organiser your costs are low: invitations (email = free), optionally a digital tool for the seating plan (runningdinner.app costs €5 / £4.99 / $5.99 per year) and communication.
+As an organiser your costs are low: email invitations cost nothing, optionally a digital tool for the seating plan (runningdinner.app costs €5 / £4.99 / $5.99 per year) and communication.
 
 ---
 
@@ -175,7 +175,7 @@ As an organiser your costs are low: invitations (email = free), optionally a dig
 | Handle dietary requirements | Error-prone | Built-in and automated |
 | Personalised emails | Each email separately | One click, everyone at once |
 | Generate routes | Manual map-making | Automatic per guest |
-| Price | Free | €5 / £4.99 / $5.99 per year |
+| Price | No software cost | €5 / £4.99 / $5.99 per year |
 
 For small groups (fewer than 20 people) a spreadsheet is still manageable. Once your group gets larger, or you want to run the event professionally (as Lions or Rotary clubs do), a tool like runningdinner.app is worth every penny.
 

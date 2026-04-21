@@ -164,7 +164,7 @@ Mensen zeggen af. Zorg dat je weet hoe je de indeling aanpast als er iemand wegv
 
 De kosten voor deelnemers bestaan uit de boodschappen voor hun gang (gemiddeld €5–15 per persoon) plus een eventuele deelnemersbijdrage. Voor fondsenwervende events is €10–25 per persoon als bijdrage gebruikelijk.
 
-Als organisator zijn de kosten laag: uitnodigingen (e-mail = gratis), eventueel een digitale tool voor de indeling ([runningdinner.app](https://runningdinner.app) kost €5 per jaar) en communicatie.
+Als organisator zijn de kosten laag: uitnodigingen per e-mail kosten niets, eventueel een digitale tool voor de indeling ([runningdinner.app](https://runningdinner.app) kost €5 per jaar) en communicatie.
 
 ---
 
@@ -176,7 +176,7 @@ Als organisator zijn de kosten laag: uitnodigingen (e-mail = gratis), eventueel 
 | Dieetwensen verwerken | Foutgevoelig | Ingebouwd en geautomatiseerd |
 | Gepersonaliseerde e-mails | Elk mailtje apart | Één klik, iedereen tegelijk |
 | Routes genereren | Handmatig kaartje maken | Automatisch per deelnemer |
-| Prijs | Gratis | €5 per jaar |
+| Prijs | Geen softwarekosten | €5 per jaar |
 
 Voor kleine groepen (< 20 personen) is een spreadsheet nog te doen. Zodra je groep groter is, of je wilt het event professioneel uitvoeren (zoals bij Lions of Rotary), is een tool als runningdinner.app de investering van één kop koffie per jaar meer dan waard.
 

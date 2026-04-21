@@ -163,7 +163,7 @@ La gente cancela. Sabe cómo ajustar la distribución si alguien se baja — o u
 
 Los costes para los participantes son la compra para su plato (de media entre 5 y 15 € por persona) más una posible contribución al evento. En eventos de recaudación, entre 15 y 30 € por persona es habitual.
 
-Como organizador los costes son bajos: invitaciones (por correo = gratis), opcionalmente una herramienta digital para la distribución (runningdinner.app cuesta 5 € al año) y las comunicaciones.
+Como organizador los costes son bajos: las invitaciones por correo no tienen coste, opcionalmente una herramienta digital para la distribución (runningdinner.app cuesta 5 € al año) y las comunicaciones.
 
 ---
 
@@ -175,7 +175,7 @@ Como organizador los costes son bajos: invitaciones (por correo = gratis), opcio
 | Gestionar necesidades dietéticas | Propenso a errores | Integrado y automatizado |
 | Correos personalizados | Cada correo por separado | Un clic, todos a la vez |
 | Generar rutas | A mano | Automático por participante |
-| Precio | Gratis | 5 € al año |
+| Precio | Sin coste de software | 5 € al año |
 
 Para grupos pequeños (menos de 20 personas) una hoja de cálculo aún es viable. En cuanto el grupo crece, o quieres organizar el evento de forma profesional (como hacen los clubs Lions o Rotary), una herramienta como runningdinner.app merece cada céntimo.
 
