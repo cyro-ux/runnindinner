@@ -202,6 +202,10 @@ if (!userCols.includes('zoho_customer_id'))       db.exec("ALTER TABLE users ADD
 if (!userCols.includes('company_name'))           db.exec("ALTER TABLE users ADD COLUMN company_name TEXT");
 if (!userCols.includes('referral_code'))          db.exec("ALTER TABLE users ADD COLUMN referral_code TEXT");
 if (!userCols.includes('referred_by'))            db.exec("ALTER TABLE users ADD COLUMN referred_by TEXT");
+// Herroepingsrecht-waiver: timestamp waarop de klant bij checkout expliciet
+// heeft ingestemd met directe activering en afzien van herroepingsrecht
+// (art. 6:230p sub e BW). Dient als bewijs bij eventueel geschil.
+if (!userCols.includes('waiver_accepted_at'))     db.exec("ALTER TABLE users ADD COLUMN waiver_accepted_at INTEGER");
 // Create unique index on referral_code (nullable values allowed but unique when set)
 db.exec('CREATE UNIQUE INDEX IF NOT EXISTS users_referral_code_idx ON users(referral_code) WHERE referral_code IS NOT NULL');
 // Backfill referral codes for existing users
@@ -640,6 +644,7 @@ const T = {
     invalid_reset_link:  'Ongeldige of verlopen link',
     pw_changed_login:    'Wachtwoord gewijzigd. Je kunt nu inloggen.',
     payment_failed:      'Betaling kon niet worden gestart',
+    waiver_required:     'Vink het vakje aan om akkoord te gaan met directe activering en het afzien van je herroepingsrecht.',
     invoice_not_found:   'Factuur niet gevonden',
     key_dataurl_req:     'key en dataUrl verplicht',
     email_required:      'E-mailadres is verplicht',
@@ -688,6 +693,7 @@ const T = {
     invalid_reset_link:  'Invalid or expired link',
     pw_changed_login:    'Password changed. You can now log in.',
     payment_failed:      'Payment could not be started',
+    waiver_required:     'Please tick the box to agree to immediate activation and waive your right of withdrawal.',
     invoice_not_found:   'Invoice not found',
     key_dataurl_req:     'key and dataUrl are required',
     email_required:      'Email address is required',
@@ -736,6 +742,7 @@ const T = {
     invalid_reset_link:  'Enlace no válido o expirado',
     pw_changed_login:    'Contraseña cambiada. Ya puedes iniciar sesión.',
     payment_failed:      'No se pudo iniciar el pago',
+    waiver_required:     'Marca la casilla para aceptar la activación inmediata y la renuncia al derecho de desistimiento.',
     invoice_not_found:   'Factura no encontrada',
     key_dataurl_req:     'Se requieren key y dataUrl',
     email_required:      'El correo electrónico es obligatorio',
@@ -1029,6 +1036,19 @@ app.post('/api/auth/reset-password', async (req, res) => {
 app.post('/api/mollie/create-payment', requireAuth, async (req, res) => {
   const user       = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
   const autoRenew  = req.body?.autoRenew === true;
+  const waiverAccepted = req.body?.waiverAccepted === true;
+
+  // Waiver is verplicht voor alle klanten (BW 6:230p sub e). Zonder expliciete
+  // toestemming voor directe activering kan het account niet worden geactiveerd.
+  if (!waiverAccepted) {
+    return res.status(400).json({ error: t(req, 'waiver_required') });
+  }
+
+  // Log de waiver-acceptatie (met timestamp) voor bewijsvoering bij een eventueel
+  // herroepingsrecht-geschil. Alleen overschrijven als nog niet eerder geaccepteerd.
+  if (!user.waiver_accepted_at) {
+    db.prepare('UPDATE users SET waiver_accepted_at = ? WHERE id = ?').run(Date.now(), user.id);
+  }
 
   // Determine price + currency based on user's detected/chosen country
   // Priority: user profile country > request country > default NL

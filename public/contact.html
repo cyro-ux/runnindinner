@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact &amp; Colofon – Running Dinner Planner</title>
+  <meta name="description" content="Contactgegevens en colofon van VMH B.V. — de aanbieder achter Running Dinner Planner.">
+  <link rel="canonical" href="https://runningdinner.app/contact.html">
+  <link rel="alternate" hreflang="nl" href="https://runningdinner.app/contact.html">
+  <link rel="alternate" hreflang="en" href="https://runningdinner.app/en/contact.html">
+  <link rel="alternate" hreflang="es" href="https://runningdinner.app/es/contact.html">
+  <link rel="stylesheet" href="/home.css">
+  <style>
+    .legal-page { max-width: 780px; margin: 60px auto; padding: 0 20px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E293B; line-height: 1.7; }
+    .legal-page h1 { font-size: 2rem; margin-bottom: 10px; }
+    .legal-page h2 { font-size: 1.3rem; margin: 32px 0 12px; }
+    .legal-page p, .legal-page li { font-size: .95rem; color: #475569; }
+    .legal-page .updated { color: #94A3B8; font-size: .85rem; margin-bottom: 30px; }
+    .legal-page a { color: #E85D3A; }
+    .legal-nav { margin: 20px 0; font-size: .9rem; }
+    .legal-nav a { color: #64748B; text-decoration: none; margin-right: 16px; }
+    .legal-nav a:hover { color: #E85D3A; }
+    .info-card { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px 24px; margin: 18px 0; }
+    .info-card dt { font-weight: 600; color: #1E293B; margin-top: 10px; }
+    .info-card dt:first-child { margin-top: 0; }
+    .info-card dd { margin: 2px 0 0; color: #475569; }
+  </style>
+</head>
+<body>
+<div style="position:fixed;top:12px;right:16px;z-index:1000" id="auth-lang-toggle"></div>
+<div class="legal-page">
+  <div class="legal-nav"><a href="/">← <span data-i18n="legal.back_home">Terug naar home</span></a></div>
+  <h1 data-i18n="legal.contact.title">Contact &amp; Colofon</h1>
+  <p class="updated" data-i18n="legal.contact.updated">Laatst bijgewerkt: 21 april 2026</p>
+
+  <p data-i18n="legal.contact.intro">runningdinner.app is een dienst van VMH B.V.</p>
+
+  <div class="info-card">
+    <dl>
+      <dt data-i18n="legal.contact.company">Bedrijf</dt>
+      <dd>VMH B.V.</dd>
+
+      <dt data-i18n="legal.contact.address">Adres</dt>
+      <dd>Hanekerweg 4<br>7381 AM Klarenbeek<br>Nederland</dd>
+
+      <dt data-i18n="legal.contact.kvk">KVK-nummer</dt>
+      <dd>08142482</dd>
+
+      <dt data-i18n="legal.contact.vat">BTW-nummer</dt>
+      <dd>NL8152.92.715.B01</dd>
+
+      <dt data-i18n="legal.contact.email">E-mail</dt>
+      <dd><a href="mailto:info@runningdinner.app">info@runningdinner.app</a></dd>
+    </dl>
+  </div>
+
+  <h2 data-i18n="legal.contact.vat_note_heading">BTW &amp; prijzen</h2>
+  <p data-i18n="legal.contact.vat_note">Alle genoemde prijzen op deze website zijn inclusief BTW volgens de geldende tarieven. Binnen de EU hanteren wij de One-Stop Shop (OSS)-regeling, waardoor het lokale BTW-tarief van het land van de klant wordt toegepast.</p>
+
+  <h2 data-i18n="legal.contact.contact_form_heading">Liever een formulier?</h2>
+  <p data-i18n-html="legal.contact.contact_form_text">Voor algemene vragen kun je ook het <a href="/#contact">contactformulier op de homepage</a> gebruiken. We beantwoorden berichten doorgaans binnen één werkdag.</p>
+
+  <h2 data-i18n="legal.contact.links_heading">Juridische documenten</h2>
+  <ul>
+    <li><a href="/privacy.html" data-i18n="legal.contact.link_privacy">Privacyverklaring</a></li>
+    <li><a href="/cookies.html" data-i18n="legal.contact.link_cookies">Cookieverklaring</a></li>
+    <li><a href="/terms.html" data-i18n="legal.contact.link_terms">Algemene voorwaarden</a></li>
+    <li><a href="/herroepingsrecht.html" data-i18n="legal.contact.link_waiver">Herroepingsrecht</a></li>
+  </ul>
+</div>
+<script defer data-domain="runningdinner.app" data-api="/api/event" src="/js/script.js"></script>
+<script src="/lang/i18n.js"></script>
+<script>
+  I18n.onReady(() => {
+    const c = document.getElementById('auth-lang-toggle');
+    if (c) c.appendChild(I18n.createToggle());
+  });
+</script>
+</body>
+</html>

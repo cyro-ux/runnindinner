@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacybeleid – Running Dinner Planner</title>
-  <meta name="description" content="Privacybeleid van Running Dinner Planner — hoe we je persoonsgegevens verwerken, bewaren en beschermen.">
+  <title>Privacyverklaring – Running Dinner Planner</title>
+  <meta name="description" content="Privacyverklaring van VMH B.V. voor runningdinner.app — welke gegevens we verwerken, waarom, hoe lang en met wie we ze delen.">
   <link rel="canonical" href="https://runningdinner.app/privacy.html">
   <link rel="alternate" hreflang="nl" href="https://runningdinner.app/privacy.html">
   <link rel="alternate" hreflang="en" href="https://runningdinner.app/en/privacy.html">
@@ -13,10 +13,13 @@
   <style>
     .legal-page { max-width: 780px; margin: 60px auto; padding: 0 20px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E293B; line-height: 1.7; }
     .legal-page h1 { font-size: 2rem; margin-bottom: 10px; }
-    .legal-page h2 { font-size: 1.3rem; margin: 32px 0 12px; color: #1E293B; }
-    .legal-page h3 { font-size: 1.05rem; margin: 20px 0 8px; font-weight: 700; }
-    .legal-page p, .legal-page li { font-size: .95rem; color: #475569; }
+    .legal-page h2 { font-size: 1.3rem; margin: 32px 0 12px; }
+    .legal-page h3 { font-size: 1.05rem; margin: 22px 0 8px; font-weight: 700; }
+    .legal-page p, .legal-page li, .legal-page td, .legal-page th { font-size: .95rem; color: #475569; }
     .legal-page ul { margin: 10px 0 10px 20px; }
+    .legal-page table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; }
+    .legal-page th, .legal-page td { border: 1px solid #E2E8F0; padding: 10px 12px; text-align: left; vertical-align: top; }
+    .legal-page th { background: #F8FAFC; color: #1E293B; font-weight: 600; }
     .legal-page .updated { color: #94A3B8; font-size: .85rem; margin-bottom: 30px; }
     .legal-page a { color: #E85D3A; }
     .legal-nav { margin: 20px 0; font-size: .9rem; }
@@ -28,61 +31,76 @@
 <div style="position:fixed;top:12px;right:16px;z-index:1000" id="auth-lang-toggle"></div>
 <div class="legal-page">
   <div class="legal-nav"><a href="/">← <span data-i18n="legal.back_home">Terug naar home</span></a></div>
-  <h1 data-i18n="legal.privacy.title">Privacybeleid</h1>
-  <p class="updated" data-i18n-html="legal.privacy.updated">Laatst bijgewerkt: 20 april 2026</p>
+  <h1 data-i18n="legal.privacy.title">Privacyverklaring</h1>
+  <p class="updated" data-i18n="legal.privacy.updated">Versie: april 2026</p>
 
-  <h2 data-i18n="legal.privacy.who_heading">Wie wij zijn</h2>
-  <p data-i18n-html="legal.privacy.who_text">Running Dinner Planner is een dienst van <strong>VMH BV</strong>, gevestigd in Nederland, bereikbaar via runningdinner.app. Voor vragen over dit beleid of over je gegevens kun je contact opnemen via het contactformulier op de homepage.</p>
+  <p data-i18n-html="legal.privacy.controller">Verantwoordelijke: <strong>VMH B.V.</strong>, Hanekerweg 4, 7381 AM Klarenbeek (KVK 08142482). Contact: <a href="mailto:info@runningdinner.app">info@runningdinner.app</a>.</p>
 
-  <h2 data-i18n="legal.privacy.data_heading">Welke gegevens verwerken wij</h2>
+  <h2 data-i18n="legal.privacy.data_heading">Welke gegevens verzamelen wij?</h2>
+  <p data-i18n="legal.privacy.data_intro">Bij gebruik van runningdinner.app verwerken wij de volgende persoonsgegevens:</p>
   <ul>
-    <li data-i18n="legal.privacy.data_account">Accountgegevens: e-mailadres, wachtwoord (gehasht), taalvoorkeur, land.</li>
-    <li data-i18n="legal.privacy.data_payment">Betaalgegevens: via Mollie verwerkt; wij slaan uitsluitend factuurnummer, bedrag, BTW-regeling en een Mollie-referentie op. Kaartgegevens en rekeningnummers blijven bij Mollie.</li>
-    <li data-i18n="legal.privacy.data_event">Evenementgegevens die je zelf invoert: deelnemersnamen, adressen, voorkeuren. Deze blijven in jouw account.</li>
-    <li data-i18n="legal.privacy.data_logs">Toegangslogs: IP-adres, tijdstip, user-agent — uitsluitend voor beveiliging, 30 dagen bewaard.</li>
-    <li data-i18n="legal.privacy.data_analytics">Analytics: via self-hosted Plausible, cookie-loos en geanonimiseerd. Geen Google Analytics.</li>
+    <li data-i18n-html="legal.privacy.data_account"><strong>Accountgegevens:</strong> naam, e-mailadres, wachtwoord (versleuteld), taalvoorkeur, land.</li>
+    <li data-i18n-html="legal.privacy.data_payment"><strong>Betalingsgegevens:</strong> verwerkt via Mollie. Wij slaan uitsluitend het factuurnummer, het bedrag, de BTW-regeling en een Mollie-referentie op. Kaart- en bankgegevens blijven bij Mollie.</li>
+    <li data-i18n-html="legal.privacy.data_event"><strong>Evenementgegevens:</strong> namen, adressen en voorkeuren van deelnemers die u als organisator invoert voor uw running dinner. Blijven in uw account.</li>
+    <li data-i18n-html="legal.privacy.data_logs"><strong>Toegangslogs:</strong> IP-adres, tijdstempel, user-agent — uitsluitend voor beveiligingsdoeleinden, 30 dagen bewaard.</li>
+    <li data-i18n-html="legal.privacy.data_analytics"><strong>Analytics:</strong> via Plausible (zelf-gehost, geen cookies, geanonimiseerd). Geen Google Analytics.</li>
+    <li data-i18n-html="legal.privacy.data_comms"><strong>Communicatie:</strong> transactionele e-mails (welkom, factuur, wachtwoord-reset, verlengingsherinnering) via Brevo.</li>
   </ul>
 
-  <h2 data-i18n="legal.privacy.purpose_heading">Waarvoor gebruiken wij deze gegevens</h2>
-  <ul>
-    <li data-i18n="legal.privacy.purpose_service">Het leveren van de dienst (account, plannings-tool, facturen per e-mail).</li>
-    <li data-i18n="legal.privacy.purpose_invoicing">Facturatie, BTW-aangifte en fiscale bewaarplicht (7 jaar, verplicht).</li>
-    <li data-i18n="legal.privacy.purpose_comms">Transactionele e-mails (welkom, factuur, wachtwoord-reset, verlenging-herinnering).</li>
-    <li data-i18n="legal.privacy.purpose_improve">Anonieme analytics om de dienst te verbeteren.</li>
-  </ul>
+  <h2 data-i18n="legal.privacy.purpose_heading">Waarom verwerken wij deze gegevens?</h2>
+  <table>
+    <thead>
+      <tr>
+        <th data-i18n="legal.privacy.col_purpose">Doel</th>
+        <th data-i18n="legal.privacy.col_legal_basis">Grondslag</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td data-i18n="legal.privacy.purpose_service">Uitvoering van de overeenkomst (uw abonnement, de planner)</td><td data-i18n="legal.privacy.basis_contract">Uitvoering overeenkomst</td></tr>
+      <tr><td data-i18n="legal.privacy.purpose_comms">Versturen van transactionele e-mails</td><td data-i18n="legal.privacy.basis_contract">Uitvoering overeenkomst</td></tr>
+      <tr><td data-i18n="legal.privacy.purpose_invoicing">Facturatie, BTW-administratie en bewaarplicht</td><td data-i18n="legal.privacy.basis_legal">Wettelijke verplichting</td></tr>
+      <tr><td data-i18n="legal.privacy.purpose_improve">Verbetering van de dienst</td><td data-i18n="legal.privacy.basis_interest">Gerechtvaardigd belang</td></tr>
+      <tr><td data-i18n="legal.privacy.purpose_newsletter">Nieuwsbrief (indien van toepassing)</td><td data-i18n="legal.privacy.basis_consent">Toestemming</td></tr>
+    </tbody>
+  </table>
 
-  <h2 data-i18n="legal.privacy.partners_heading">Met wie wij gegevens delen</h2>
-  <ul>
-    <li data-i18n-html="legal.privacy.partners_mollie"><strong>Mollie B.V.</strong> (NL) — verwerking van betalingen; ontvangt je e-mailadres en betaalgegevens.</li>
-    <li data-i18n-html="legal.privacy.partners_brevo"><strong>Brevo (Sendinblue)</strong> (FR) — verzending van transactionele en marketing e-mails; ontvangt je e-mailadres en taal.</li>
-    <li data-i18n-html="legal.privacy.partners_zoho"><strong>Zoho Corporation</strong> (US, met SCC/DPA) — boekhouding; ontvangt je naam, e-mailadres, land, evenementuele BTW-ID en factuurregels.</li>
-    <li data-i18n-html="legal.privacy.partners_hetzner"><strong>Hetzner Online GmbH</strong> (DE) — hosting van de app en database.</li>
-    <li data-i18n-html="legal.privacy.partners_cloudflare"><strong>Cloudflare, Inc.</strong> (US, met SCC/DPA) — DNS en CDN.</li>
-  </ul>
+  <h2 data-i18n="legal.privacy.processor_heading">Deelnemersgegevens van uw evenement</h2>
+  <p data-i18n-html="legal.privacy.processor_text">Wanneer u als organisator namen en e-mailadressen van deelnemers invoert, verwerkt u als organisator zelf persoonsgegevens. VMH B.V. treedt in die verhouding op als <strong>verwerker</strong>. U bent als organisator verwerkingsverantwoordelijke en verantwoordelijk voor een rechtsgeldige grondslag (bijv. toestemming van uw deelnemers).</p>
 
-  <h2 data-i18n="legal.privacy.rights_heading">Jouw rechten (AVG)</h2>
-  <p data-i18n="legal.privacy.rights_intro">Onder de Algemene Verordening Gegevensbescherming heb je recht op:</p>
+  <h2 data-i18n="legal.privacy.retention_heading">Hoe lang bewaren wij uw gegevens?</h2>
   <ul>
-    <li data-i18n-html="legal.privacy.right_access"><strong>Inzage</strong> — via het profiel ("Download mijn data").</li>
-    <li data-i18n-html="legal.privacy.right_rectify"><strong>Rectificatie</strong> — e-mailadres en voorkeuren wijzig je zelf in het profiel.</li>
-    <li data-i18n-html="legal.privacy.right_delete"><strong>Verwijdering</strong> — via de rode knop "Verwijder mijn account". Facturen blijven 7 jaar bewaard (fiscale verplichting).</li>
-    <li data-i18n-html="legal.privacy.right_portability"><strong>Dataportabiliteit</strong> — de data-export-knop geeft je alles in JSON.</li>
-    <li data-i18n-html="legal.privacy.right_complaint"><strong>Klacht</strong> — bij de Autoriteit Persoonsgegevens (autoriteitpersoonsgegevens.nl).</li>
-  </ul>
-
-  <h2 data-i18n="legal.privacy.retention_heading">Bewaartermijnen</h2>
-  <ul>
-    <li data-i18n="legal.privacy.retention_account">Accountgegevens: zolang je account actief is. Na verwijdering: onmiddellijk verwijderd; betalingsgegevens geanonimiseerd.</li>
-    <li data-i18n="legal.privacy.retention_invoices">Facturen: 7 jaar (fiscale bewaarplicht, Art. 52 AWR).</li>
-    <li data-i18n="legal.privacy.retention_event">Evenementdata: automatisch verwijderd 12 maanden na event-datum, tenzij je actief blijft.</li>
+    <li data-i18n="legal.privacy.retention_account">Accountgegevens: zolang uw account actief is + 12 maanden na opzegging.</li>
+    <li data-i18n="legal.privacy.retention_invoices">Factuurgegevens: 7 jaar (wettelijke bewaarplicht).</li>
+    <li data-i18n="legal.privacy.retention_events">Evenementgegevens: automatische verwijdering 90 dagen na het evenement, of eerder op uw verzoek.</li>
     <li data-i18n="legal.privacy.retention_logs">Toegangslogs: 30 dagen.</li>
   </ul>
 
-  <h2 data-i18n="legal.privacy.security_heading">Beveiliging</h2>
-  <p data-i18n="legal.privacy.security_text">Wachtwoorden zijn gehasht met bcrypt. Alle verkeer gaat over TLS. Databases draaien op Hetzner (Duitsland) met dagelijkse backups en versleutelde opslag. Toegang tot systemen is beperkt met SSH-sleutels en tweestaps-verificatie.</p>
+  <h2 data-i18n="legal.privacy.processors_heading">Met wie delen wij uw gegevens?</h2>
+  <p data-i18n="legal.privacy.processors_intro">Wij delen uw gegevens alleen met de volgende verwerkers, op basis van een verwerkersovereenkomst:</p>
+  <ul>
+    <li data-i18n-html="legal.privacy.processor_mollie"><strong>Mollie B.V.</strong> (NL) — betalingsverwerking; ontvangt uw e-mail en betaalgegevens.</li>
+    <li data-i18n-html="legal.privacy.processor_brevo"><strong>Brevo</strong> (FR) — e-mailverzending; ontvangt e-mailadres en berichtinhoud.</li>
+    <li data-i18n-html="legal.privacy.processor_zoho"><strong>Zoho Books</strong> (EU-datacenter) — facturatie en boekhouding.</li>
+    <li data-i18n-html="legal.privacy.processor_hetzner"><strong>Hetzner Online</strong> (DE) — hosting; EU-datacenter.</li>
+    <li data-i18n-html="legal.privacy.processor_cloudflare"><strong>Cloudflare</strong> (EU-routing) — DNS, caching en e-mail routing.</li>
+    <li data-i18n-html="legal.privacy.processor_plausible"><strong>Plausible Analytics</strong> (zelf-gehost) — websitestatistieken; geen cookies, geen persoonsgegevens.</li>
+  </ul>
+  <p data-i18n="legal.privacy.no_selling">Wij verkopen uw gegevens nooit aan derden.</p>
 
-  <h2 data-i18n="legal.privacy.changes_heading">Wijzigingen in dit beleid</h2>
-  <p data-i18n="legal.privacy.changes_text">We passen dit beleid aan wanneer de dienst of wetgeving dit vereist. Wezenlijke wijzigingen communiceren we per e-mail.</p>
+  <h2 data-i18n="legal.privacy.rights_heading">Uw rechten</h2>
+  <p data-i18n="legal.privacy.rights_intro">Op grond van de AVG heeft u het recht op:</p>
+  <ul>
+    <li data-i18n="legal.privacy.right_access">Inzage in uw persoonsgegevens;</li>
+    <li data-i18n="legal.privacy.right_correct">Correctie van onjuiste gegevens;</li>
+    <li data-i18n="legal.privacy.right_delete">Verwijdering van uw gegevens (&quot;recht op vergetelheid&quot;);</li>
+    <li data-i18n="legal.privacy.right_restrict">Beperking van de verwerking;</li>
+    <li data-i18n="legal.privacy.right_portable">Overdraagbaarheid van uw gegevens;</li>
+    <li data-i18n="legal.privacy.right_object">Bezwaar tegen verwerking op grond van gerechtvaardigd belang.</li>
+  </ul>
+  <p data-i18n-html="legal.privacy.rights_how">Verzoeken kunt u indienen via <a href="mailto:info@runningdinner.app">info@runningdinner.app</a>. Wij reageren binnen 30 dagen. U kunt uw data ook direct exporteren of uw account verwijderen via uw profielpagina.</p>
+
+  <h2 data-i18n="legal.privacy.complaints_heading">Klachten</h2>
+  <p data-i18n-html="legal.privacy.complaints_text">Heeft u een klacht over de verwerking van uw persoonsgegevens? U kunt een klacht indienen bij de <strong>Autoriteit Persoonsgegevens</strong> via <a href="https://autoriteitpersoonsgegevens.nl" target="_blank" rel="noopener">autoriteitpersoonsgegevens.nl</a>.</p>
 </div>
 <script defer data-domain="runningdinner.app" data-api="/api/event" src="/js/script.js"></script>
 <script src="/lang/i18n.js"></script>

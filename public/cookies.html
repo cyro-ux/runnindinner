@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cookieverklaring – Running Dinner Planner</title>
+  <meta name="description" content="Cookieverklaring: Running Dinner Planner plaatst uitsluitend functioneel noodzakelijke cookies. Geen tracking, geen advertising.">
+  <link rel="canonical" href="https://runningdinner.app/cookies.html">
+  <link rel="alternate" hreflang="nl" href="https://runningdinner.app/cookies.html">
+  <link rel="alternate" hreflang="en" href="https://runningdinner.app/en/cookies.html">
+  <link rel="alternate" hreflang="es" href="https://runningdinner.app/es/cookies.html">
+  <link rel="stylesheet" href="/home.css">
+  <style>
+    .legal-page { max-width: 780px; margin: 60px auto; padding: 0 20px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E293B; line-height: 1.7; }
+    .legal-page h1 { font-size: 2rem; margin-bottom: 10px; }
+    .legal-page h2 { font-size: 1.3rem; margin: 32px 0 12px; }
+    .legal-page p, .legal-page li, .legal-page td, .legal-page th { font-size: .95rem; color: #475569; }
+    .legal-page table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; }
+    .legal-page th, .legal-page td { border: 1px solid #E2E8F0; padding: 10px 12px; text-align: left; vertical-align: top; }
+    .legal-page th { background: #F8FAFC; color: #1E293B; font-weight: 600; }
+    .legal-page .updated { color: #94A3B8; font-size: .85rem; margin-bottom: 30px; }
+    .legal-page a { color: #E85D3A; }
+    .legal-nav { margin: 20px 0; font-size: .9rem; }
+    .legal-nav a { color: #64748B; text-decoration: none; margin-right: 16px; }
+    .legal-nav a:hover { color: #E85D3A; }
+  </style>
+</head>
+<body>
+<div style="position:fixed;top:12px;right:16px;z-index:1000" id="auth-lang-toggle"></div>
+<div class="legal-page">
+  <div class="legal-nav"><a href="/">← <span data-i18n="legal.back_home">Terug naar home</span></a></div>
+  <h1 data-i18n="legal.cookies.title">Cookieverklaring</h1>
+  <p class="updated" data-i18n="legal.cookies.updated">Laatst bijgewerkt: 21 april 2026</p>
+
+  <p data-i18n="legal.cookies.intro">runningdinner.app maakt minimaal gebruik van cookies. Wij plaatsen <strong>geen</strong> tracking-, advertentie- of profilingcookies.</p>
+
+  <h2 data-i18n="legal.cookies.which_heading">Welke cookies gebruiken wij?</h2>
+  <table>
+    <thead>
+      <tr>
+        <th data-i18n="legal.cookies.col_name">Cookie</th>
+        <th data-i18n="legal.cookies.col_type">Type</th>
+        <th data-i18n="legal.cookies.col_purpose">Doel</th>
+        <th data-i18n="legal.cookies.col_retention">Bewaartermijn</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>token</td>
+        <td data-i18n="legal.cookies.type_functional">Functioneel</td>
+        <td data-i18n="legal.cookies.purpose_session">Ingelogd blijven gedurende de sessie</td>
+        <td data-i18n="legal.cookies.retention_session">Sessie (verdwijnt bij sluiten browser) / 30 dagen bij &quot;onthoud mij&quot;</td>
+      </tr>
+      <tr>
+        <td>lang</td>
+        <td data-i18n="legal.cookies.type_functional">Functioneel</td>
+        <td data-i18n="legal.cookies.purpose_language">Taalvoorkeur onthouden (NL / EN / ES)</td>
+        <td data-i18n="legal.cookies.retention_1year">1 jaar</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 data-i18n="legal.cookies.analytics_heading">Websitestatistieken</h2>
+  <p data-i18n-html="legal.cookies.analytics_text">Voor websitestatistieken gebruiken wij <strong>Plausible Analytics</strong> — een privacyvriendelijke tool die geen cookies plaatst en geen persoonsgegevens verwerkt. Plausible is zelf-gehost binnen de EU. Zie <a href="https://plausible.io/data-policy" target="_blank" rel="noopener">plausible.io/data-policy</a> voor details.</p>
+
+  <h2 data-i18n="legal.cookies.banner_heading">Waarom geen cookiebanner?</h2>
+  <p data-i18n="legal.cookies.banner_text">Omdat wij uitsluitend functioneel noodzakelijke cookies plaatsen, is een cookiebanner wettelijk niet verplicht. Wel vermelden wij de gebruikte cookies transparant in deze verklaring.</p>
+
+  <h2 data-i18n="legal.cookies.questions_heading">Vragen?</h2>
+  <p data-i18n-html="legal.cookies.questions_text">Vragen over cookies of ons privacybeleid? Neem contact op via <a href="mailto:info@runningdinner.app">info@runningdinner.app</a> of lees onze <a href="/privacy.html">privacyverklaring</a>.</p>
+</div>
+<script defer data-domain="runningdinner.app" data-api="/api/event" src="/js/script.js"></script>
+<script src="/lang/i18n.js"></script>
+<script>
+  I18n.onReady(() => {
+    const c = document.getElementById('auth-lang-toggle');
+    if (c) c.appendChild(I18n.createToggle());
+  });
+</script>
+</body>
+</html>

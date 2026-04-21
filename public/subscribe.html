@@ -66,7 +66,12 @@
       14 dagen voor verlenging ontvang je een herinnering. Je kunt dit altijd uitschakelen in je profiel.
     </p>
 
-    <button class="btn-subscribe" id="pay-btn" data-i18n-html="auth.subscribe.pay_button">Nu betalen &amp; direct toegang</button>
+    <div class="waiver-toggle" style="display:flex;gap:10px;align-items:flex-start;margin:14px 0 6px;text-align:left;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:12px 14px;font-size:.85rem;line-height:1.45;color:#78350F">
+      <input type="checkbox" id="waiver-cb" required style="margin-top:3px;flex-shrink:0">
+      <label for="waiver-cb" data-i18n-html="auth.subscribe.waiver_label">Ik verzoek om directe activering van mijn account en bevestig dat ik daarmee afzie van mijn herroepingsrecht zoals bedoeld in artikel 6:230p sub e BW. Zie onze <a href="/herroepingsrecht.html" target="_blank" rel="noopener">uitleg over het herroepingsrecht</a>.</label>
+    </div>
+
+    <button class="btn-subscribe" id="pay-btn" disabled data-i18n-html="auth.subscribe.pay_button">Nu betalen &amp; direct toegang</button>
     <div class="payment-methods">
       <span class="pm-badge" title="Nederland">iDEAL</span>
       <span class="pm-badge" title="Belgie">Bancontact</span>
@@ -92,9 +97,16 @@
 
   const autoRenewCb = document.getElementById('auto-renew-cb');
   const autoRenewInfo = document.getElementById('auto-renew-info');
+  const waiverCb = document.getElementById('waiver-cb');
+  const payBtn   = document.getElementById('pay-btn');
 
   autoRenewCb.addEventListener('change', () => {
     autoRenewInfo.style.display = autoRenewCb.checked ? 'block' : 'none';
+  });
+
+  // Pay-button blijft disabled tot de herroepingsrecht-waiver is aangevinkt
+  waiverCb.addEventListener('change', () => {
+    payBtn.disabled = !waiverCb.checked;
   });
 
   // Check auth + existing license
@@ -132,7 +144,10 @@
       const res  = await fetch('/api/mollie/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ autoRenew: autoRenewCb.checked }),
+        body: JSON.stringify({
+          autoRenew: autoRenewCb.checked,
+          waiverAccepted: waiverCb.checked, // verplicht vinkje herroepingsrecht
+        }),
       });
       const data = await res.json();
       if (res.ok && data.url) {
