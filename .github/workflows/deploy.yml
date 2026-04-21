@@ -27,6 +27,9 @@ jobs:
             # PM2 keeps its daemon state in ~/.pm2, so hard-code the deploy
             # user's home to avoid falling back to /etc/.pm2 (no write perms).
             export HOME=/home/deploy
+            # Mark repo as safe — git refuses if the directory owner differs
+            # from the caller uid, which happens in non-login CI shells.
+            git config --global --add safe.directory /var/www/running-dinner/acc
             cd /var/www/running-dinner/acc
             git pull origin develop
             npm install --production
@@ -58,6 +61,9 @@ jobs:
             # PM2 keeps its daemon state in ~/.pm2, so hard-code the deploy
             # user's home to avoid falling back to /etc/.pm2 (no write perms).
             export HOME=/home/deploy
+            # Mark repo as safe — git refuses if the directory owner differs
+            # from the caller uid, which happens in non-login CI shells.
+            git config --global --add safe.directory /var/www/running-dinner/prod
             cd /var/www/running-dinner/prod
             # Backup database before deploy
             mkdir -p /backup
