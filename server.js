@@ -1385,6 +1385,43 @@ app.post('/api/events/:id/participants', requireAuth, (req, res) => {
   res.json({ ok: true, id, token });
 });
 
+// GET /api/events/:id/calendar.ics  – download het event in iCal-formaat
+// (werkt voor de organisator; logged-in required)
+app.get('/api/events/:id/calendar.ics', requireAuth, (req, res) => {
+  const ev = db.prepare('SELECT * FROM events WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (!ev) return res.status(404).send('Not found');
+  const { buildEventCalendar } = require('./lib/ical');
+  const ics = buildEventCalendar(ev);
+  res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${ev.id}.ics"`);
+  res.send(ics);
+});
+
+// GET /api/events/:id/participants/:token/calendar.ics  – public, token-based
+// Persoonlijke kalender voor één deelnemer. Geen auth nodig, alleen het token
+// dat alleen de organisator deelt.
+app.get('/api/events/:eventId/participants/:token/calendar.ics', (req, res) => {
+  const participant = db.prepare(`
+    SELECT ep.*, e.id as evt_id, e.name as evt_name, e.date as evt_date, e.user_id as organiser_id
+    FROM event_participants ep JOIN events e ON e.id = ep.event_id
+    WHERE ep.event_id = ? AND ep.token = ?
+  `).get(req.params.eventId, req.params.token);
+  if (!participant) return res.status(404).send('Not found');
+
+  const { buildParticipantCalendar } = require('./lib/ical');
+  // TODO: vervangen door echte courses-data uit planning; placeholder voor nu
+  const courses = [
+    { name: 'Voorgerecht',  host: participant.is_host_for === 'Voorgerecht'  ? 'Jij' : '—', tableMates: [], address: '' },
+    { name: 'Hoofdgerecht', host: participant.is_host_for === 'Hoofdgerecht' ? 'Jij' : '—', tableMates: [], address: '' },
+    { name: 'Nagerecht',    host: participant.is_host_for === 'Nagerecht'    ? 'Jij' : '—', tableMates: [], address: '' },
+  ];
+  const event = { id: participant.evt_id, name: participant.evt_name, date: participant.evt_date };
+  const ics = buildParticipantCalendar(event, participant, courses);
+  res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${event.id}-${participant.name.replace(/\s+/g, '-')}.ics"`);
+  res.send(ics);
+});
+
 app.delete('/api/events/:eventId/participants/:id', requireAuth, (req, res) => {
   // Verify ownership via event
   const ev = db.prepare('SELECT id FROM events WHERE id = ? AND user_id = ?').get(req.params.eventId, req.user.id);
