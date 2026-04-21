@@ -425,6 +425,8 @@ const INVOICE_LABELS = {
     date: 'Datum',
     open_planner: 'Open de planner',
     subject: (no) => `Factuur ${no} - Running Dinner Planner`,
+    waiver_heading: 'Bevestiging directe activering & afstand herroepingsrecht',
+    waiver_body: (ts) => `Bij het afronden van je abonnement heb je op <strong>${ts}</strong> aangevinkt dat je uitdrukkelijk toestemming geeft voor directe activering van je account, en daarmee bevestigd dat je afziet van het herroepingsrecht zoals bedoeld in artikel 6:230p sub e BW. Deze e-mail dient als bevestiging op een duurzame drager conform BW 6:230v lid 7. Meer informatie op <a href="https://runningdinner.app/herroepingsrecht.html">runningdinner.app/herroepingsrecht.html</a>.`,
   },
   en: {
     hi: 'Hi,',
@@ -436,6 +438,8 @@ const INVOICE_LABELS = {
     date: 'Date',
     open_planner: 'Open the planner',
     subject: (no) => `Invoice ${no} - Running Dinner Planner`,
+    waiver_heading: 'Confirmation of immediate activation & waiver of right of withdrawal',
+    waiver_body: (ts) => `When completing your subscription you ticked on <strong>${ts}</strong> that you expressly consented to immediate activation of your account, thereby waiving your right of withdrawal as referred to in article 6:230p(e) Dutch Civil Code. This email serves as a confirmation on a durable medium, in line with article 6:230v(7) DCC. Full details at <a href="https://runningdinner.app/herroepingsrecht.html">runningdinner.app/herroepingsrecht.html</a>.`,
   },
   es: {
     hi: 'Hola,',
@@ -447,6 +451,8 @@ const INVOICE_LABELS = {
     date: 'Fecha',
     open_planner: 'Abrir el planificador',
     subject: (no) => `Factura ${no} - Running Dinner Planner`,
+    waiver_heading: 'Confirmación de activación inmediata y renuncia al derecho de desistimiento',
+    waiver_body: (ts) => `Al completar tu suscripción, el <strong>${ts}</strong> marcaste que otorgas consentimiento expreso para la activación inmediata de tu cuenta y con ello renuncias al derecho de desistimiento conforme al artículo 6:230p letra e del Código Civil neerlandés. Este correo sirve como confirmación en un soporte duradero, conforme al artículo 6:230v(7) BW. Más información en <a href="https://runningdinner.app/herroepingsrecht.html">runningdinner.app/herroepingsrecht.html</a>.`,
   },
 };
 
@@ -455,6 +461,19 @@ async function sendInvoiceMail(user, payment) {
   const locale = EMAIL_LOCALES[lang] || EMAIL_LOCALES.nl;
   const L = INVOICE_LABELS[lang] || INVOICE_LABELS.nl;
   const untilDate = new Date(user.license_until).toLocaleDateString(locale);
+
+  // Optioneel waiver-bevestigingsblok — uitsluitend als de klant bij checkout
+  // expliciet heeft ingestemd met directe activering. Dient als bevestiging
+  // op een duurzame drager (BW 6:230v lid 7).
+  let waiverBlock = '';
+  if (user.waiver_accepted_at) {
+    const ts = new Date(user.waiver_accepted_at).toLocaleString(locale);
+    waiverBlock = `
+          <div style="margin:24px 0;padding:14px 18px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:13px;line-height:1.55;color:#78350f">
+            <strong style="display:block;margin-bottom:6px">${L.waiver_heading}</strong>
+            ${L.waiver_body(ts)}
+          </div>`;
+  }
 
   const html = `
           <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
@@ -478,6 +497,7 @@ async function sendInvoiceMail(user, payment) {
               <td style="padding:8px 12px;color:#374151">${new Date(payment.created_at).toLocaleDateString(locale)}</td>
             </tr>
           </table>
+          ${waiverBlock}
           <p style="margin:24px 0;text-align:center">
             <a href="${BASE_URL}/app" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${L.open_planner}</a>
           </p>

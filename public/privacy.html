@@ -35,15 +35,17 @@
   <p class="updated" data-i18n="legal.privacy.updated">Versie: april 2026</p>
 
   <p data-i18n-html="legal.privacy.controller">Verantwoordelijke: <strong>VMH B.V.</strong>, Hanekerweg 4, 7381 AM Klarenbeek (KVK 08142482). Contact: <a href="mailto:info@runningdinner.app">info@runningdinner.app</a>.</p>
+  <p data-i18n-html="legal.privacy.dpo_note">VMH B.V. heeft geen Functionaris Gegevensbescherming aangesteld omdat de criteria van artikel 37 AVG niet van toepassing zijn (geen grootschalige of regelmatige monitoring van betrokkenen). Voor privacy-gerelateerde vragen kunt u rechtstreeks contact opnemen via <a href="mailto:info@runningdinner.app">info@runningdinner.app</a>.</p>
 
   <h2 data-i18n="legal.privacy.data_heading">Welke gegevens verzamelen wij?</h2>
   <p data-i18n="legal.privacy.data_intro">Bij gebruik van runningdinner.app verwerken wij de volgende persoonsgegevens:</p>
   <ul>
-    <li data-i18n-html="legal.privacy.data_account"><strong>Accountgegevens:</strong> naam, e-mailadres, wachtwoord (versleuteld), taalvoorkeur, land.</li>
+    <li data-i18n-html="legal.privacy.data_account"><strong>Accountgegevens:</strong> naam, e-mailadres, wachtwoord (versleuteld), taalvoorkeur, land. Het verstrekken van een e-mailadres is noodzakelijk om een account aan te maken en de dienst te leveren — zonder deze gegevens kunnen wij geen overeenkomst met u aangaan.</li>
     <li data-i18n-html="legal.privacy.data_payment"><strong>Betalingsgegevens:</strong> verwerkt via Mollie. Wij slaan uitsluitend het factuurnummer, het bedrag, de BTW-regeling en een Mollie-referentie op. Kaart- en bankgegevens blijven bij Mollie.</li>
-    <li data-i18n-html="legal.privacy.data_event"><strong>Evenementgegevens:</strong> namen, adressen en voorkeuren van deelnemers die u als organisator invoert voor uw running dinner. Blijven in uw account.</li>
+    <li data-i18n-html="legal.privacy.data_event"><strong>Evenementgegevens:</strong> namen, adressen en voorkeuren van deelnemers die u als organisator invoert voor uw running dinner. Deze gegevens worden in onze database opgeslagen tot u ze verwijdert of uw account opzegt.</li>
+    <li data-i18n-html="legal.privacy.data_special"><strong>Bijzondere persoonsgegevens:</strong> dieetwensen en allergieën van deelnemers kunnen gegevens over gezondheid bevatten (artikel 9 AVG). Deze worden uitsluitend verwerkt op basis van de uitdrukkelijke toestemming van de betrokken deelnemer (art. 9(2)(a) AVG), die u als organisator dient te verkrijgen vóór invoer.</li>
     <li data-i18n-html="legal.privacy.data_logs"><strong>Toegangslogs:</strong> IP-adres, tijdstempel, user-agent — uitsluitend voor beveiligingsdoeleinden, 30 dagen bewaard.</li>
-    <li data-i18n-html="legal.privacy.data_analytics"><strong>Analytics:</strong> via Plausible (zelf-gehost, geen cookies, geanonimiseerd). Geen Google Analytics.</li>
+    <li data-i18n-html="legal.privacy.data_analytics"><strong>Analytics:</strong> via Plausible (zelf-gehost, geen cookies). IP-adressen worden gepseudonimiseerd met een dagelijks wisselende hash-salt. Geen Google Analytics.</li>
     <li data-i18n-html="legal.privacy.data_comms"><strong>Communicatie:</strong> transactionele e-mails (welkom, factuur, wachtwoord-reset, verlengingsherinnering) via Brevo.</li>
   </ul>
 
@@ -59,10 +61,11 @@
       <tr><td data-i18n="legal.privacy.purpose_service">Uitvoering van de overeenkomst (uw abonnement, de planner)</td><td data-i18n="legal.privacy.basis_contract">Uitvoering overeenkomst</td></tr>
       <tr><td data-i18n="legal.privacy.purpose_comms">Versturen van transactionele e-mails</td><td data-i18n="legal.privacy.basis_contract">Uitvoering overeenkomst</td></tr>
       <tr><td data-i18n="legal.privacy.purpose_invoicing">Facturatie, BTW-administratie en bewaarplicht</td><td data-i18n="legal.privacy.basis_legal">Wettelijke verplichting</td></tr>
-      <tr><td data-i18n="legal.privacy.purpose_improve">Verbetering van de dienst</td><td data-i18n="legal.privacy.basis_interest">Gerechtvaardigd belang</td></tr>
+      <tr><td data-i18n="legal.privacy.purpose_improve">Verbetering van de dienst (gebruiksstatistieken)</td><td data-i18n="legal.privacy.basis_interest">Gerechtvaardigd belang</td></tr>
       <tr><td data-i18n="legal.privacy.purpose_newsletter">Nieuwsbrief (indien van toepassing)</td><td data-i18n="legal.privacy.basis_consent">Toestemming</td></tr>
     </tbody>
   </table>
+  <p data-i18n="legal.privacy.interest_weighing">Bij de grondslag &quot;gerechtvaardigd belang&quot; maken wij gebruik van gepseudonimiseerde gebruiksstatistieken via Plausible om de dienst te verbeteren. De impact op uw privacy is minimaal: er worden geen cookies geplaatst en IP-adressen worden dagelijks gehashed. Wij hebben deze belangenafweging gedocumenteerd en beschikbaar op verzoek.</p>
 
   <h2 data-i18n="legal.privacy.processor_heading">Deelnemersgegevens van uw evenement</h2>
   <p data-i18n-html="legal.privacy.processor_text">Wanneer u als organisator namen en e-mailadressen van deelnemers invoert, verwerkt u als organisator zelf persoonsgegevens. VMH B.V. treedt in die verhouding op als <strong>verwerker</strong>. U bent als organisator verwerkingsverantwoordelijke en verantwoordelijk voor een rechtsgeldige grondslag (bijv. toestemming van uw deelnemers).</p>
@@ -87,17 +90,24 @@
   </ul>
   <p data-i18n="legal.privacy.no_selling">Wij verkopen uw gegevens nooit aan derden.</p>
 
+  <h2 data-i18n="legal.privacy.transfer_heading">Doorgifte buiten de EER</h2>
+  <p data-i18n-html="legal.privacy.transfer_text">Wij streven ernaar alle gegevens binnen de Europese Economische Ruimte (EER) te verwerken. Voor <strong>Cloudflare, Inc.</strong> en <strong>Zoho Corporation</strong> kan incidenteel support- of onderhoudsgerelateerde toegang plaatsvinden vanuit landen buiten de EER. Voor deze doorgiftes hanteren wij de <strong>Standaard Contractbepalingen (SCC)</strong> van de Europese Commissie als passende waarborg conform artikel 46 lid 2 AVG. Mollie, Brevo, Hetzner en Plausible verwerken uitsluitend binnen de EER.</p>
+
+  <h2 data-i18n="legal.privacy.automated_heading">Geautomatiseerde besluitvorming</h2>
+  <p data-i18n="legal.privacy.automated_text">Wij nemen geen besluiten op basis van volledig geautomatiseerde verwerking met rechtsgevolgen voor u. Er vindt geen profilering plaats.</p>
+
   <h2 data-i18n="legal.privacy.rights_heading">Uw rechten</h2>
   <p data-i18n="legal.privacy.rights_intro">Op grond van de AVG heeft u het recht op:</p>
   <ul>
     <li data-i18n="legal.privacy.right_access">Inzage in uw persoonsgegevens;</li>
     <li data-i18n="legal.privacy.right_correct">Correctie van onjuiste gegevens;</li>
-    <li data-i18n="legal.privacy.right_delete">Verwijdering van uw gegevens (&quot;recht op vergetelheid&quot;);</li>
+    <li data-i18n="legal.privacy.right_delete">Verwijdering van uw gegevens (&quot;recht op vergetelheid&quot;), behalve waar wettelijke bewaarplichten gelden (bv. factuurgegevens 7 jaar op grond van art. 52 AWR);</li>
     <li data-i18n="legal.privacy.right_restrict">Beperking van de verwerking;</li>
-    <li data-i18n="legal.privacy.right_portable">Overdraagbaarheid van uw gegevens;</li>
-    <li data-i18n="legal.privacy.right_object">Bezwaar tegen verwerking op grond van gerechtvaardigd belang.</li>
+    <li data-i18n="legal.privacy.right_portable">Overdraagbaarheid van uw gegevens (JSON-export via uw profiel);</li>
+    <li data-i18n="legal.privacy.right_object">Bezwaar tegen verwerking op grond van gerechtvaardigd belang;</li>
+    <li data-i18n="legal.privacy.right_withdraw">Intrekking van uw toestemming op elk moment, voor verwerkingen gebaseerd op toestemming (zoals de nieuwsbrief). Intrekking heeft geen terugwerkende kracht op verwerkingen die al hebben plaatsgevonden.</li>
   </ul>
-  <p data-i18n-html="legal.privacy.rights_how">Verzoeken kunt u indienen via <a href="mailto:info@runningdinner.app">info@runningdinner.app</a>. Wij reageren binnen 30 dagen. U kunt uw data ook direct exporteren of uw account verwijderen via uw profielpagina.</p>
+  <p data-i18n-html="legal.privacy.rights_how">Verzoeken kunt u indienen via <a href="mailto:info@runningdinner.app">info@runningdinner.app</a>. Wij reageren binnen 30 dagen. U kunt uw data ook direct exporteren of uw account verwijderen via uw profielpagina. Backups worden 30 dagen bewaard; bij een verwijderverzoek worden uw gegevens na die periode ook uit backups verwijderd.</p>
 
   <h2 data-i18n="legal.privacy.complaints_heading">Klachten</h2>
   <p data-i18n-html="legal.privacy.complaints_text">Heeft u een klacht over de verwerking van uw persoonsgegevens? U kunt een klacht indienen bij de <strong>Autoriteit Persoonsgegevens</strong> via <a href="https://autoriteitpersoonsgegevens.nl" target="_blank" rel="noopener">autoriteitpersoonsgegevens.nl</a>.</p>
