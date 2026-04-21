@@ -1300,6 +1300,28 @@ app.post('/api/admin/brevo/set-key', requireAdmin, async (req, res) => {
   }
 });
 
+// POST /api/admin/brevo/set-smtp-key — rotate SMTP_PASS without exposing it
+app.post('/api/admin/brevo/set-smtp-key', requireAdmin, async (req, res) => {
+  const { smtpKey } = req.body || {};
+  if (!smtpKey || !/^xsmtpsib-[a-f0-9\-]{60,}/.test(String(smtpKey))) {
+    return res.status(400).json({ error: 'Invalid Brevo SMTP key format (expect xsmtpsib-...)' });
+  }
+  try {
+    const envPath = path.join(__dirname, '.env');
+    let envContent = '';
+    try { envContent = fs.readFileSync(envPath, 'utf8'); } catch {}
+    const re = /^SMTP_PASS=.*$/m;
+    if (re.test(envContent)) envContent = envContent.replace(re, `SMTP_PASS=${smtpKey}`);
+    else envContent += (envContent.endsWith('\n') || envContent === '' ? '' : '\n') + `SMTP_PASS=${smtpKey}\n`;
+    fs.writeFileSync(envPath, envContent, { mode: 0o600 });
+    process.env.SMTP_PASS = smtpKey;
+    // Force nodemailer transporter to re-initialize next call
+    res.json({ ok: true, message: 'SMTP key updated. PM2 restart required for nodemailer transport to reload.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Sentry: test-endpoints voor admin ───────────────────────────────────────
 // Handig om te verifiëren dat Sentry daadwerkelijk errors ontvangt.
 
