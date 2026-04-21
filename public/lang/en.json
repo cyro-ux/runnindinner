@@ -139,7 +139,10 @@
     "register": "Register",
     "forgot_password": "Forgot password",
     "contact_heading": "Contact",
-    "contact_form": "Contact form"
+    "contact_form": "Contact form",
+    "legal_heading": "Legal",
+    "privacy": "Privacy policy",
+    "terms": "Terms of service"
   },
 
   "auth": {
@@ -648,12 +651,6 @@
     "dev": {
       "load_sample": "📋 Load sample data"
     }
-  },
-
-  "footer": {
-    "legal_heading": "Legal",
-    "privacy": "Privacy policy",
-    "terms": "Terms of service"
   },
 
   "legal": {

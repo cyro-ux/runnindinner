@@ -139,7 +139,10 @@
     "register": "Registrarse",
     "forgot_password": "He olvidado mi contraseña",
     "contact_heading": "Contacto",
-    "contact_form": "Formulario de contacto"
+    "contact_form": "Formulario de contacto",
+    "legal_heading": "Legal",
+    "privacy": "Política de privacidad",
+    "terms": "Términos y condiciones"
   },
 
   "auth": {
@@ -648,12 +651,6 @@
     "dev": {
       "load_sample": "📋 Cargar datos de ejemplo"
     }
-  },
-
-  "footer": {
-    "legal_heading": "Legal",
-    "privacy": "Política de privacidad",
-    "terms": "Términos y condiciones"
   },
 
   "legal": {
