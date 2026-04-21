@@ -324,7 +324,7 @@ async function sendMail(to, subject, html, { replyTo } = {}) {
     text,
     headers: {
       'X-Mailer': 'Running Dinner Planner',
-      'List-Unsubscribe': `<mailto:${process.env.MAIL_FROM_ADDRESS || 'noreply@runningdiner.nl'}?subject=unsubscribe>`,
+      'List-Unsubscribe': `<mailto:${process.env.MAIL_FROM_ADDRESS || 'noreply@runningdinner.app'}?subject=unsubscribe>`,
     },
   };
   if (replyTo) mailOptions.replyTo = replyTo;
@@ -360,7 +360,7 @@ function wrapHtml(body, lang = 'nl') {
           <tr>
             <td style="padding:16px 24px;border-top:1px solid #e5e7eb;text-align:center">
               <p style="margin:0;color:#9ca3af;font-size:11px;line-height:16px">
-                Running Dinner Planner &bull; runningdiner.nl<br>
+                Running Dinner Planner &bull; runningdinner.app<br>
                 ${footer}
               </p>
             </td>
@@ -1638,7 +1638,7 @@ app.get('/api/user/data-export', requireAuth, (req, res) => {
     _meta: {
       exportedAt: new Date().toISOString(),
       gdprArticle: 'Art. 20 GDPR — Right to data portability',
-      source: 'runningdiner.nl',
+      source: 'runningdinner.app',
     },
     profile: {
       ...user,
@@ -1746,7 +1746,7 @@ app.get('/api/payments/invoice/:invoiceNumber', requireAuth, (req, res) => {
 
   // Header
   doc.fontSize(24).fillColor(blue).text('Running Dinner Planner', 50, 50);
-  doc.fontSize(10).fillColor(gray).text('runningdiner.nl', 50, 80);
+  doc.fontSize(10).fillColor(gray).text('runningdinner.app', 50, 80);
   doc.moveDown(0.5);
   doc.fontSize(10).fillColor(gray).text('VMH BV', 50, 100);
   doc.text('KvK: 88765432', 50, 115);
@@ -1811,7 +1811,7 @@ app.get('/api/payments/invoice/:invoiceNumber', requireAuth, (req, res) => {
   // Footer
   doc.fontSize(9).fillColor(gray)
     .text('Running Dinner Planner is een dienst van VMH BV', 50, 750, { align: 'center', width: 495 })
-    .text('Vragen? Neem contact op via het contactformulier op runningdiner.nl', 50, 765, { align: 'center', width: 495 });
+    .text('Vragen? Neem contact op via het contactformulier op runningdinner.app', 50, 765, { align: 'center', width: 495 });
 
   doc.end();
 });
@@ -2720,7 +2720,7 @@ app.put('/api/user/language', requireAuth, (req, res) => {
 
 // ── Sitemap ──────────────────────────────────────────────────────────────────
 app.get('/sitemap.xml', (req, res) => {
-  const base = 'https://runningdiner.nl';
+  const base = 'https://runningdinner.app';
   const today = new Date().toISOString().split('T')[0];
 
   // Pages with NL + EN + ES alternates
@@ -2790,13 +2790,13 @@ try {
   // 5. canonical
   html = html.replace(
     /<link rel="canonical" href="https:\/\/runningdiner\.nl\/">/,
-    '<link rel="canonical" href="https://runningdiner.nl/en/">'
+    '<link rel="canonical" href="https://runningdinner.app/en/">'
   );
 
   // 6. Open Graph
   html = html.replace(
     /<meta property="og:url" content="https:\/\/runningdiner\.nl\/">/,
-    '<meta property="og:url" content="https://runningdiner.nl/en/">'
+    '<meta property="og:url" content="https://runningdinner.app/en/">'
   );
   html = html.replace(
     /<meta property="og:title" content="[^"]*">/,
@@ -2823,8 +2823,8 @@ try {
     '"description": "Organize a running dinner effortlessly. Plan routes, assign tables and print envelopes."'
   );
   html = html.replace(
-    '"url": "https://runningdiner.nl/"',
-    '"url": "https://runningdiner.nl/en/"'
+    '"url": "https://runningdinner.app/"',
+    '"url": "https://runningdinner.app/en/"'
   );
   html = html.replace(
     '"description": "1 jaar abonnement"',
@@ -2892,13 +2892,13 @@ try {
   // 5. canonical
   html = html.replace(
     /<link rel="canonical" href="https:\/\/runningdiner\.nl\/">/,
-    '<link rel="canonical" href="https://runningdiner.nl/es/">'
+    '<link rel="canonical" href="https://runningdinner.app/es/">'
   );
 
   // 6. Open Graph
   html = html.replace(
     /<meta property="og:url" content="https:\/\/runningdiner\.nl\/">/,
-    '<meta property="og:url" content="https://runningdiner.nl/es/">'
+    '<meta property="og:url" content="https://runningdinner.app/es/">'
   );
   html = html.replace(
     /<meta property="og:title" content="[^"]*">/,
@@ -2925,8 +2925,8 @@ try {
     '"description": "Organiza una cena itinerante sin esfuerzo. Planifica rutas, asigna mesas e imprime sobres."'
   );
   html = html.replace(
-    '"url": "https://runningdiner.nl/"',
-    '"url": "https://runningdiner.nl/es/"'
+    '"url": "https://runningdinner.app/"',
+    '"url": "https://runningdinner.app/es/"'
   );
   html = html.replace(
     '"description": "1 jaar abonnement"',

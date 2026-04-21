@@ -27,4 +27,4 @@ Disallow: /es/payment-success.html
 Disallow: /es/profile.html
 Disallow: /es/app
 
-Sitemap: https://runningdiner.nl/sitemap.xml
+Sitemap: https://runningdinner.app/sitemap.xml

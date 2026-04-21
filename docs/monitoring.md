@@ -65,7 +65,7 @@ echo "RCLONE_RETENTION_DAYS=90" >> .env
 1. Maak account bij [uptimerobot.com](https://uptimerobot.com) (gratis tier = 50 monitors)
 2. Add monitor:
    - Type: HTTPS
-   - URL: `https://runningdiner.nl/api/public/stats`
+   - URL: `https://runningdinner.app/api/public/stats`
    - Interval: 5 min
    - Alerting: je eigen e-mailadres
 3. Optioneel: status-page maken met een eigen subdomein (niet kritiek)

@@ -649,7 +649,7 @@
       "title": "Privacy policy",
       "updated": "Last updated: 20 April 2026",
       "who_heading": "Who we are",
-      "who_text": "Running Dinner Planner is a service of <strong>VMH BV</strong>, based in the Netherlands, reachable via runningdiner.nl. For questions about this policy or your data, use the contact form on the homepage.",
+      "who_text": "Running Dinner Planner is a service of <strong>VMH BV</strong>, based in the Netherlands, reachable via runningdinner.app. For questions about this policy or your data, use the contact form on the homepage.",
       "data_heading": "What data we process",
       "data_account": "Account data: email address, password (hashed), language preference, country.",
       "data_payment": "Payment data: processed via Mollie. We only store the invoice number, amount, VAT scheme and a Mollie reference. Card details and bank numbers stay with Mollie.",

@@ -28,3 +28,10 @@ npm-debug.log*
 
 # Generated documents
 *.docx
+
+# Claude Code local settings (can contain API keys from ad-hoc commands!)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# npm lockfiles (re-generated on install)
+package-lock.json

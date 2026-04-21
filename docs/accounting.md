@@ -127,7 +127,7 @@ De server draait dagelijks (02:00 productie) `reconcileZoho()`:
 ### Handmatige herstart na Zoho-downtime
 ```bash
 # Op de server:
-curl -X POST https://runningdiner.nl/api/admin/zoho/retry/<paymentId> \
+curl -X POST https://runningdinner.app/api/admin/zoho/retry/<paymentId> \
   -H "Cookie: token=<admin-token>"
 ```
 
