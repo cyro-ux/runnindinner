@@ -768,19 +768,21 @@ ZOHO_REGION=eu</pre>
         </div>
         <div id="sentry-setup-help" style="display:none">
           <p style="font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:10px">
-            Sentry is niet geconfigureerd. Om te activeren:
+            Sentry is niet geconfigureerd. Maak een project aan op
+            <a href="https://sentry.io" target="_blank">sentry.io</a> (type: Node.js),
+            kopieer de DSN en plak deze hieronder. Daarna ziet iedere uncaught
+            error automatisch in Sentry.
           </p>
-          <ol style="font-size:.85rem;color:var(--muted);line-height:1.7;padding-left:24px">
-            <li>Maak een project aan op <a href="https://sentry.io" target="_blank">sentry.io</a> (type: Node.js)</li>
-            <li>Kopieer de DSN</li>
-            <li>Op de server:
-              <pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:.8rem;margin-top:8px;overflow-x:auto">cd /var/www/running-dinner/prod
-npm install --save-optional @sentry/node
-echo "SENTRY_DSN=https://xxx@sentry.io/yyy" >> .env
-pm2 restart running-dinner-prod</pre>
-            </li>
-          </ol>
         </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <input id="sentry-dsn-input" type="text" placeholder="https://xxx@o0.ingest.sentry.io/yyy"
+                 style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-family:monospace;font-size:.82rem">
+          <button class="btn-sm btn-primary" id="sentry-dsn-save" style="padding:8px 16px;font-size:.82rem">Opslaan</button>
+        </div>
+        <p style="font-size:.72rem;color:var(--muted);margin-bottom:4px">
+          Na opslaan is een PM2-restart nodig om de DSN actief te maken. Leeg maken + opslaan = uitschakelen.
+        </p>
+        <div id="sentry-dsn-result" style="margin-top:8px;font-size:.85rem"></div>
         <div id="sentry-test-result" style="margin-top:10px;font-size:.85rem"></div>
       </div>
 
@@ -1796,6 +1798,32 @@ document.getElementById('sentry-test-btn').addEventListener('click', async () =>
     }
   } catch (err) {
     result.innerHTML = '<span style="color:var(--red)">Netwerkfout: ' + escH(err.message) + '</span>';
+  }
+  btn.disabled = false;
+});
+
+document.getElementById('sentry-dsn-save').addEventListener('click', async () => {
+  const input = document.getElementById('sentry-dsn-input');
+  const btn   = document.getElementById('sentry-dsn-save');
+  const out   = document.getElementById('sentry-dsn-result');
+  const dsn   = input.value.trim();
+  btn.disabled = true;
+  out.textContent = 'Bezig…';
+  try {
+    const r = await fetch('/api/admin/sentry/set-dsn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dsn }),
+    });
+    const d = await r.json();
+    if (r.ok) {
+      out.innerHTML = '<span style="color:var(--green)">✓ ' + escH(d.message) + '</span>';
+      input.value = ''; // don't leave the DSN in the DOM
+    } else {
+      out.innerHTML = '<span style="color:var(--red)">✗ ' + escH(d.error || 'Mislukt') + '</span>';
+    }
+  } catch (err) {
+    out.innerHTML = '<span style="color:var(--red)">Netwerkfout: ' + escH(err.message) + '</span>';
   }
   btn.disabled = false;
 });

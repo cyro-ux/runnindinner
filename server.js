@@ -1408,6 +1408,39 @@ app.post('/api/admin/sentry/test', requireAdmin, (req, res) => {
   res.json({ ok: true, message: 'Test event + exception sent to Sentry' });
 });
 
+// POST /api/admin/sentry/set-dsn  — persist SENTRY_DSN without leaking it
+// through logs / transcript. Writes to .env + updates process.env, but the
+// sentry wrapper caches its init-state so a PM2 restart is required for the
+// new DSN to activate. Response never echoes the DSN back.
+app.post('/api/admin/sentry/set-dsn', requireAdmin, async (req, res) => {
+  const { dsn } = req.body || {};
+  const cleanDsn = String(dsn || '').trim();
+  // Permit clear via empty string, otherwise require Sentry DSN format
+  if (cleanDsn && !/^https:\/\/[a-f0-9]+@[a-z0-9.\-]+\/\d+/i.test(cleanDsn)) {
+    return res.status(400).json({ error: 'Invalid Sentry DSN format (expected https://<key>@<host>/<project>)' });
+  }
+  try {
+    const envPath = path.join(__dirname, '.env');
+    let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+    if (envContent.match(/^SENTRY_DSN=/m)) {
+      envContent = envContent.replace(/^SENTRY_DSN=.*$/m, `SENTRY_DSN=${cleanDsn}`);
+    } else if (cleanDsn) {
+      envContent += (envContent.endsWith('\n') || envContent === '' ? '' : '\n') + `SENTRY_DSN=${cleanDsn}\n`;
+    }
+    fs.writeFileSync(envPath, envContent, { mode: 0o600 });
+    process.env.SENTRY_DSN = cleanDsn;
+    try { logAudit(req, 'sentry.dsn_set', { targetType: 'env' }); } catch {}
+    res.json({
+      ok: true,
+      message: cleanDsn
+        ? 'Sentry DSN saved. PM2 restart required to activate the new DSN (sentry wrapper caches its init).'
+        : 'Sentry DSN cleared. PM2 restart required to deactivate.',
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Audit log ────────────────────────────────────────────────────────────────
 // Helper voor admin-acties. Wordt momenteel niet automatisch aangeroepen —
 // bij Sprint 7 hooken we dit in de bestaande admin-endpoints (user-delete,
