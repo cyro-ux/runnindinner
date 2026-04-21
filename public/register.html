@@ -55,13 +55,36 @@
     </div>
 
     <div class="payment-info-box" data-i18n-html="auth.register.payment_info">
-      💳 Na het aanmaken word je direct doorgestuurd naar de betaalpagina. Toegang kost <strong>€5 per jaar</strong>.
+      💳 Na het aanmaken word je direct doorgestuurd naar de betaalpagina. Toegang kost <strong>€5 per jaar</strong> (incl. BTW).
     </div>
 
     <div class="auth-error"   id="error-msg"></div>
     <div class="auth-success" id="success-msg"></div>
 
     <form class="auth-form" id="register-form">
+      <div class="form-group">
+        <label data-i18n="auth.register.account_type_label">Ik registreer als</label>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;background:#f9fafb" id="type-consumer-lbl">
+            <input type="radio" name="account-type" value="consumer" checked>
+            <span data-i18n="auth.register.account_type_consumer">Consument</span>
+          </label>
+          <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;background:#f9fafb" id="type-business-lbl">
+            <input type="radio" name="account-type" value="business">
+            <span data-i18n="auth.register.account_type_business">Namens een bedrijf</span>
+          </label>
+        </div>
+      </div>
+      <div id="business-fields" style="display:none">
+        <div class="form-group">
+          <label for="company-name" data-i18n="auth.register.company_label">Bedrijfsnaam</label>
+          <input type="text" id="company-name" autocomplete="organization" maxlength="200" placeholder="VMH B.V." data-i18n-placeholder="auth.register.company_placeholder">
+        </div>
+        <div class="form-group">
+          <label for="vat-id" data-i18n-html="auth.register.vat_label">BTW-nummer <span style="font-weight:400;color:#6b7280">(optioneel, voor reverse charge)</span></label>
+          <input type="text" id="vat-id" autocomplete="off" maxlength="32" placeholder="NL8152.92.715.B01" data-i18n-placeholder="auth.register.vat_placeholder">
+        </div>
+      </div>
       <div class="form-group">
         <label for="email" data-i18n="auth.register.email_label">E-mailadres</label>
         <input type="email" id="email" autocomplete="email" placeholder="jouw@email.nl" data-i18n-placeholder="auth.register.email_placeholder" required>
@@ -116,6 +139,20 @@
     form.parentElement.insertBefore(banner, form);
   }
 
+  // Show/hide business fields based on radio selection
+  const bizFields = document.getElementById('business-fields');
+  document.querySelectorAll('input[name="account-type"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const isBiz = document.querySelector('input[name="account-type"]:checked').value === 'business';
+      bizFields.style.display = isBiz ? 'block' : 'none';
+      // Highlight selected card
+      document.getElementById('type-consumer-lbl').style.background = isBiz ? '#f9fafb' : '#eff6ff';
+      document.getElementById('type-business-lbl').style.background = isBiz ? '#eff6ff' : '#f9fafb';
+    });
+  });
+  // Apply initial highlight
+  document.getElementById('type-consumer-lbl').style.background = '#eff6ff';
+
   document.getElementById('register-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn    = document.getElementById('submit-btn');
@@ -127,6 +164,15 @@
     const password2 = document.getElementById('password2').value;
     if (password !== password2) {
       errEl.textContent = I18n.t('auth.register.error_mismatch', 'Wachtwoorden komen niet overeen');
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const isBusiness = document.querySelector('input[name="account-type"]:checked').value === 'business';
+    const companyName = document.getElementById('company-name').value.trim();
+    const vatId = document.getElementById('vat-id').value.trim();
+    if (isBusiness && !companyName) {
+      errEl.textContent = I18n.t('auth.register.error_company_required', 'Bedrijfsnaam is verplicht bij zakelijke registratie');
       errEl.style.display = 'block';
       return;
     }
@@ -143,32 +189,26 @@
           email: document.getElementById('email').value,
           password,
           referralCode: refCode,
+          isBusiness,
+          companyName: isBusiness ? companyName : null,
+          vatId: isBusiness ? vatId : null,
         }),
       });
       const data = await res.json();
 
       if (res.ok) {
-        // Auto-login immediately, then start Mollie payment
+        // Auto-login and redirect to subscribe page — consumer must tick the
+        // waiver checkbox there; we no longer auto-call create-payment since
+        // that endpoint now requires explicit consent for consumer accounts.
         const loginRes = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: document.getElementById('email').value, password }),
         });
-        if (loginRes.ok) {
-          // Directly start checkout
-          btn.textContent = I18n.t('auth.register.redirecting_payment', 'Doorsturen naar betaalpagina…');
-          const checkoutRes = await fetch('/api/mollie/create-payment', { method: 'POST' });
-          const checkoutData = await checkoutRes.json();
-          if (checkoutRes.ok && checkoutData.url) {
-            window.location.href = checkoutData.url;
-            return;
-          }
-        }
-        // Fallback: redirect to subscribe page
+        if (window.plausible) plausible('Signup');
         succEl.textContent = I18n.t('auth.register.success_redirect', 'Account aangemaakt! Doorsturen naar betaalpagina…');
         succEl.style.display = 'block';
-        if (window.plausible) plausible('Signup');
-        setTimeout(() => { window.location.href = '/subscribe.html'; }, 1000);
+        setTimeout(() => { window.location.href = loginRes.ok ? '/subscribe.html' : '/login.html?next=/subscribe.html'; }, 800);
       } else {
         errEl.textContent = data.error || I18n.t('auth.register.error_failed', 'Registreren mislukt');
         errEl.style.display = 'block';

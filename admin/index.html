@@ -1045,7 +1045,7 @@ async function loadUsers() {
       const active  = u.license_until && u.license_until > now;
       const typeMap = { paid: '💳 Betaald', manual: '✍️ Handmatig', test: '🧪 Test' };
       return `<tr>
-        <td>${escH(u.email)}</td>
+        <td>${escH(u.email)}${u.is_business ? ` <span title="${escH(u.company_name||'Zakelijk')}" style="background:#dbeafe;color:#1e40af;padding:1px 6px;border-radius:4px;font-size:.68rem;font-weight:600;margin-left:4px">🏢 B2B</span>` : ''}</td>
         <td><span class="badge ${u.user_type||'paid'}">${typeMap[u.user_type]||u.user_type}</span></td>
         <td><span class="badge ${u.role}">${u.role}</span></td>
         <td>${fmtDate(u.created_at)}</td>

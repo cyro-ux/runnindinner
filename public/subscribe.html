@@ -66,10 +66,16 @@
       14 dagen voor verlenging ontvang je een herinnering. Je kunt dit altijd uitschakelen in je profiel.
     </p>
 
-    <div class="waiver-toggle" style="display:flex;gap:10px;align-items:flex-start;margin:14px 0 6px;text-align:left;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:12px 14px;font-size:.85rem;line-height:1.45;color:#78350F">
-      <input type="checkbox" id="waiver-cb" required style="margin-top:3px;flex-shrink:0">
+    <!-- Waiver (alleen consumenten tonen via #waiver-wrap; server-zijde
+         wordt zakelijke status gelezen uit /api/auth/me en #waiver-wrap
+         wordt dan verborgen + pay-btn direct enabled). -->
+    <div class="waiver-toggle" id="waiver-wrap" style="display:flex;gap:10px;align-items:flex-start;margin:14px 0 6px;text-align:left;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:12px 14px;font-size:.85rem;line-height:1.45;color:#78350F">
+      <input type="checkbox" id="waiver-cb" style="margin-top:3px;flex-shrink:0">
       <label for="waiver-cb" data-i18n-html="auth.subscribe.waiver_label">Ik verzoek om directe activering van mijn account en bevestig dat ik daarmee afzie van mijn herroepingsrecht zoals bedoeld in artikel 6:230p sub e BW. Zie onze <a href="/herroepingsrecht.html" target="_blank" rel="noopener">uitleg over het herroepingsrecht</a>.</label>
     </div>
+    <p id="business-note" style="display:none;font-size:.82rem;color:#64748b;margin:14px 0 6px;text-align:left" data-i18n="auth.subscribe.business_note">
+      Zakelijke klanten vallen onder de NL Digital voorwaarden — het herroepingsrecht is niet van toepassing.
+    </p>
 
     <button class="btn-subscribe" id="pay-btn" disabled data-i18n-html="auth.subscribe.pay_button">Nu betalen &amp; direct toegang</button>
     <div class="payment-methods">
@@ -105,11 +111,14 @@
   });
 
   // Pay-button blijft disabled tot de herroepingsrecht-waiver is aangevinkt
+  // (alleen voor consumenten — zakelijke gebruikers krijgen de button direct
+  // enabled in de /api/auth/me-handler hierboven).
   waiverCb.addEventListener('change', () => {
-    payBtn.disabled = !waiverCb.checked;
+    if (!isBusinessUser) payBtn.disabled = !waiverCb.checked;
   });
 
-  // Check auth + existing license
+  // Check auth + existing license + account type (B2B/B2C)
+  let isBusinessUser = false;
   fetch('/api/auth/me')
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(data => {
@@ -120,6 +129,14 @@
         const alr   = document.getElementById('already-msg');
         alr.textContent = I18n.t('auth.subscribe.already_active_prefix', 'Je hebt al een actief abonnement t/m ') + until + I18n.t('auth.subscribe.already_active_suffix', '. Betalen verlengt je abonnement met 1 jaar.');
         alr.style.display = 'block';
+      }
+      // B2B users: hide waiver (right-of-withdrawal only applies to consumers),
+      // unlock pay button directly, show business-info note instead.
+      isBusinessUser = !!user.is_business;
+      if (isBusinessUser) {
+        document.getElementById('waiver-wrap').style.display = 'none';
+        document.getElementById('business-note').style.display = 'block';
+        payBtn.disabled = false;
       }
     })
     .catch(() => { window.location.href = '/login.html?next=/subscribe.html'; });
@@ -146,7 +163,10 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           autoRenew: autoRenewCb.checked,
-          waiverAccepted: waiverCb.checked, // verplicht vinkje herroepingsrecht
+          // Waiver-checkbox telt alleen voor consumenten; voor zakelijke
+          // klanten laten we het server-side toch op 'true' staan zodat de
+          // payment-call niet onnodig faalt.
+          waiverAccepted: isBusinessUser ? true : waiverCb.checked,
         }),
       });
       const data = await res.json();

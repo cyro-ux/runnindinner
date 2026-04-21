@@ -856,7 +856,7 @@ function generateReferralCode() {
 
 // POST /api/auth/register
 app.post('/api/auth/register', async (req, res) => {
-  const { email, password, referralCode } = req.body || {};
+  const { email, password, referralCode, isBusiness, companyName, vatId } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: t(req, 'email_pw_required') });
   if (password.length < 8) return res.status(400).json({ error: t(req, 'pw_min_8') });
 
@@ -870,13 +870,25 @@ app.post('/api/auth/register', async (req, res) => {
     if (refUser) referredBy = refUser.id;
   }
 
+  // B2B/B2C indication — set at registration so we know which legal regime
+  // applies (consumer = right-of-withdrawal exception; business = NL Digital).
+  const isBiz = isBusiness === true || isBusiness === 'true' || isBusiness === 1;
+  const cleanCompany = isBiz && companyName ? String(companyName).trim().slice(0, 200) : null;
+  const cleanVat     = isBiz && vatId       ? String(vatId).trim().toUpperCase().slice(0, 32) : null;
+
   const hash = await bcrypt.hash(password, 12);
   const id   = uuidv4();
   const lang = req.lang || 'nl';
   const code = generateReferralCode();
   db.prepare(
-    'INSERT INTO users (id, email, password_hash, role, created_at, language, referral_code, referred_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(id, email.toLowerCase(), hash, 'user', Date.now(), lang, code, referredBy);
+    `INSERT INTO users
+       (id, email, password_hash, role, created_at, language, referral_code, referred_by,
+        is_business, company_name, vat_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    id, email.toLowerCase(), hash, 'user', Date.now(), lang, code, referredBy,
+    isBiz ? 1 : 0, cleanCompany, cleanVat,
+  );
 
   res.json({ ok: true, message: t(req, 'account_created') });
 });
@@ -931,8 +943,12 @@ app.post('/api/auth/logout', requireAuth, (req, res) => {
 
 // GET /api/auth/me
 app.get('/api/auth/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT email, role, license_until, language FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare(
+    'SELECT email, role, license_until, language, is_business, company_name, vat_id FROM users WHERE id = ?'
+  ).get(req.user.id);
   if (!user) return res.status(404).json({ error: t(req, 'user_not_found') });
+  // Normalise is_business to boolean for easy client-side use
+  user.is_business = !!user.is_business;
   res.json({ ok: true, user });
 });
 
@@ -1058,15 +1074,17 @@ app.post('/api/mollie/create-payment', requireAuth, async (req, res) => {
   const autoRenew  = req.body?.autoRenew === true;
   const waiverAccepted = req.body?.waiverAccepted === true;
 
-  // Waiver is verplicht voor alle klanten (BW 6:230p sub e). Zonder expliciete
-  // toestemming voor directe activering kan het account niet worden geactiveerd.
-  if (!waiverAccepted) {
+  // Waiver is alleen verplicht voor consumenten (B2C). Zakelijke klanten
+  // (B2B) kunnen sowieso geen beroep doen op het herroepingsrecht — BW
+  // 6:230p regelt consumentenrechten, ondernemers vallen daar niet onder.
+  if (!user.is_business && !waiverAccepted) {
     return res.status(400).json({ error: t(req, 'waiver_required') });
   }
 
-  // Log de waiver-acceptatie (met timestamp) voor bewijsvoering bij een eventueel
-  // herroepingsrecht-geschil. Alleen overschrijven als nog niet eerder geaccepteerd.
-  if (!user.waiver_accepted_at) {
+  // Log de waiver-acceptatie (met timestamp) voor bewijsvoering bij een
+  // eventueel herroepingsrecht-geschil. Alleen zetten als klant consument is
+  // én nog niet eerder geaccepteerd.
+  if (!user.is_business && waiverAccepted && !user.waiver_accepted_at) {
     db.prepare('UPDATE users SET waiver_accepted_at = ? WHERE id = ?').run(Date.now(), user.id);
   }
 
@@ -2035,12 +2053,15 @@ app.get('/api/admin/users', requireAdmin, (req, res) => {
   const users = db.prepare(`
     SELECT u.id, u.email, u.role, u.user_type, u.created_at, u.last_login, u.license_until,
            u.auto_renew, u.mollie_mandate_id,
+           u.is_business, u.company_name, u.vat_id, u.country, u.waiver_accepted_at,
            COUNT(p.id) as payment_count
     FROM users u
     LEFT JOIN payments p ON p.user_id = u.id AND p.status = 'paid'
     GROUP BY u.id
     ORDER BY u.created_at DESC
   `).all();
+  // Normalise is_business to boolean
+  for (const u of users) u.is_business = !!u.is_business;
   res.json({ ok: true, users });
 });
 
