@@ -2789,13 +2789,13 @@ try {
 
   // 5. canonical
   html = html.replace(
-    /<link rel="canonical" href="https:\/\/runningdiner\.nl\/">/,
+    /<link rel="canonical" href="https:\/\/runningdinner\.app\/">/,
     '<link rel="canonical" href="https://runningdinner.app/en/">'
   );
 
   // 6. Open Graph
   html = html.replace(
-    /<meta property="og:url" content="https:\/\/runningdiner\.nl\/">/,
+    /<meta property="og:url" content="https:\/\/runningdinner\.app\/">/,
     '<meta property="og:url" content="https://runningdinner.app/en/">'
   );
   html = html.replace(
@@ -2891,13 +2891,13 @@ try {
 
   // 5. canonical
   html = html.replace(
-    /<link rel="canonical" href="https:\/\/runningdiner\.nl\/">/,
+    /<link rel="canonical" href="https:\/\/runningdinner\.app\/">/,
     '<link rel="canonical" href="https://runningdinner.app/es/">'
   );
 
   // 6. Open Graph
   html = html.replace(
-    /<meta property="og:url" content="https:\/\/runningdiner\.nl\/">/,
+    /<meta property="og:url" content="https:\/\/runningdinner\.app\/">/,
     '<meta property="og:url" content="https://runningdinner.app/es/">'
   );
   html = html.replace(
