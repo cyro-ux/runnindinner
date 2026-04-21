@@ -1259,6 +1259,47 @@ app.post('/api/mollie/webhook', async (req, res) => {
   res.send('ok');
 });
 
+// ── Brevo: one-shot admin endpoint to set API key without leaking it ──────
+// Writes BREVO_API_KEY to .env + updates process.env. Returns only success.
+app.post('/api/admin/brevo/set-key', requireAdmin, async (req, res) => {
+  const { apiKey } = req.body || {};
+  if (!apiKey || !/^xkeysib-[a-f0-9\-]{60,}/.test(String(apiKey))) {
+    return res.status(400).json({ error: 'Invalid Brevo API key format' });
+  }
+  try {
+    // Validate by pinging Brevo /account endpoint
+    const https = require('node:https');
+    const check = await new Promise((resolve) => {
+      const r = https.get({
+        host: 'api.brevo.com',
+        path: '/v3/account',
+        headers: { 'api-key': apiKey },
+        timeout: 10000,
+      }, (resp) => {
+        let d = ''; resp.on('data', c => { d += c; });
+        resp.on('end', () => resolve({ status: resp.statusCode, body: d }));
+      });
+      r.on('error', () => resolve({ status: 0 }));
+    });
+    if (check.status !== 200) {
+      return res.status(400).json({ error: 'Key validation failed with Brevo API', status: check.status });
+    }
+
+    // Write to .env
+    const envPath = path.join(__dirname, '.env');
+    let envContent = '';
+    try { envContent = fs.readFileSync(envPath, 'utf8'); } catch {}
+    const re = /^BREVO_API_KEY=.*$/m;
+    if (re.test(envContent)) envContent = envContent.replace(re, `BREVO_API_KEY=${apiKey}`);
+    else envContent += (envContent.endsWith('\n') || envContent === '' ? '' : '\n') + `BREVO_API_KEY=${apiKey}\n`;
+    fs.writeFileSync(envPath, envContent, { mode: 0o600 });
+    process.env.BREVO_API_KEY = apiKey;
+    res.json({ ok: true, message: 'Brevo API key updated + validated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Sentry: test-endpoints voor admin ───────────────────────────────────────
 // Handig om te verifiëren dat Sentry daadwerkelijk errors ontvangt.
 
