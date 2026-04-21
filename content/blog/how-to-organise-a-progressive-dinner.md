@@ -214,4 +214,4 @@ With a spreadsheet it's manual work. runningdinner.app lets you recalculate the 
 
 ---
 
-*Ready to get started? [Create a free account at runningdinner.app](https://runningdinner.app) and organise your progressive dinner in minutes — not hours.*
+*Ready to get started? [Start your progressive dinner on runningdinner.app](https://runningdinner.app) — €5 per year, no hidden fees. Set up in minutes, not hours.*

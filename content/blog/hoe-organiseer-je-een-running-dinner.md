@@ -215,4 +215,4 @@ Met een spreadsheet is dat handwerk. runningdinner.app laat je de indeling herbe
 
 ---
 
-*Klaar om te beginnen? [Maak gratis een account aan op runningdinner.app](https://runningdinner.app) en organiseer je running dinner in minuten — niet in uren.*
+*Klaar om te beginnen? [Start je running dinner op runningdinner.app](https://runningdinner.app) — €5 per jaar, geen verborgen kosten. In minuten geregeld, niet in uren.*

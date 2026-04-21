@@ -214,4 +214,4 @@ Con una hoja de cálculo es trabajo manual. runningdinner.app te permite recalcu
 
 ---
 
-*¿Listo para empezar? [Crea una cuenta gratuita en runningdinner.app](https://runningdinner.app) y organiza tu cena progresiva en minutos — no en horas.*
+*¿Listo para empezar? [Comienza tu cena progresiva en runningdinner.app](https://runningdinner.app) — 5 € al año, sin costes ocultos. Listo en minutos, no en horas.*
