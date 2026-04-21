@@ -8,6 +8,7 @@
     "features": "Features",
     "how_it_works": "How it works",
     "pricing": "Pricing",
+    "blog": "Blog",
     "login": "Log in",
     "cta": "Start for €5/year"
   },
@@ -132,6 +133,7 @@
     "product_heading": "Product",
     "features": "Features",
     "pricing": "Pricing",
+    "blog": "Blog",
     "account_heading": "Account",
     "login": "Log in",
     "register": "Register",

@@ -8,6 +8,7 @@
     "features": "Funcionalidades",
     "how_it_works": "Cómo funciona",
     "pricing": "Precio",
+    "blog": "Blog",
     "login": "Iniciar sesión",
     "cta": "Empieza por €5/año"
   },
@@ -132,6 +133,7 @@
     "product_heading": "Producto",
     "features": "Funcionalidades",
     "pricing": "Precio",
+    "blog": "Blog",
     "account_heading": "Cuenta",
     "login": "Iniciar sesión",
     "register": "Registrarse",
