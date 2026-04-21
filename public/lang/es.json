@@ -634,5 +634,84 @@
     "dev": {
       "load_sample": "📋 Cargar datos de ejemplo"
     }
+  },
+
+  "footer": {
+    "legal_heading": "Legal",
+    "privacy": "Política de privacidad",
+    "terms": "Términos y condiciones"
+  },
+
+  "legal": {
+    "back_home": "Volver al inicio",
+
+    "privacy": {
+      "title": "Política de privacidad",
+      "updated": "Última actualización: 20 de abril de 2026",
+      "who_heading": "Quiénes somos",
+      "who_text": "Running Dinner Planner es un servicio de <strong>VMH BV</strong>, con sede en Países Bajos, disponible en runningdiner.nl. Para preguntas sobre esta política o sobre tus datos, utiliza el formulario de contacto en la página principal.",
+      "data_heading": "Qué datos tratamos",
+      "data_account": "Datos de cuenta: correo electrónico, contraseña (cifrada), preferencia de idioma, país.",
+      "data_payment": "Datos de pago: procesados por Mollie. Solo almacenamos el número de factura, el importe, el régimen de IVA y una referencia de Mollie. Los datos de tarjeta y cuenta bancaria permanecen en Mollie.",
+      "data_event": "Datos de evento que introduces: nombres de participantes, direcciones, preferencias. Permanecen en tu cuenta.",
+      "data_logs": "Registros de acceso: dirección IP, marca de tiempo, user-agent — únicamente por seguridad, conservados 30 días.",
+      "data_analytics": "Analítica: Plausible autoalojado, sin cookies y anonimizado. Sin Google Analytics.",
+      "purpose_heading": "Para qué utilizamos estos datos",
+      "purpose_service": "Prestación del servicio (cuenta, planificador, facturas por correo).",
+      "purpose_invoicing": "Facturación, declaración del IVA y obligación de conservación fiscal (7 años, obligatorio).",
+      "purpose_comms": "Correos transaccionales (bienvenida, factura, restablecimiento de contraseña, recordatorio de renovación).",
+      "purpose_improve": "Analítica anónima para mejorar el servicio.",
+      "partners_heading": "Con quién compartimos datos",
+      "partners_mollie": "<strong>Mollie B.V.</strong> (NL) — procesamiento de pagos; recibe tu correo y datos de pago.",
+      "partners_brevo": "<strong>Brevo (Sendinblue)</strong> (FR) — correos transaccionales y marketing; recibe tu correo e idioma.",
+      "partners_zoho": "<strong>Zoho Corporation</strong> (EE. UU., con SCC/DPA) — contabilidad; recibe tu nombre, correo, país, NIF intracomunitario opcional y líneas de factura.",
+      "partners_hetzner": "<strong>Hetzner Online GmbH</strong> (DE) — alojamiento de la app y la base de datos.",
+      "partners_cloudflare": "<strong>Cloudflare, Inc.</strong> (EE. UU., con SCC/DPA) — DNS y CDN.",
+      "rights_heading": "Tus derechos (RGPD)",
+      "rights_intro": "En virtud del Reglamento General de Protección de Datos tienes derecho a:",
+      "right_access": "<strong>Acceso</strong> — desde tu perfil (\"Descarga mis datos\").",
+      "right_rectify": "<strong>Rectificación</strong> — actualiza tu correo y preferencias desde tu perfil.",
+      "right_delete": "<strong>Supresión</strong> — mediante el botón rojo \"Eliminar mi cuenta\". Las facturas se conservan 7 años (obligación fiscal).",
+      "right_portability": "<strong>Portabilidad</strong> — el botón de exportación te entrega todo en formato JSON.",
+      "right_complaint": "<strong>Reclamación</strong> — ante la Autoridad Holandesa de Protección de Datos (autoriteitpersoonsgegevens.nl).",
+      "retention_heading": "Plazos de conservación",
+      "retention_account": "Datos de cuenta: mientras tu cuenta esté activa. Tras eliminarla: eliminados de inmediato; datos de pago anonimizados.",
+      "retention_invoices": "Facturas: 7 años (legislación fiscal holandesa, art. 52 AWR).",
+      "retention_event": "Datos de evento: eliminados automáticamente 12 meses después de la fecha del evento, salvo que mantengas actividad.",
+      "retention_logs": "Registros de acceso: 30 días.",
+      "security_heading": "Seguridad",
+      "security_text": "Las contraseñas se cifran con bcrypt. Todo el tráfico usa TLS. Las bases de datos se alojan en Hetzner (Alemania) con copias de seguridad diarias y almacenamiento cifrado. El acceso a los sistemas está limitado mediante claves SSH y verificación en dos pasos.",
+      "changes_heading": "Cambios en esta política",
+      "changes_text": "Actualizamos esta política cuando el servicio o la legislación lo requieran. Los cambios sustanciales se comunican por correo electrónico."
+    },
+
+    "terms": {
+      "title": "Términos y condiciones",
+      "updated": "Última actualización: 20 de abril de 2026",
+      "service_heading": "1. El servicio",
+      "service_text": "Running Dinner Planner (\"el servicio\") es una herramienta SaaS para organizar cenas itinerantes, ofrecida por <strong>VMH BV</strong>, con sede en Países Bajos. El uso del servicio implica la aceptación de estos términos.",
+      "account_heading": "2. Cuenta y uso",
+      "account_correct": "Proporcionas datos de registro correctos.",
+      "account_password": "Eres responsable de tu contraseña.",
+      "account_legal": "El servicio no debe usarse para fines ilegales.",
+      "account_data": "Tú sigues siendo el propietario de los datos que introduces (participantes, direcciones, etc.).",
+      "price_heading": "3. Suscripción y pago",
+      "price_amount": "La suscripción cuesta 5 € al año (equivalente local en GBP/USD/CAD/AUD/NZD fuera de la UE).",
+      "price_recurring": "La renovación automática es opt-in. Puedes desactivarla en cualquier momento desde tu perfil.",
+      "price_refund": "Sin reembolsos por periodos no utilizados de una suscripción anual, salvo por derecho legal de desistimiento (14 días en la UE, solo si no se ha utilizado).",
+      "price_vat": "Los precios en EUR incluyen IVA bajo el régimen OSS. Las facturas se envían de inmediato por correo electrónico.",
+      "availability_heading": "4. Disponibilidad",
+      "availability_text": "Aspiramos a una alta disponibilidad pero no garantizamos un 100 % de tiempo de actividad. El mantenimiento planificado se anuncia con antelación cuando sea posible. No nos hacemos responsables de daños derivados por indisponibilidad.",
+      "liability_heading": "5. Responsabilidad",
+      "liability_text": "Nuestra responsabilidad se limita al importe de las suscripciones pagadas por ti en los últimos 12 meses. Se excluyen los daños indirectos. Esta limitación no se aplica en caso de dolo o negligencia grave por nuestra parte.",
+      "termination_heading": "6. Finalización",
+      "termination_text": "Puedes eliminar tu cuenta en cualquier momento desde tu perfil. Podemos finalizar la cuenta en caso de abuso o incumplimiento de estos términos, con aviso previo razonable salvo en casos de fraude evidente.",
+      "changes_heading": "7. Modificaciones",
+      "changes_text": "Nos reservamos el derecho de modificar estos términos. Los cambios sustanciales se comunican por correo al menos 30 días antes.",
+      "law_heading": "8. Legislación aplicable",
+      "law_text": "Este acuerdo se rige por la legislación holandesa. Las controversias se someten al tribunal competente de los Países Bajos.",
+      "contact_heading": "9. Contacto",
+      "contact_text": "Para preguntas sobre estos términos, utiliza el formulario de contacto en la página principal. Nuestra <a href=\"/privacy.html\">política de privacidad</a> forma parte integral de estos términos."
+    }
   }
 }

@@ -149,6 +149,23 @@ db.exec(`
     archived_at          INTEGER
   );
 
+  CREATE TABLE IF NOT EXISTS audit_log (
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id              TEXT,            -- NULL voor niet-ingelogde acties
+    actor_email          TEXT,            -- snapshot van email op actie-moment
+    action               TEXT NOT NULL,   -- 'user.delete' | 'voucher.create' | 'cms.update' | ...
+    target_type          TEXT,            -- 'user' | 'voucher' | 'event' | 'payment' | ...
+    target_id            TEXT,
+    data_json            TEXT,            -- JSON-payload (diff, context)
+    ip                   TEXT,
+    user_agent           TEXT,
+    created_at           INTEGER NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS audit_log_user_idx   ON audit_log(user_id);
+  CREATE INDEX IF NOT EXISTS audit_log_action_idx ON audit_log(action);
+  CREATE INDEX IF NOT EXISTS audit_log_created_idx ON audit_log(created_at);
+
   CREATE TABLE IF NOT EXISTS event_participants (
     id                   TEXT PRIMARY KEY,
     event_id             TEXT NOT NULL,
@@ -1237,6 +1254,47 @@ app.post('/api/mollie/webhook', async (req, res) => {
   }
 
   res.send('ok');
+});
+
+// ── Audit log ────────────────────────────────────────────────────────────────
+// Helper voor admin-acties. Wordt momenteel niet automatisch aangeroepen —
+// bij Sprint 7 hooken we dit in de bestaande admin-endpoints (user-delete,
+// voucher-create, CMS-update, deployment, etc.) zodra je groen licht geeft.
+
+function logAudit(req, action, { targetType, targetId, data } = {}) {
+  try {
+    db.prepare(`
+      INSERT INTO audit_log (user_id, actor_email, action, target_type, target_id, data_json, ip, user_agent, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      req.user?.id || null,
+      req.user?.email || null,
+      action,
+      targetType || null,
+      targetId || null,
+      data ? JSON.stringify(data).slice(0, 4000) : null,
+      (req.headers['cf-connecting-ip'] || req.ip || '').slice(0, 64),
+      (req.headers['user-agent'] || '').slice(0, 256),
+      Date.now(),
+    );
+  } catch (err) {
+    console.error('[audit] failed to log:', err.message);
+  }
+}
+
+// GET /api/admin/audit  – last 100 entries, filterable by action / user
+app.get('/api/admin/audit', requireAdmin, (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit || '100', 10), 500);
+  const filters = [];
+  const params = [];
+  if (req.query.action)  { filters.push('action LIKE ?');      params.push('%' + req.query.action + '%'); }
+  if (req.query.userId)  { filters.push('user_id = ?');        params.push(req.query.userId); }
+  if (req.query.target)  { filters.push('target_type = ?');    params.push(req.query.target); }
+  const where = filters.length ? 'WHERE ' + filters.join(' AND ') : '';
+  const rows = db.prepare(
+    `SELECT * FROM audit_log ${where} ORDER BY created_at DESC LIMIT ?`
+  ).all(...params, limit);
+  res.json({ ok: true, entries: rows });
 });
 
 // ── Vouchers / discount codes (feature-flagged) ─────────────────────────────

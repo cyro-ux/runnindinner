@@ -634,5 +634,84 @@
     "dev": {
       "load_sample": "📋 Load sample data"
     }
+  },
+
+  "footer": {
+    "legal_heading": "Legal",
+    "privacy": "Privacy policy",
+    "terms": "Terms of service"
+  },
+
+  "legal": {
+    "back_home": "Back to home",
+
+    "privacy": {
+      "title": "Privacy policy",
+      "updated": "Last updated: 20 April 2026",
+      "who_heading": "Who we are",
+      "who_text": "Running Dinner Planner is a service of <strong>VMH BV</strong>, based in the Netherlands, reachable via runningdiner.nl. For questions about this policy or your data, use the contact form on the homepage.",
+      "data_heading": "What data we process",
+      "data_account": "Account data: email address, password (hashed), language preference, country.",
+      "data_payment": "Payment data: processed via Mollie. We only store the invoice number, amount, VAT scheme and a Mollie reference. Card details and bank numbers stay with Mollie.",
+      "data_event": "Event data you enter yourself: participant names, addresses, preferences. This stays in your account.",
+      "data_logs": "Access logs: IP address, timestamp, user-agent — purely for security, kept 30 days.",
+      "data_analytics": "Analytics: self-hosted Plausible, cookieless and anonymised. No Google Analytics.",
+      "purpose_heading": "What we use this data for",
+      "purpose_service": "Delivering the service (account, planner, invoices via email).",
+      "purpose_invoicing": "Invoicing, VAT filing, tax retention obligation (7 years, required).",
+      "purpose_comms": "Transactional emails (welcome, invoice, password reset, renewal reminder).",
+      "purpose_improve": "Anonymous analytics to improve the service.",
+      "partners_heading": "Who we share data with",
+      "partners_mollie": "<strong>Mollie B.V.</strong> (NL) — payment processing; receives your email and payment data.",
+      "partners_brevo": "<strong>Brevo (Sendinblue)</strong> (FR) — transactional and marketing emails; receives your email and language.",
+      "partners_zoho": "<strong>Zoho Corporation</strong> (US, with SCC/DPA) — accounting; receives your name, email, country, optional VAT-ID and invoice lines.",
+      "partners_hetzner": "<strong>Hetzner Online GmbH</strong> (DE) — hosting of the app and database.",
+      "partners_cloudflare": "<strong>Cloudflare, Inc.</strong> (US, with SCC/DPA) — DNS and CDN.",
+      "rights_heading": "Your rights (GDPR)",
+      "rights_intro": "Under the General Data Protection Regulation you have the right to:",
+      "right_access": "<strong>Access</strong> — via your profile (\"Download my data\").",
+      "right_rectify": "<strong>Rectification</strong> — update your email and preferences yourself in your profile.",
+      "right_delete": "<strong>Deletion</strong> — via the red \"Delete my account\" button. Invoices are kept for 7 years (tax law requirement).",
+      "right_portability": "<strong>Portability</strong> — the data-export button gives you everything in JSON.",
+      "right_complaint": "<strong>Complaint</strong> — with the Dutch Data Protection Authority (autoriteitpersoonsgegevens.nl).",
+      "retention_heading": "Retention periods",
+      "retention_account": "Account data: as long as your account is active. After deletion: immediately deleted; payment data anonymised.",
+      "retention_invoices": "Invoices: 7 years (Dutch tax law, Art. 52 AWR).",
+      "retention_event": "Event data: automatically deleted 12 months after the event date, unless you remain active.",
+      "retention_logs": "Access logs: 30 days.",
+      "security_heading": "Security",
+      "security_text": "Passwords are hashed with bcrypt. All traffic goes over TLS. Databases run on Hetzner (Germany) with daily backups and encrypted storage. System access is limited via SSH keys and two-factor authentication.",
+      "changes_heading": "Changes to this policy",
+      "changes_text": "We update this policy when the service or legislation requires it. Material changes are communicated via email."
+    },
+
+    "terms": {
+      "title": "Terms of service",
+      "updated": "Last updated: 20 April 2026",
+      "service_heading": "1. The service",
+      "service_text": "Running Dinner Planner (\"the service\") is a SaaS tool for organising running dinners, provided by <strong>VMH BV</strong>, based in the Netherlands. Using the service implies acceptance of these terms.",
+      "account_heading": "2. Account and use",
+      "account_correct": "You provide accurate registration data.",
+      "account_password": "You are responsible for your password.",
+      "account_legal": "The service may not be used for illegal purposes.",
+      "account_data": "You remain the owner of the data you enter (participants, addresses, etc.).",
+      "price_heading": "3. Subscription and payment",
+      "price_amount": "The subscription costs €5 per year (local equivalent in GBP/USD/CAD/AUD/NZD outside the EU).",
+      "price_recurring": "Auto-renewal is opt-in. You can switch it off at any time via your profile.",
+      "price_refund": "No refunds for unused parts of a subscription year, except under statutory cooling-off rights (14 days within the EU, only if unused).",
+      "price_vat": "Prices in EUR include VAT under the OSS scheme. Invoices are sent immediately by email.",
+      "availability_heading": "4. Availability",
+      "availability_text": "We aim for high availability but do not guarantee 100% uptime. Planned maintenance is announced in advance where possible. We are not liable for consequential damages due to unavailability.",
+      "liability_heading": "5. Liability",
+      "liability_text": "Our liability is limited to the subscription amounts paid by you in the last 12 months. Indirect damages are excluded. This limitation does not apply in case of intent or gross negligence on our part.",
+      "termination_heading": "6. Termination",
+      "termination_text": "You can delete your account at any time via your profile. We may terminate the account in cases of abuse or breach of these terms, with reasonable prior notice except in cases of obvious fraud.",
+      "changes_heading": "7. Changes",
+      "changes_text": "We reserve the right to modify these terms. Material changes are communicated by email at least 30 days in advance.",
+      "law_heading": "8. Governing law",
+      "law_text": "Dutch law applies to this agreement. Disputes will be submitted to the competent court in the Netherlands.",
+      "contact_heading": "9. Contact",
+      "contact_text": "For questions about these terms, please use the contact form on the homepage. Our <a href=\"/privacy.html\">privacy policy</a> is an integral part of these terms."
+    }
   }
 }
