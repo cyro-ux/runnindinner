@@ -3241,8 +3241,9 @@ ${content}
 }
 
 // Public blog listing (only published posts)
-app.get('/blog', (req, res) => {
+app.get(['/blog', '/en/blog', '/es/blog'], (req, res) => {
   const locale = req.lang || 'nl';
+  const prefix = locale === 'nl' ? '/blog' : `/${locale}/blog`;
   const posts = blog.listPublished(locale);
   const listTitle = locale === 'en' ? 'Blog' : locale === 'es' ? 'Blog' : 'Blog';
   const emptyText = locale === 'en' ? 'No posts yet. Come back soon.'
@@ -3255,7 +3256,7 @@ app.get('/blog', (req, res) => {
     for (const p of posts) {
       content += `
         <div class="blog-list-item">
-          <a href="/blog/${p.slug}">
+          <a href="${prefix}/${p.slug}">
             <h3>${p.title}</h3>
             <p class="desc">${p.description}</p>
           </a>
@@ -3263,7 +3264,7 @@ app.get('/blog', (req, res) => {
     }
   }
   res.type('html').send(renderBlogShell(listTitle, content, locale, {
-    canonical: 'https://runningdinner.app/blog',
+    canonical: `https://runningdinner.app${prefix}`,
     description: locale === 'en' ? 'Running Dinner Planner blog — tips and guides for organisers.'
       : locale === 'es' ? 'Blog de Running Dinner Planner — consejos y guías para organizadores.'
       : 'Running Dinner Planner blog — tips en gidsen voor organisatoren.',
@@ -3271,8 +3272,9 @@ app.get('/blog', (req, res) => {
 });
 
 // Individual blog post
-app.get('/blog/:slug', (req, res) => {
+app.get(['/blog/:slug', '/en/blog/:slug', '/es/blog/:slug'], (req, res) => {
   const locale = req.lang || 'nl';
+  const prefix = locale === 'nl' ? '/blog' : `/${locale}/blog`;
   const post = blog.getBySlug(req.params.slug, locale);
   if (!post) return res.status(404).type('html').send(renderBlogShell('Not found', '<h1>Not found</h1><p>Dit artikel bestaat niet of is nog niet gepubliceerd.</p>', locale, { noindex: true }));
   // Admins may preview drafts; everyone else gets 404 on draft
@@ -3285,7 +3287,7 @@ app.get('/blog/:slug', (req, res) => {
   const content = meta + html;
   res.type('html').send(renderBlogShell(post.title, content, locale, {
     noindex:     post.draft,   // drafts noindex; publicaties indexeerbaar
-    canonical:   `https://runningdinner.app/blog/${post.slug}`,
+    canonical:   `https://runningdinner.app${prefix}/${post.slug}`,
     description: post.description || '',
   }));
 });
