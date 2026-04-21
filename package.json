@@ -9,6 +9,7 @@
     "prod": "NODE_ENV=production PORT=3000 node server.js"
   },
   "dependencies": {
+    "@mollie/api-client": "^4.0.0",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^9.4.3",
     "cookie-parser": "^1.4.6",
@@ -17,10 +18,12 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "@mollie/api-client": "^4.0.0",
     "nodemailer": "^6.9.13",
     "pdfkit": "^0.15.0",
     "uuid": "^9.0.1"
+  },
+  "optionalDependencies": {
+    "@sentry/node": "^8.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

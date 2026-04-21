@@ -224,6 +224,7 @@
     <button class="nav-item" data-page="vouchers"><span class="icon">🎟️</span>Vouchers</button>
     <button class="nav-item" data-page="referrals"><span class="icon">🎁</span>Referrals</button>
     <button class="nav-item" data-page="accounting"><span class="icon">🧾</span>Boekhouding</button>
+    <button class="nav-item" data-page="monitoring"><span class="icon">🛡️</span>Monitoring</button>
     <button class="nav-item" data-page="deploy"><span class="icon">🚀</span>Deployment</button>
   </nav>
 
@@ -715,6 +716,57 @@ ZOHO_REGION=eu</pre>
       </div>
     </div>
 
+    <!-- MONITORING -->
+    <div class="page" id="page-monitoring">
+      <h1 class="page-title">🛡️ Monitoring</h1>
+
+      <div class="card">
+        <div class="card-title">Sentry (error-tracking)</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span id="sentry-status-badge" style="padding:4px 12px;border-radius:8px;font-size:.78rem;font-weight:700"></span>
+          <button class="btn btn-outline" id="sentry-test-btn" style="font-size:.8rem;padding:6px 12px">📤 Test error sturen</button>
+        </div>
+        <div id="sentry-setup-help" style="display:none">
+          <p style="font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:10px">
+            Sentry is niet geconfigureerd. Om te activeren:
+          </p>
+          <ol style="font-size:.85rem;color:var(--muted);line-height:1.7;padding-left:24px">
+            <li>Maak een project aan op <a href="https://sentry.io" target="_blank">sentry.io</a> (type: Node.js)</li>
+            <li>Kopieer de DSN</li>
+            <li>Op de server:
+              <pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:.8rem;margin-top:8px;overflow-x:auto">cd /var/www/running-dinner/prod
+npm install --save-optional @sentry/node
+echo "SENTRY_DSN=https://xxx@sentry.io/yyy" >> .env
+pm2 restart running-dinner-prod</pre>
+            </li>
+          </ol>
+        </div>
+        <div id="sentry-test-result" style="margin-top:10px;font-size:.85rem"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Audit log — laatste 100 admin-acties</div>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:10px">
+          Elke wijziging in het admin-dashboard wordt hier gelogd (gebruiker, actie, timestamp, IP).
+          Nog niet alle endpoints zijn gehooked — dat gebeurt gefaseerd.
+        </p>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tijd</th>
+                <th>Actor</th>
+                <th>Actie</th>
+                <th>Target</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody id="audit-tbody"><tr class="load-row"><td colspan="5">Laden…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- DEPLOYMENT -->
     <div class="page" id="page-deploy">
       <h1 class="page-title">Deployment</h1>
@@ -824,7 +876,7 @@ function showPage(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelector(`.nav-item[data-page="${name}"]`).classList.add('active');
-  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, blog: loadBlog, vouchers: loadVouchers, referrals: loadReferrals, accounting: loadAccounting, deploy: loadDeploy };
+  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, blog: loadBlog, vouchers: loadVouchers, referrals: loadReferrals, accounting: loadAccounting, monitoring: loadMonitoring, deploy: loadDeploy };
   loaders[name]?.();
 }
 document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
@@ -1556,6 +1608,67 @@ async function toggleBlogDraft(filename, makeDraft) {
     else alert('Toggle mislukt');
   } catch (err) { alert('Netwerkfout: ' + err.message); }
 }
+
+// ── MONITORING (Sentry + audit log) ──────────────────────────────────────
+async function loadMonitoring() {
+  // Sentry status
+  const badge = document.getElementById('sentry-status-badge');
+  const help  = document.getElementById('sentry-setup-help');
+  try {
+    const r = await fetch('/api/admin/sentry/status');
+    const d = await r.json();
+    if (d.enabled) {
+      badge.textContent = '● Actief';
+      badge.style.background = '#dcfce7';
+      badge.style.color = '#166534';
+      help.style.display = 'none';
+    } else {
+      badge.textContent = '○ Niet geconfigureerd';
+      badge.style.background = '#fef2f2';
+      badge.style.color = '#dc2626';
+      help.style.display = 'block';
+    }
+  } catch {}
+
+  // Audit log
+  const tbody = document.getElementById('audit-tbody');
+  tbody.innerHTML = '<tr class="load-row"><td colspan="5">Laden…</td></tr>';
+  try {
+    const r = await fetch('/api/admin/audit?limit=100');
+    const d = await r.json();
+    const entries = d.entries || [];
+    if (!entries.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Nog geen audit-entries</td></tr>';
+      return;
+    }
+    tbody.innerHTML = entries.map(e => `<tr>
+      <td>${fmtDT(e.created_at)}</td>
+      <td>${escH(e.actor_email || '–')}</td>
+      <td><code style="font-size:.78rem;background:#F8FAFC;padding:2px 6px;border-radius:4px">${escH(e.action)}</code></td>
+      <td>${e.target_type ? escH(e.target_type) + ':' + escH(e.target_id || '') : '–'}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${escH(e.ip || '–')}</td>
+    </tr>`).join('');
+  } catch {}
+}
+
+document.getElementById('sentry-test-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('sentry-test-btn');
+  const result = document.getElementById('sentry-test-result');
+  btn.disabled = true;
+  result.textContent = 'Bezig…';
+  try {
+    const r = await fetch('/api/admin/sentry/test', { method: 'POST' });
+    const d = await r.json();
+    if (r.ok) {
+      result.innerHTML = '<span style="color:var(--green)">✓ ' + escH(d.message) + '</span> <a href="https://sentry.io" target="_blank" style="color:var(--blue)">→ check Sentry</a>';
+    } else {
+      result.innerHTML = '<span style="color:var(--red)">' + escH(d.error || 'Mislukt') + '</span>';
+    }
+  } catch (err) {
+    result.innerHTML = '<span style="color:var(--red)">Netwerkfout: ' + escH(err.message) + '</span>';
+  }
+  btn.disabled = false;
+});
 
 // ── VOUCHERS ─────────────────────────────────────────────────────────────
 async function loadVouchers() {

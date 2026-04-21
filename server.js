@@ -26,6 +26,9 @@ const zohoSync = require('./lib/zoho-sync');
 const zohoClient = require('./lib/zoho-client');
 const priceResolver = require('./lib/price-resolver');
 const blog = require('./lib/blog');
+const sentry = require('./lib/sentry');
+// Initialiseer Sentry zo vroeg mogelijk — heeft geen effect zonder SENTRY_DSN
+if (sentry.isEnabled()) console.log('[boot] Sentry active');
 
 // ── Active sessions (in-memory, resets on server restart) ────────────────────
 // Map<userId, { email, loginAt, lastSeen }>
@@ -1254,6 +1257,27 @@ app.post('/api/mollie/webhook', async (req, res) => {
   }
 
   res.send('ok');
+});
+
+// ── Sentry: test-endpoints voor admin ───────────────────────────────────────
+// Handig om te verifiëren dat Sentry daadwerkelijk errors ontvangt.
+
+app.get('/api/admin/sentry/status', requireAdmin, (req, res) => {
+  res.json({ ok: true, enabled: sentry.isEnabled() });
+});
+
+app.post('/api/admin/sentry/test', requireAdmin, (req, res) => {
+  if (!sentry.isEnabled()) {
+    return res.status(400).json({ error: 'Sentry not configured — set SENTRY_DSN and install @sentry/node' });
+  }
+  // Stuur een test-error + test-message naar Sentry
+  sentry.captureMessage('Sentry test message from admin dashboard', 'info', {
+    triggeredBy: req.user?.email,
+    url: req.originalUrl,
+  });
+  try { throw new Error('Sentry test error from /api/admin/sentry/test'); }
+  catch (err) { sentry.captureException(err, { triggeredBy: req.user?.email }); }
+  res.json({ ok: true, message: 'Test event + exception sent to Sentry' });
 });
 
 // ── Audit log ────────────────────────────────────────────────────────────────
@@ -3222,6 +3246,21 @@ if (ENV === 'production') {
     try { await reconcileZoho(); } catch (e) { console.error('[scheduler] zoho reconcile error:', e.message); }
   }, 30000);
 }
+
+// ── Error handling ───────────────────────────────────────────────────────────
+// Sentry error-reporter (no-op zonder SENTRY_DSN). Plaats VÓÓR de eigen
+// error-handler zodat alle niet-afgehandelde errors worden gerapporteerd.
+app.use(sentry.errorHandler());
+
+// Generic fallback error handler — zorgt ervoor dat de client een schone
+// JSON-response krijgt ook bij ongecachete exceptions in async routes.
+app.use((err, req, res, next) => {
+  console.error('[error]', req.method, req.originalUrl, '→', err.message);
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({
+    error: err.expose ? err.message : 'Internal server error',
+  });
+});
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
