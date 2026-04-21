@@ -271,7 +271,9 @@
     <div class="section-header">
       <h2 data-i18n="testimonials.title">Wat organisatoren zeggen</h2>
     </div>
-    <div class="testimonials-grid">
+    <div class="testimonials-grid" id="testimonials-grid">
+      <!-- Default (seed) testimonials — worden vervangen door live reviews
+           zodra er goedgekeurde reviews in /api/testimonials/public zitten. -->
       <div class="testimonial">
         <div class="testimonial-stars">★★★★★</div>
         <p data-i18n="testimonials.quote1">"Vroeger duurde het plannen van ons buurtrunning dinner een hele avond. Nu ben ik in 20 minuten klaar. Fantastisch!"</p>
@@ -308,6 +310,46 @@
     </div>
   </div>
 </section>
+
+<script>
+(function(){
+  // Live testimonials loader — vervangt seed-testimonials zodra er ≥3
+  // goedgekeurde reviews zijn. Onder de drempel blijft de seed staan
+  // zodat nieuwe bezoekers altijd social proof zien.
+  function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function initials(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '🙂';
+    return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+  }
+  fetch('/api/testimonials/public')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      const list = data?.testimonials || [];
+      if (list.length < 3) return; // behoud seed
+      const grid = document.getElementById('testimonials-grid');
+      if (!grid) return;
+      grid.innerHTML = list.slice(0, 6).map(t => {
+        const stars = '★'.repeat(t.score) + '☆'.repeat(5 - t.score);
+        const name = escapeHtml(t.display_name || 'Organisator');
+        const loc  = t.country ? ' · ' + escapeHtml(t.country) : '';
+        return `
+          <div class="testimonial">
+            <div class="testimonial-stars">${stars}</div>
+            <p>"${escapeHtml(t.comment)}"</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">${escapeHtml(initials(t.display_name))}</div>
+              <div>
+                <strong>${name}</strong>
+                <span>${loc}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    })
+    .catch(() => { /* seed blijft staan bij fout */ });
+})();
+</script>
 
 <!-- ── Pricing ─────────────────────────────────────────────────────── -->
 <section class="pricing section" id="pricing">

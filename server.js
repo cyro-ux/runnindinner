@@ -233,6 +233,13 @@ if (!paymentCols.includes('zoho_sync_status')) db.exec("ALTER TABLE payments ADD
 if (!paymentCols.includes('zoho_sync_error'))  db.exec("ALTER TABLE payments ADD COLUMN zoho_sync_error TEXT");
 if (!paymentCols.includes('zoho_synced_at'))   db.exec("ALTER TABLE payments ADD COLUMN zoho_synced_at INTEGER");
 
+// Ratings: add moderation columns (status + display name + who moderated)
+const ratingCols = db.prepare("PRAGMA table_info(ratings)").all().map(c => c.name);
+if (!ratingCols.includes('status'))        db.exec("ALTER TABLE ratings ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'");
+if (!ratingCols.includes('display_name'))  db.exec("ALTER TABLE ratings ADD COLUMN display_name TEXT");
+if (!ratingCols.includes('moderated_at'))  db.exec("ALTER TABLE ratings ADD COLUMN moderated_at INTEGER");
+if (!ratingCols.includes('moderated_by'))  db.exec("ALTER TABLE ratings ADD COLUMN moderated_by TEXT");
+
 // Seed default settings
 const setDefault = db.prepare(
   'INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)'
@@ -2668,30 +2675,120 @@ app.get('/api/public/stats', (req, res) => {
 
 // POST /api/ratings  (authenticated – submit a rating)
 app.post('/api/ratings', requireAuth, (req, res) => {
-  const { score, comment } = req.body || {};
+  const { score, comment, display_name } = req.body || {};
   const s = parseInt(score, 10);
   if (!s || s < 1 || s > 5) return res.status(400).json({ error: t(req, 'score_1_5') });
+
+  const cleanComment = comment ? String(comment).trim().slice(0, 1000) : null;
+  const cleanDisplay = display_name ? String(display_name).trim().slice(0, 80) : null;
 
   // Check if user already rated (allow max 1 per user to keep it fair)
   const existing = db.prepare('SELECT id FROM ratings WHERE user_id = ?').get(req.user.id);
   if (existing) {
-    // Update existing rating
-    db.prepare('UPDATE ratings SET score = ?, comment = ?, created_at = ? WHERE user_id = ?')
-      .run(s, comment || null, Date.now(), req.user.id);
+    // Update existing rating — reset status to 'pending' so an edited review
+    // goes back through moderation before reappearing on the homepage.
+    db.prepare(`
+      UPDATE ratings
+      SET score = ?, comment = ?, display_name = ?, status = 'pending',
+          moderated_at = NULL, moderated_by = NULL, created_at = ?
+      WHERE user_id = ?
+    `).run(s, cleanComment, cleanDisplay, Date.now(), req.user.id);
     return res.json({ ok: true, message: t(req, 'rating_updated'), updated: true });
   }
 
   const id = uuidv4();
-  db.prepare('INSERT INTO ratings (id, user_id, score, comment, created_at) VALUES (?, ?, ?, ?, ?)')
-    .run(id, req.user.id, s, comment || null, Date.now());
+  db.prepare(`
+    INSERT INTO ratings (id, user_id, score, comment, display_name, status, created_at)
+    VALUES (?, ?, ?, ?, ?, 'pending', ?)
+  `).run(id, req.user.id, s, cleanComment, cleanDisplay, Date.now());
 
   res.json({ ok: true, message: t(req, 'thanks_rating') });
 });
 
 // GET /api/ratings/mine  (authenticated – get own rating)
 app.get('/api/ratings/mine', requireAuth, (req, res) => {
-  const rating = db.prepare('SELECT score, comment, created_at FROM ratings WHERE user_id = ?').get(req.user.id);
+  const rating = db.prepare(
+    'SELECT score, comment, display_name, status, created_at FROM ratings WHERE user_id = ?'
+  ).get(req.user.id);
   res.json({ ok: true, rating: rating || null });
+});
+
+// GET /api/testimonials/public  (publiek – goedgekeurde reviews met comment)
+// Alleen reviews met status='approved' EN een non-empty comment worden getoond.
+// Sortering: nieuwste eerst. Limiet 24 zodat de homepage niet opblaast.
+app.get('/api/testimonials/public', (_req, res) => {
+  const rows = db.prepare(`
+    SELECT r.score, r.comment, r.display_name, r.created_at, u.country
+    FROM ratings r
+    JOIN users u ON u.id = r.user_id
+    WHERE r.status = 'approved'
+      AND r.comment IS NOT NULL
+      AND LENGTH(TRIM(r.comment)) > 0
+    ORDER BY r.created_at DESC
+    LIMIT 24
+  `).all();
+  res.json({
+    ok: true,
+    testimonials: rows.map(r => ({
+      score:        r.score,
+      comment:      r.comment,
+      display_name: r.display_name || 'Anoniem',
+      country:      r.country || null,
+      created_at:   r.created_at,
+    })),
+  });
+});
+
+// ── Admin: reviews moderation ─────────────────────────────────────────────
+
+// GET /api/admin/reviews?status=pending|approved|rejected|hidden|all
+app.get('/api/admin/reviews', requireAdmin, (req, res) => {
+  const status = String(req.query.status || 'all').toLowerCase();
+  const allowed = ['pending', 'approved', 'rejected', 'hidden'];
+  let where = '';
+  const params = [];
+  if (allowed.includes(status)) { where = 'WHERE r.status = ?'; params.push(status); }
+  const rows = db.prepare(`
+    SELECT r.id, r.user_id, r.score, r.comment, r.display_name, r.status,
+           r.created_at, r.moderated_at, r.moderated_by,
+           u.email, u.country
+    FROM ratings r
+    JOIN users u ON u.id = r.user_id
+    ${where}
+    ORDER BY r.created_at DESC
+    LIMIT 500
+  `).all(...params);
+
+  const counts = db.prepare(`
+    SELECT status, COUNT(*) AS n FROM ratings GROUP BY status
+  `).all().reduce((acc, row) => { acc[row.status] = row.n; return acc; }, {});
+
+  res.json({ ok: true, reviews: rows, counts });
+});
+
+// PUT /api/admin/reviews/:id  { status: 'approved' | 'rejected' | 'hidden' | 'pending' }
+app.put('/api/admin/reviews/:id', requireAdmin, (req, res) => {
+  const newStatus = String(req.body?.status || '').toLowerCase();
+  const allowed = ['pending', 'approved', 'rejected', 'hidden'];
+  if (!allowed.includes(newStatus)) {
+    return res.status(400).json({ error: `status must be one of: ${allowed.join(', ')}` });
+  }
+  const info = db.prepare(`
+    UPDATE ratings
+    SET status = ?, moderated_at = ?, moderated_by = ?
+    WHERE id = ?
+  `).run(newStatus, Date.now(), req.user.id, req.params.id);
+  if (info.changes === 0) return res.status(404).json({ error: 'review not found' });
+  try { logAudit(req, 'review.moderate', { targetType: 'rating', targetId: req.params.id, data: { status: newStatus } }); } catch {}
+  res.json({ ok: true, status: newStatus });
+});
+
+// DELETE /api/admin/reviews/:id  (hard delete; gebruik liever status='hidden')
+app.delete('/api/admin/reviews/:id', requireAdmin, (req, res) => {
+  const info = db.prepare('DELETE FROM ratings WHERE id = ?').run(req.params.id);
+  if (info.changes === 0) return res.status(404).json({ error: 'review not found' });
+  try { logAudit(req, 'review.delete', { targetType: 'rating', targetId: req.params.id }); } catch {}
+  res.json({ ok: true });
 });
 
 // ── Contact form ──────────────────────────────────────────────────────────────
@@ -2809,6 +2906,23 @@ app.get('/sitemap.xml', (req, res) => {
     <lastmod>${today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>${hreflangBlock(page)}
+  </url>`;
+    }
+  }
+
+  // Blog index + published posts (per locale — currently only NL posts exist)
+  urls += `
+  <url><loc>${base}/blog</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`;
+  for (const lang of ['nl', 'en', 'es']) {
+    for (const post of blog.listPublished(lang)) {
+      const path = lang === 'nl' ? `/blog/${post.slug}` : `/${lang}/blog/${post.slug}`;
+      const lastmod = post.date || today;
+      urls += `
+  <url>
+    <loc>${base}${path}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>`;
     }
   }
@@ -3084,16 +3198,34 @@ const BLOG_STYLE = `
   .blog-list-item h3 { font-size: 1.2rem; margin-bottom: 6px; }
   .blog-list-item .desc { color: #64748B; font-size: .95rem; }
   .blog-draft-badge { background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 4px; font-size: .72rem; margin-left: 8px; font-weight: 600; }
+  .blog-page table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: .94rem; }
+  .blog-page th, .blog-page td { border: 1px solid #E2E8F0; padding: 8px 12px; text-align: left; vertical-align: top; }
+  .blog-page th { background: #F8FAFC; font-weight: 600; }
+  .blog-page tr:nth-child(even) td { background: #FCFCFD; }
+  .blog-page hr { border: none; border-top: 1px solid #E2E8F0; margin: 28px 0; }
+  .blog-page li.task { list-style: none; margin-left: -20px; }
+  .blog-page li.task input[type=checkbox] { margin-right: 8px; }
 `;
 
-function renderBlogShell(title, content, locale) {
+function renderBlogShell(title, content, locale, opts = {}) {
   const headerLinks = `<a href="/">← ${locale === 'en' ? 'Back to home' : locale === 'es' ? 'Volver al inicio' : 'Terug naar home'}</a>`;
+  const robots = opts.noindex
+    ? '<meta name="robots" content="noindex,nofollow">'
+    : '<meta name="robots" content="index,follow">';
+  const descMeta = opts.description
+    ? `<meta name="description" content="${opts.description.replace(/"/g, '&quot;')}">`
+    : '';
+  const canonical = opts.canonical
+    ? `<link rel="canonical" href="${opts.canonical}">`
+    : '';
   return `<!DOCTYPE html>
 <html lang="${locale}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex"><!-- blog preview-only -->
+${robots}
+${descMeta}
+${canonical}
 <title>${title}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
@@ -3130,23 +3262,32 @@ app.get('/blog', (req, res) => {
         </div>`;
     }
   }
-  res.type('html').send(renderBlogShell(listTitle, content, locale));
+  res.type('html').send(renderBlogShell(listTitle, content, locale, {
+    canonical: 'https://runningdinner.app/blog',
+    description: locale === 'en' ? 'Running Dinner Planner blog — tips and guides for organisers.'
+      : locale === 'es' ? 'Blog de Running Dinner Planner — consejos y guías para organizadores.'
+      : 'Running Dinner Planner blog — tips en gidsen voor organisatoren.',
+  }));
 });
 
 // Individual blog post
 app.get('/blog/:slug', (req, res) => {
   const locale = req.lang || 'nl';
   const post = blog.getBySlug(req.params.slug, locale);
-  if (!post) return res.status(404).type('html').send(renderBlogShell('Not found', '<h1>Not found</h1><p>Dit artikel bestaat niet of is nog niet gepubliceerd.</p>', locale));
+  if (!post) return res.status(404).type('html').send(renderBlogShell('Not found', '<h1>Not found</h1><p>Dit artikel bestaat niet of is nog niet gepubliceerd.</p>', locale, { noindex: true }));
   // Admins may preview drafts; everyone else gets 404 on draft
   const isAdminPreview = req.cookies?.token; // crude check: any logged-in user; tighter check below would require verifying the JWT
   if (post.draft && !isAdminPreview) {
-    return res.status(404).type('html').send(renderBlogShell('Not found', '<h1>Not found</h1>', locale));
+    return res.status(404).type('html').send(renderBlogShell('Not found', '<h1>Not found</h1>', locale, { noindex: true }));
   }
   const html = blog.render(post);
   const meta = `<div class="blog-meta">${post.date || ''} • ${post.author}${post.draft ? ' <span class="blog-draft-badge">DRAFT</span>' : ''}</div>`;
   const content = meta + html;
-  res.type('html').send(renderBlogShell(post.title, content, locale));
+  res.type('html').send(renderBlogShell(post.title, content, locale, {
+    noindex:     post.draft,   // drafts noindex; publicaties indexeerbaar
+    canonical:   `https://runningdinner.app/blog/${post.slug}`,
+    description: post.description || '',
+  }));
 });
 
 // Admin API: list all posts (including drafts) for content management

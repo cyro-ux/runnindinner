@@ -221,6 +221,7 @@
     <button class="nav-item" data-page="cms"><span class="icon">✏️</span>Paginabeheer</button>
     <button class="nav-item" data-page="analytics"><span class="icon">📈</span>Analytics</button>
     <button class="nav-item" data-page="blog"><span class="icon">📝</span>Blog</button>
+    <button class="nav-item" data-page="reviews"><span class="icon">⭐</span>Reviews</button>
     <button class="nav-item" data-page="vouchers"><span class="icon">🎟️</span>Vouchers</button>
     <button class="nav-item" data-page="referrals"><span class="icon">🎁</span>Referrals</button>
     <button class="nav-item" data-page="accounting"><span class="icon">🧾</span>Boekhouding</button>
@@ -561,6 +562,45 @@
       </div>
     </div>
 
+    <!-- REVIEWS -->
+    <div class="page" id="page-reviews">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h1 class="page-title" style="margin-bottom:0">⭐ Reviews</h1>
+        <div style="display:flex;gap:6px" id="reviews-filter">
+          <button class="btn-sm btn-secondary" data-filter="pending">⏳ <span id="rv-cnt-pending">0</span> nieuw</button>
+          <button class="btn-sm btn-secondary" data-filter="approved">✓ <span id="rv-cnt-approved">0</span> live</button>
+          <button class="btn-sm btn-secondary" data-filter="rejected">✕ <span id="rv-cnt-rejected">0</span> afgewezen</button>
+          <button class="btn-sm btn-secondary" data-filter="hidden">🚫 <span id="rv-cnt-hidden">0</span> verborgen</button>
+          <button class="btn-sm btn-secondary" data-filter="all">Alles</button>
+        </div>
+      </div>
+      <div class="card">
+        <p style="font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:14px">
+          Reviews met een opmerking worden standaard op <strong>pending</strong> gezet.
+          Na goedkeuring verschijnen ze in de testimonials-sectie op de homepage.
+          Reviews zonder opmerking (alleen sterren) tellen wel mee voor het gemiddelde,
+          maar worden nooit publiek getoond.
+        </p>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Score</th>
+                <th>Naam</th>
+                <th>Opmerking</th>
+                <th>E-mail</th>
+                <th>Land</th>
+                <th>Status</th>
+                <th>Actie</th>
+              </tr>
+            </thead>
+            <tbody id="reviews-tbody"><tr class="load-row"><td colspan="8">Laden…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- VOUCHERS -->
     <div class="page" id="page-vouchers">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
@@ -876,7 +916,7 @@ function showPage(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelector(`.nav-item[data-page="${name}"]`).classList.add('active');
-  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, blog: loadBlog, vouchers: loadVouchers, referrals: loadReferrals, accounting: loadAccounting, monitoring: loadMonitoring, deploy: loadDeploy };
+  const loaders = { dashboard: loadDashboard, sessions: loadSessions, users: loadUsers, orders: loadOrders, settings: loadSettings, cms: loadCms, analytics: loadAnalytics, blog: loadBlog, reviews: loadReviews, vouchers: loadVouchers, referrals: loadReferrals, accounting: loadAccounting, monitoring: loadMonitoring, deploy: loadDeploy };
   loaders[name]?.();
 }
 document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
@@ -1608,6 +1648,96 @@ async function toggleBlogDraft(filename, makeDraft) {
     else alert('Toggle mislukt');
   } catch (err) { alert('Netwerkfout: ' + err.message); }
 }
+
+// ── REVIEWS (moderation) ─────────────────────────────────────────────────
+let _reviewsFilter = 'pending';
+
+async function loadReviews() {
+  const tbody = document.getElementById('reviews-tbody');
+  tbody.innerHTML = '<tr class="load-row"><td colspan="8">Laden…</td></tr>';
+  try {
+    const r = await fetch('/api/admin/reviews?status=' + _reviewsFilter);
+    const d = await r.json();
+    const reviews = d.reviews || [];
+
+    // Update filter-badge counts
+    const c = d.counts || {};
+    document.getElementById('rv-cnt-pending').textContent  = c.pending  || 0;
+    document.getElementById('rv-cnt-approved').textContent = c.approved || 0;
+    document.getElementById('rv-cnt-rejected').textContent = c.rejected || 0;
+    document.getElementById('rv-cnt-hidden').textContent   = c.hidden   || 0;
+
+    // Highlight active filter
+    document.querySelectorAll('#reviews-filter button').forEach(btn => {
+      const active = btn.dataset.filter === _reviewsFilter;
+      btn.style.background = active ? 'var(--blue)' : '';
+      btn.style.color = active ? '#fff' : '';
+      btn.style.borderColor = active ? 'var(--blue)' : '';
+    });
+
+    if (!reviews.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Geen reviews met deze status.</td></tr>';
+      return;
+    }
+
+    const statusBadge = (s) => ({
+      pending:  '<span class="badge test">⏳ Pending</span>',
+      approved: '<span class="badge active">✓ Approved</span>',
+      rejected: '<span class="badge expired">✕ Rejected</span>',
+      hidden:   '<span class="badge">🚫 Hidden</span>',
+    }[s] || escH(s));
+
+    tbody.innerHTML = reviews.map(r => {
+      const stars = '★'.repeat(r.score) + '☆'.repeat(5 - r.score);
+      const actions = [];
+      if (r.status !== 'approved') actions.push(`<button class="btn-sm" style="background:#dcfce7;color:#166534" onclick="moderateReview('${r.id}','approved')">✓ Goedkeuren</button>`);
+      if (r.status !== 'rejected') actions.push(`<button class="btn-sm" style="background:#fef2f2;color:#dc2626" onclick="moderateReview('${r.id}','rejected')">✕ Afwijzen</button>`);
+      if (r.status !== 'hidden')   actions.push(`<button class="btn-sm btn-secondary" onclick="moderateReview('${r.id}','hidden')">🚫 Verberg</button>`);
+      if (r.status !== 'pending')  actions.push(`<button class="btn-sm btn-secondary" onclick="moderateReview('${r.id}','pending')">↩ Reset</button>`);
+      actions.push(`<button class="btn-sm btn-secondary" style="color:#dc2626" onclick="deleteReview('${r.id}')">🗑</button>`);
+      return `<tr>
+        <td style="font-size:.78rem;color:var(--muted);white-space:nowrap">${fmtDT(r.created_at)}</td>
+        <td style="color:#f59e0b;white-space:nowrap">${stars}</td>
+        <td>${escH(r.display_name || '–')}</td>
+        <td style="max-width:320px">${r.comment ? escH(r.comment).replace(/\n/g,'<br>') : '<span style="color:var(--muted)">(geen)</span>'}</td>
+        <td style="font-size:.78rem">${escH(r.email || '–')}</td>
+        <td>${escH(r.country || '–')}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td style="white-space:nowrap">${actions.join(' ')}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Laden mislukt: ' + escH(err.message) + '</td></tr>';
+  }
+}
+
+async function moderateReview(id, status) {
+  try {
+    const r = await fetch('/api/admin/reviews/' + encodeURIComponent(id), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    if (r.ok) loadReviews();
+    else alert('Moderatie mislukt: ' + (await r.text()));
+  } catch (err) { alert('Netwerkfout: ' + err.message); }
+}
+
+async function deleteReview(id) {
+  if (!confirm('Definitief verwijderen? Dit kan niet ongedaan worden gemaakt. Gebruik \"Verberg\" als alternatief.')) return;
+  try {
+    const r = await fetch('/api/admin/reviews/' + encodeURIComponent(id), { method: 'DELETE' });
+    if (r.ok) loadReviews();
+    else alert('Verwijderen mislukt');
+  } catch (err) { alert('Netwerkfout: ' + err.message); }
+}
+
+document.querySelectorAll('#reviews-filter button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    _reviewsFilter = btn.dataset.filter;
+    loadReviews();
+  });
+});
 
 // ── MONITORING (Sentry + audit log) ──────────────────────────────────────
 async function loadMonitoring() {

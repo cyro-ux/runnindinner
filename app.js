@@ -1691,13 +1691,23 @@ function showRatingModal() {
       const existing = data?.rating;
       const modal = document.getElementById('rating-modal');
       if (!modal) return;
-      const currentScore = existing?.score || 0;
+      const currentScore   = existing?.score || 0;
       const currentComment = existing?.comment || '';
+      const currentName    = existing?.display_name || '';
+      const currentStatus  = existing?.status || null;
+      const statusLine = currentStatus === 'pending'
+        ? `<p style="font-size:.78rem;color:var(--text-light);margin:4px 0 0;text-align:center">⏳ ${I18n.t('app.rating.status_pending', 'In afwachting van goedkeuring')}</p>`
+        : currentStatus === 'approved'
+        ? `<p style="font-size:.78rem;color:var(--success);margin:4px 0 0;text-align:center">✓ ${I18n.t('app.rating.status_approved', 'Zichtbaar op de homepage')}</p>`
+        : currentStatus === 'rejected' || currentStatus === 'hidden'
+        ? `<p style="font-size:.78rem;color:var(--text-light);margin:4px 0 0;text-align:center">${I18n.t('app.rating.status_hidden', 'Niet publiek zichtbaar')}</p>`
+        : '';
       document.getElementById('rating-modal-body').innerHTML = `
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:2rem;margin-bottom:8px">🍽️</div>
           <h3 style="margin:0 0 6px;font-size:1.15rem;color:var(--secondary)">${existing ? I18n.t('app.rating.update_title', 'Jouw beoordeling bijwerken') : I18n.t('app.rating.ask_title', 'Hoe vind je de planner?')}</h3>
           <p style="color:var(--text-light);font-size:.88rem;margin:0">${I18n.t('app.rating.feedback_helps', 'Jouw feedback helpt ons de tool te verbeteren')}</p>
+          ${statusLine}
         </div>
         <div id="rating-stars" style="display:flex;justify-content:center;gap:8px;margin:20px 0;font-size:2.2rem;cursor:pointer">
           ${[1,2,3,4,5].map(n =>
@@ -1705,10 +1715,17 @@ function showRatingModal() {
           ).join('')}
         </div>
         <input type="hidden" id="rating-score" value="${currentScore}">
+        <div style="margin-bottom:12px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--secondary);display:block;margin-bottom:6px">${I18n.t('app.rating.name_label', 'Naam (optioneel, getoond bij publicatie)')}</label>
+          <input type="text" id="rating-name" maxlength="80" value="${escapeHtml(currentName)}"
+            placeholder="${I18n.t('app.rating.name_placeholder', 'bv. Sanne uit Utrecht')}"
+            style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:.9rem">
+        </div>
         <div style="margin-bottom:16px">
           <label style="font-size:.85rem;font-weight:600;color:var(--secondary);display:block;margin-bottom:6px">${I18n.t('app.rating.comment_label', 'Opmerking (optioneel)')}</label>
-          <textarea id="rating-comment" rows="3" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:.9rem;resize:vertical"
+          <textarea id="rating-comment" rows="3" maxlength="1000" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:.9rem;resize:vertical"
             placeholder="${I18n.t('app.rating.comment_placeholder', 'Wat vind je goed? Wat kan beter?')}">${escapeHtml(currentComment)}</textarea>
+          <p style="font-size:.75rem;color:var(--text-light);margin:4px 0 0">${I18n.t('app.rating.moderation_notice', 'Reviews met een opmerking worden gemodereerd voordat ze zichtbaar zijn op de homepage.')}</p>
         </div>
         <div style="display:flex;gap:10px;justify-content:flex-end">
           <button class="btn-secondary" onclick="closeRatingModal()">${I18n.t('app.rating.later', 'Later')}</button>
@@ -1744,6 +1761,7 @@ function selectStar(n) {
 async function submitRating() {
   const score = parseInt(document.getElementById('rating-score').value);
   const comment = document.getElementById('rating-comment').value.trim();
+  const displayName = (document.getElementById('rating-name')?.value || '').trim();
   const status = document.getElementById('rating-status');
   const btn = document.getElementById('rating-submit-btn');
 
@@ -1760,7 +1778,7 @@ async function submitRating() {
     const res = await fetch('/api/ratings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score, comment }),
+      body: JSON.stringify({ score, comment, display_name: displayName }),
     });
     const data = await res.json();
     if (res.ok) {
@@ -1821,6 +1839,11 @@ function init() {
     devBtn.style.marginLeft = 'auto';
     devBtn.onclick = loadSampleData;
     document.querySelector('.participants-header').appendChild(devBtn);
+  }
+
+  // Deep-link: /?review=1 opent direct de review-modal (vanaf profiel etc.)
+  if (new URLSearchParams(location.search).has('review')) {
+    setTimeout(() => { try { showRatingModal(); } catch {} }, 300);
   }
 }
 

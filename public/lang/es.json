@@ -238,7 +238,10 @@
       "invoice_date": "Fecha",
       "invoice_amount": "Importe",
       "error_generic": "Algo ha ido mal.",
-      "error_connection": "Error de conexión."
+      "error_connection": "Error de conexión.",
+      "review_heading": "⭐ Mi reseña",
+      "review_intro": "Escribe o edita tu reseña del Running Dinner Planner.",
+      "review_cta": "Escribir / editar reseña"
     },
 
     "forgot": {
@@ -541,6 +544,15 @@
       "feedback_helps": "Tus comentarios nos ayudan a mejorar la herramienta",
       "comment_label": "Comentario (opcional)",
       "comment_placeholder": "¿Qué te gusta? ¿Qué se podría mejorar?",
+      "name_label": "Nombre (opcional, visible al publicar)",
+      "name_placeholder": "p. ej. Laura de Madrid",
+      "moderation_notice": "Las reseñas con comentario se moderan antes de aparecer en la página principal.",
+      "status_pending": "Pendiente de aprobación",
+      "status_approved": "Visible en la página principal",
+      "status_hidden": "No visible públicamente",
+      "card_title": "⭐ ¿Qué tal fue?",
+      "card_intro": "Ayuda a otros organizadores compartiendo tu experiencia — solo una estrella o una nota breve.",
+      "card_cta": "Escribir una reseña",
       "later": "Más tarde",
       "submit": "Enviar valoración",
       "submitting": "Enviando...",
