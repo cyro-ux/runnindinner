@@ -23,7 +23,10 @@ jobs:
             # PM2 needs HOME to locate its daemon state in ~/.pm2.
             # Non-login shells from appleboy/ssh-action don't set HOME,
             # which silently breaks `pm2 reload` with "Process not found".
-            export HOME="${HOME:-/home/$USER}"
+            # appleboy/ssh-action uses a non-login shell where HOME is unset.
+            # PM2 keeps its daemon state in ~/.pm2, so hard-code the deploy
+            # user's home to avoid falling back to /etc/.pm2 (no write perms).
+            export HOME=/home/deploy
             cd /var/www/running-dinner/acc
             git pull origin develop
             npm install --production
@@ -51,7 +54,10 @@ jobs:
             # PM2 needs HOME to locate its daemon state in ~/.pm2.
             # Non-login shells from appleboy/ssh-action don't set HOME,
             # which silently breaks `pm2 reload` with "Process not found".
-            export HOME="${HOME:-/home/$USER}"
+            # appleboy/ssh-action uses a non-login shell where HOME is unset.
+            # PM2 keeps its daemon state in ~/.pm2, so hard-code the deploy
+            # user's home to avoid falling back to /etc/.pm2 (no write perms).
+            export HOME=/home/deploy
             cd /var/www/running-dinner/prod
             # Backup database before deploy
             mkdir -p /backup
