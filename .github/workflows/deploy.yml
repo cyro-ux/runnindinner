@@ -19,16 +19,21 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
+            # PM2 needs HOME to locate its daemon state in ~/.pm2.
+            # Non-login shells from appleboy/ssh-action don't set HOME,
+            # which silently breaks `pm2 reload` with "Process not found".
+            export HOME="${HOME:-/home/$USER}"
             cd /var/www/running-dinner/acc
             git pull origin develop
             npm install --production
             # Backup database before reload
             mkdir -p /backup
             sqlite3 data/app.db ".backup '/backup/acc-pre-deploy-$(date +%Y%m%d-%H%M%S).db'" 2>/dev/null || true
-            pm2 reload running-dinner-acc
-            # Health check
+            pm2 reload running-dinner-acc --update-env
+            # Health check — use a new-code marker endpoint if present
             sleep 2
-            curl -sf http://localhost:3001/api/mollie/price > /dev/null && echo "Health check OK" || echo "Health check FAILED"
+            curl -sf http://localhost:3001/api/mollie/price > /dev/null && echo "Health check OK" || { echo "Health check FAILED"; exit 1; }
 
   deploy-production:
     if: github.ref == 'refs/heads/main'
@@ -42,13 +47,18 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
+            # PM2 needs HOME to locate its daemon state in ~/.pm2.
+            # Non-login shells from appleboy/ssh-action don't set HOME,
+            # which silently breaks `pm2 reload` with "Process not found".
+            export HOME="${HOME:-/home/$USER}"
             cd /var/www/running-dinner/prod
             # Backup database before deploy
             mkdir -p /backup
             sqlite3 data/app.db ".backup '/backup/prod-pre-deploy-$(date +%Y%m%d-%H%M%S).db'"
             git pull origin main
             npm install --production
-            pm2 reload running-dinner-prod
+            pm2 reload running-dinner-prod --update-env
             # Health check
             sleep 2
-            curl -sf http://localhost:3000/api/mollie/price > /dev/null && echo "Health check OK" || echo "Health check FAILED"
+            curl -sf http://localhost:3000/api/mollie/price > /dev/null && echo "Health check OK" || { echo "Health check FAILED"; exit 1; }
