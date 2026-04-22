@@ -266,6 +266,39 @@
         </div>
       </div>
 
+      <!-- Conversie (signup → first-paid) -->
+      <div class="card">
+        <div class="card-title">Conversie (registratie → eerste betaling)</div>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">
+          Aandeel van accounts dat binnen de periode daadwerkelijk heeft betaald.
+          Dit is ons eigen DB-getal (niet Plausible). Voor funnel-metriek in
+          Plausible: zet in Plausible &rsaquo; Site Settings &rsaquo; Goals de events
+          <code>Signup</code>, <code>Payment-Start</code> en <code>Payment-Complete</code> aan.
+        </p>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <div class="stat" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px 12px;text-align:left">
+            <div class="stat-label" style="font-size:.72rem">Laatste 7 dagen</div>
+            <div class="stat-val" style="font-size:1.6rem" id="conv-7d">–</div>
+            <div class="stat-sub" style="font-size:.74rem" id="conv-7d-sub">–</div>
+          </div>
+          <div class="stat" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px 12px;text-align:left">
+            <div class="stat-label" style="font-size:.72rem">Laatste 30 dagen</div>
+            <div class="stat-val" style="font-size:1.6rem" id="conv-30d">–</div>
+            <div class="stat-sub" style="font-size:.74rem" id="conv-30d-sub">–</div>
+          </div>
+          <div class="stat" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px 12px;text-align:left">
+            <div class="stat-label" style="font-size:.72rem">Laatste 90 dagen</div>
+            <div class="stat-val" style="font-size:1.6rem" id="conv-90d">–</div>
+            <div class="stat-sub" style="font-size:.74rem" id="conv-90d-sub">–</div>
+          </div>
+          <div class="stat" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px 12px;text-align:left">
+            <div class="stat-label" style="font-size:.72rem">All-time</div>
+            <div class="stat-val" style="font-size:1.6rem" id="conv-all">–</div>
+            <div class="stat-sub" style="font-size:.74rem" id="conv-all-sub">–</div>
+          </div>
+        </div>
+      </div>
+
       <!-- User type breakdown -->
       <div class="card">
         <div class="card-title">Gebruikers per type</div>
@@ -1005,6 +1038,26 @@ async function loadDashboard() {
       bars.map((b,i) => `<div class="bar${i===11?' cur':''}" style="height:${Math.round(b/max*100)}%" title="${months[i]}"></div>`).join('');
     document.getElementById('revenue-labels').innerHTML =
       months.map(m => `<span>${m}</span>`).join('');
+
+    // Conversion ratio per window
+    try {
+      const cr = await fetch('/api/admin/conversion');
+      const cd = await cr.json();
+      if (cd.ok) {
+        for (const key of ['7d', '30d', '90d', 'all']) {
+          const w = cd.windows[key];
+          const el  = document.getElementById('conv-' + key);
+          const sub = document.getElementById('conv-' + key + '-sub');
+          el.textContent = w.signups === 0 ? '–' : (w.conversion.toFixed(1) + '%');
+          sub.textContent = `${w.paid} / ${w.signups} betaald`;
+          // Color hint: green >= 30%, amber 10-30%, red < 10% (ignore when signups == 0)
+          el.style.color = w.signups === 0 ? '#9CA3AF'
+            : w.conversion >= 30 ? '#166534'
+            : w.conversion >= 10 ? '#92400E'
+            : '#991B1B';
+        }
+      }
+    } catch (e) { /* non-fatal */ }
 
   } catch(e) { console.error(e); }
 }

@@ -1784,6 +1784,7 @@ async function submitRating() {
     if (res.ok) {
       status.textContent = data.message || I18n.t('app.rating.thanks', 'Bedankt!');
       status.style.color = 'var(--success)';
+      if (window.plausible) plausible('Review-Submit', { props: { score: String(score) } });
       setTimeout(() => closeRatingModal(), 1500);
     } else {
       status.textContent = data.error || I18n.t('app.rating.error', 'Er ging iets mis');
