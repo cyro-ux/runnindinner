@@ -3007,6 +3007,11 @@ app.get('/sitemap.xml', (req, res) => {
   const base = 'https://runningdinner.app';
   const today = new Date().toISOString().split('T')[0];
 
+  // Static marketing pages: a fixed lastmod stops Google from seeing
+  // "everything changed" on each deploy. Bump this date only when the
+  // visible content on these pages is meaningfully changed.
+  const STATIC_LASTMOD = '2026-04-21';
+
   // Pages with NL + EN + ES alternates
   const multilingualPages = [
     { nl: '/',                en: '/en/',                es: '/es/',                priority: '1.0', changefreq: 'weekly' },
@@ -3027,16 +3032,16 @@ app.get('/sitemap.xml', (req, res) => {
       urls += `
   <url>
     <loc>${base}${page[lang]}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${STATIC_LASTMOD}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>${hreflangBlock(page)}
   </url>`;
     }
   }
 
-  // Blog index + published posts (per locale — currently only NL posts exist)
+  // Blog index — listing itself barely changes; posts are separately timestamped
   urls += `
-  <url><loc>${base}/blog</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`;
+  <url><loc>${base}/blog</loc><lastmod>${STATIC_LASTMOD}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`;
   for (const lang of ['nl', 'en', 'es']) {
     for (const post of blog.listPublished(lang)) {
       const path = lang === 'nl' ? `/blog/${post.slug}` : `/${lang}/blog/${post.slug}`;

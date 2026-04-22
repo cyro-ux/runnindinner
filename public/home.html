@@ -88,7 +88,12 @@
   <link rel="stylesheet" href="home.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+  <!-- Non-blocking font load: browser downloads async, applies once ready.
+       Combined with font-display:swap in the URL, this removes ~100-300ms
+       of render-blocking time for new visitors while keeping the fallback
+       for no-JS bots. -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"></noscript>
 </head>
 <body>
 
@@ -139,15 +144,24 @@
     <div class="screenshot-carousel">
       <div class="screenshot-slides" id="screenshot-slides">
         <div class="screenshot-slide active">
-          <img src="/images/screenshot-deelnemers.jpg" alt="Deelnemers beheren met dieetwensen en beschikbaarheid" loading="lazy">
+          <picture>
+            <source srcset="/images/screenshot-deelnemers.webp" type="image/webp">
+            <img src="/images/screenshot-deelnemers.jpg" width="1400" height="900" alt="Deelnemers beheren met dieetwensen en beschikbaarheid" fetchpriority="high" decoding="async">
+          </picture>
           <span class="screenshot-label" data-i18n="hero.screenshot_participants">Deelnemers beheren</span>
         </div>
         <div class="screenshot-slide">
-          <img src="/images/screenshot-planning.jpg" alt="Automatische tafelindeling met drag &amp; drop" loading="lazy">
+          <picture>
+            <source srcset="/images/screenshot-planning.webp" type="image/webp">
+            <img src="/images/screenshot-planning.jpg" width="1400" height="900" alt="Automatische tafelindeling met drag &amp; drop" loading="lazy" decoding="async">
+          </picture>
           <span class="screenshot-label" data-i18n="hero.screenshot_planning">Slimme planning</span>
         </div>
         <div class="screenshot-slide">
-          <img src="/images/screenshot-envelop.jpg" alt="Printbare envelop-kaartjes per tafel" loading="lazy">
+          <picture>
+            <source srcset="/images/screenshot-envelop.webp" type="image/webp">
+            <img src="/images/screenshot-envelop.jpg" width="1400" height="900" alt="Printbare envelop-kaartjes per tafel" loading="lazy" decoding="async">
+          </picture>
           <span class="screenshot-label" data-i18n="hero.screenshot_envelopes">Envelop-kaartjes</span>
         </div>
       </div>

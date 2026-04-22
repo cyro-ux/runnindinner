@@ -1442,6 +1442,23 @@ function closeListModal() {
 }
 
 // ---- Excel Import / Export ----
+// SheetJS (xlsx.full.min.js) wordt pas geladen zodra de user op "Importeer"
+// of "Download sjabloon" klikt. Dat scheelt ~880KB aan initial app-load.
+let _xlsxLoading = null;
+function loadXlsx() {
+  if (typeof XLSX !== 'undefined') return Promise.resolve();
+  if (_xlsxLoading) return _xlsxLoading;
+  _xlsxLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = '/vendor/xlsx.full.min.js';
+    s.async = true;
+    s.onload  = () => resolve();
+    s.onerror = () => { _xlsxLoading = null; reject(new Error('xlsx load failed')); };
+    document.head.appendChild(s);
+  });
+  return _xlsxLoading;
+}
+
 function getTemplateHeaders() {
   return [
     I18n.t('app.excel.name_person1', 'Naam persoon 1*'),
@@ -1504,8 +1521,8 @@ function getInstructiesRows() {
   ];
 }
 
-function downloadTemplate() {
-  if (typeof XLSX === 'undefined') {
+async function downloadTemplate() {
+  try { await loadXlsx(); } catch {
     alert(I18n.t('app.alert.xlsx_not_loaded', 'Excel-bibliotheek nog niet geladen. Controleer de internetverbinding en probeer opnieuw.'));
     return;
   }
@@ -1537,12 +1554,13 @@ function downloadTemplate() {
   XLSX.writeFile(wb, I18n.t('app.excel.filename', 'running-dinner-deelnemers-sjabloon.xlsx'));
 }
 
-function importParticipantsFromFile(event) {
+async function importParticipantsFromFile(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  if (typeof XLSX === 'undefined') {
+  try { await loadXlsx(); } catch {
     showImportStatus('error', I18n.t('app.import.xlsx_not_loaded', 'Excel-bibliotheek niet geladen. Controleer de internetverbinding.'));
+    event.target.value = '';
     return;
   }
 

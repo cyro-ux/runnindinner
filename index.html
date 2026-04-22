@@ -8,7 +8,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="style.css">
-  <script src="/vendor/xlsx.full.min.js"></script>
+  <!-- SheetJS wordt lazy geladen bij de eerste klik op import/template
+       (lib is ~880KB; met lazy-load is de app ~1-2s sneller bootable op 4G).
+       Zie loadXlsx() in app.js. -->
+  <link rel="preload" as="script" href="/vendor/xlsx.full.min.js">
 </head>
 <body>
 
