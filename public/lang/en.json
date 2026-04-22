@@ -578,7 +578,23 @@
       "select_star": "Select at least 1 star",
       "thanks": "Thank you!",
       "error": "Something went wrong",
-      "network_error": "Network error"
+      "network_error": "Network error",
+      "hint_high": "Your review is even more valuable with a sentence — it will appear on the homepage once approved."
+    },
+
+    "onboarding": {
+      "skip": "Skip",
+      "next": "Next \u2192",
+      "finish": "Let's go! \u2713",
+      "counter": "Step {n} of 4",
+      "step1_title": "1. Set up the event",
+      "step1_body":  "Pick a date, a name, and which courses you want (aperitif, starter, main, dessert, digestif). Click \"To participants\" when ready.",
+      "step2_title": "2. Add participants",
+      "step2_body":  "Add participants manually, import via Excel, or use \"Load sample data\" (?dev in URL) to test quickly. Include dietary preferences where possible.",
+      "step3_title": "3. Calculate the plan",
+      "step3_body":  "The planner assigns tables automatically, taking dietary needs, availability and preferences into account. You can still adjust by hand afterwards.",
+      "step4_title": "4. Overview & print",
+      "step4_body":  "Print per-person routes or envelope cards for a table surprise. Save your planning as a snapshot to revisit later."
     },
 
     "auth": {

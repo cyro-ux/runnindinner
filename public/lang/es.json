@@ -578,7 +578,23 @@
       "select_star": "Selecciona al menos 1 estrella",
       "thanks": "¡Gracias!",
       "error": "Algo ha ido mal",
-      "network_error": "Error de red"
+      "network_error": "Error de red",
+      "hint_high": "Tu reseña es aún más valiosa con una frase \u2014 aparecerá en la página principal una vez aprobada."
+    },
+
+    "onboarding": {
+      "skip": "Omitir",
+      "next": "Siguiente \u2192",
+      "finish": "\u00A1Empezar! \u2713",
+      "counter": "Paso {n} de 4",
+      "step1_title": "1. Configura el evento",
+      "step1_body":  "Elige fecha, nombre y qu\u00E9 platos quieres (aperitivo, primer plato, plato principal, postre, caf\u00E9). Haz clic en \"A los participantes\" cuando est\u00E9 listo.",
+      "step2_title": "2. A\u00F1ade participantes",
+      "step2_body":  "A\u00F1ade participantes manualmente, importa desde Excel o usa \"Cargar datos de ejemplo\" (?dev en la URL) para probar r\u00E1pido. Incluye preferencias dietarias siempre que sea posible.",
+      "step3_title": "3. Calcula la planificaci\u00F3n",
+      "step3_body":  "El planificador asigna mesas autom\u00E1ticamente, teniendo en cuenta dietas, disponibilidad y preferencias. Despu\u00E9s puedes ajustar manualmente.",
+      "step4_title": "4. Resumen e imprimir",
+      "step4_body":  "Imprime rutas por persona o tarjetas de sobres para la sorpresa en la mesa. Guarda la planificaci\u00F3n como snapshot para consultarla m\u00E1s tarde."
     },
 
     "auth": {

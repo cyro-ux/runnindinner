@@ -284,6 +284,19 @@
     </section>
   </div>
 
+  <!-- Onboarding tour — toont bij eerste bezoek, te dismissen via knop of 'skip'.
+       Positie: fixed bottom-right, niet-blokkerend. State in localStorage. -->
+  <div id="onboarding-tour" role="dialog" aria-live="polite" style="display:none;position:fixed;right:20px;bottom:20px;z-index:900;max-width:360px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.12);padding:18px 20px;font-family:inherit">
+    <button onclick="closeOnboarding()" aria-label="Sluit" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:1.3rem;color:#94A3B8;cursor:pointer;line-height:1">×</button>
+    <div style="font-size:.72rem;font-weight:600;color:#E85D3A;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px" id="onb-step-counter">Stap 1 van 4</div>
+    <h3 id="onb-title" style="font-size:1.05rem;margin:0 0 8px;color:#1E293B">Welkom!</h3>
+    <p id="onb-body" style="font-size:.88rem;color:#475569;line-height:1.55;margin:0 0 14px">Laten we je eerste running dinner plannen — ik laat je de vier stappen zien.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center">
+      <button onclick="closeOnboarding()" style="background:none;border:none;color:#94A3B8;font-size:.82rem;cursor:pointer" data-i18n="app.onboarding.skip">Overslaan</button>
+      <button id="onb-next-btn" onclick="onboardingNext()" style="background:#E85D3A;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;box-shadow:0 4px 12px rgba(232,93,58,.25)" data-i18n="app.onboarding.next">Volgende →</button>
+    </div>
+  </div>
+
   <!-- Rating modal -->
   <div id="rating-modal" class="modal" style="display:none">
     <div class="modal-backdrop" onclick="closeRatingModal()"></div>

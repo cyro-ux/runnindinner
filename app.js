@@ -1743,6 +1743,10 @@ function showRatingModal() {
           <label style="font-size:.85rem;font-weight:600;color:var(--secondary);display:block;margin-bottom:6px">${I18n.t('app.rating.comment_label', 'Opmerking (optioneel)')}</label>
           <textarea id="rating-comment" rows="3" maxlength="1000" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:.9rem;resize:vertical"
             placeholder="${I18n.t('app.rating.comment_placeholder', 'Wat vind je goed? Wat kan beter?')}">${escapeHtml(currentComment)}</textarea>
+          <!-- Zachte hint bij hoge scores zonder comment: nodigt uit tot tekst. -->
+          <p id="rating-hint-high" style="display:none;font-size:.78rem;color:#92400E;background:#FFFBEB;border:1px solid #FCD34D;border-radius:6px;margin:6px 0 0;padding:8px 12px">
+            ✨ ${I18n.t('app.rating.hint_high', 'Je review is extra waardevol als je ook een zin schrijft — die komt bij goedkeuring op de homepage.')}
+          </p>
           <p style="font-size:.75rem;color:var(--text-light);margin:4px 0 0">${I18n.t('app.rating.moderation_notice', 'Reviews met een opmerking worden gemodereerd voordat ze zichtbaar zijn op de homepage.')}</p>
         </div>
         <div style="display:flex;gap:10px;justify-content:flex-end">
@@ -1751,6 +1755,10 @@ function showRatingModal() {
         </div>
         <p id="rating-status" style="font-size:.85rem;margin-top:10px;text-align:center"></p>`;
       modal.style.display = 'flex';
+      // Bind comment-input listener + initial hint-state
+      const commentEl = document.getElementById('rating-comment');
+      if (commentEl) commentEl.addEventListener('input', updateRatingHint);
+      updateRatingHint();
     })
     .catch(() => {});
 }
@@ -1774,6 +1782,17 @@ function selectStar(n) {
   _selectedStar = n;
   document.getElementById('rating-score').value = n;
   hoverStars(n);
+  updateRatingHint();
+}
+
+// Toon een zachte hint als de user 4 of 5 sterren geeft zonder opmerking.
+function updateRatingHint() {
+  const hint = document.getElementById('rating-hint-high');
+  if (!hint) return;
+  const score = parseInt(document.getElementById('rating-score')?.value || '0', 10);
+  const commentEl = document.getElementById('rating-comment');
+  const hasComment = commentEl && commentEl.value.trim().length > 0;
+  hint.style.display = (score >= 4 && !hasComment) ? 'block' : 'none';
 }
 
 async function submitRating() {
@@ -1864,6 +1883,89 @@ function init() {
   if (new URLSearchParams(location.search).has('review')) {
     setTimeout(() => { try { showRatingModal(); } catch {} }, 300);
   }
+
+  // Onboarding-tour bij eerste bezoek (skipbaar + onthouden in localStorage)
+  maybeShowOnboarding();
+}
+
+// ---- Onboarding Tour ----
+// 4 stappen, één tooltip per keer, rechts-onder. State in localStorage
+// zodat gebruikers die 'm afsluiten 'm niet opnieuw krijgen.
+const ONBOARDING_STEPS = [
+  {
+    step: 1,
+    titleKey: 'app.onboarding.step1_title', titleFallback: '1. Event instellen',
+    bodyKey:  'app.onboarding.step1_body',  bodyFallback:  'Kies datum, naam en welke gangen je wilt (voorborrel, voor-, hoofd-, nagerecht, naborrel). Klik op "Naar deelnemers" als je tevreden bent.',
+    scrollTo: 'step-1',
+  },
+  {
+    step: 2,
+    titleKey: 'app.onboarding.step2_title', titleFallback: '2. Deelnemers toevoegen',
+    bodyKey:  'app.onboarding.step2_body',  bodyFallback:  'Voeg handmatig deelnemers toe, importeer via Excel of gebruik "Laad voorbeelddata" (?dev in URL) om snel te testen. Vul waar mogelijk dieetwensen in.',
+    scrollTo: 'step-2',
+  },
+  {
+    step: 3,
+    titleKey: 'app.onboarding.step3_title', titleFallback: '3. Planning berekenen',
+    bodyKey:  'app.onboarding.step3_body',  bodyFallback:  'De planner wijst automatisch tafels toe, rekening houdend met dieetwensen, beschikbaarheid en voorkeuren. Je kunt naderhand nog handmatig schuiven.',
+    scrollTo: 'step-3',
+  },
+  {
+    step: 4,
+    titleKey: 'app.onboarding.step4_title', titleFallback: '4. Overzicht & afdrukken',
+    bodyKey:  'app.onboarding.step4_body',  bodyFallback:  'Print per-persoon routes of envelop-kaartjes voor de verrassing bij tafel. Sla je planning op als momentopname om later te raadplegen.',
+    scrollTo: 'step-4',
+  },
+];
+let _onboardingStepIdx = 0;
+
+function maybeShowOnboarding() {
+  try {
+    if (localStorage.getItem('rda-onboarding-done') === '1') return;
+  } catch { /* localStorage blocked */ return; }
+  const el = document.getElementById('onboarding-tour');
+  if (!el) return;
+  _onboardingStepIdx = 0;
+  // Korte vertraging zodat de initial render eerst klaar is
+  setTimeout(() => {
+    renderOnboardingStep();
+    el.style.display = 'block';
+  }, 800);
+}
+
+function renderOnboardingStep() {
+  const s = ONBOARDING_STEPS[_onboardingStepIdx];
+  if (!s) { closeOnboarding(true); return; }
+  const titleEl   = document.getElementById('onb-title');
+  const bodyEl    = document.getElementById('onb-body');
+  const counterEl = document.getElementById('onb-step-counter');
+  const nextBtn   = document.getElementById('onb-next-btn');
+  if (!titleEl || !bodyEl || !counterEl || !nextBtn) return;
+  titleEl.textContent = I18n.t(s.titleKey, s.titleFallback);
+  bodyEl.textContent  = I18n.t(s.bodyKey,  s.bodyFallback);
+  counterEl.textContent = I18n.t('app.onboarding.counter', 'Stap {n} van 4').replace('{n}', s.step);
+  nextBtn.textContent = (_onboardingStepIdx === ONBOARDING_STEPS.length - 1)
+    ? I18n.t('app.onboarding.finish', 'Begin! ✓')
+    : I18n.t('app.onboarding.next', 'Volgende →');
+  // Scroll de bijbehorende stap in beeld (zachte highlight)
+  const target = document.getElementById(s.scrollTo);
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function onboardingNext() {
+  _onboardingStepIdx++;
+  if (_onboardingStepIdx >= ONBOARDING_STEPS.length) {
+    closeOnboarding(true);
+  } else {
+    renderOnboardingStep();
+  }
+}
+
+function closeOnboarding(finished = false) {
+  const el = document.getElementById('onboarding-tour');
+  if (el) el.style.display = 'none';
+  try { localStorage.setItem('rda-onboarding-done', '1'); } catch {}
+  if (window.plausible) plausible('Onboarding-' + (finished ? 'Finish' : 'Skip'));
 }
 
 document.addEventListener('DOMContentLoaded', init);
