@@ -280,6 +280,14 @@ cmsDefault.run('features_intro_es', 'Cada función nació de un problema que enc
 cmsDefault.run('price_label_es', '€5 al año', now);
 cmsDefault.run('footer_text_es', 'Creado desde la experiencia personal. Cada función soluciona un problema real.', now);
 
+// Seed German CMS defaults (formal "Sie", matching Dutch live texts)
+cmsDefault.run('hero_title_de', 'Vom Tabellenchaos zur fertigen Planung in Minuten', now);
+cmsDefault.run('hero_subtitle_de', 'Nach Jahren eigener Running Dinners mit endlosen Tabellen, doppelten Gästen und falschen Routen habe ich dieses Tool gebaut. Alles, worüber ich stolperte, ist bereits standardmäßig eingebaut.', now);
+cmsDefault.run('hero_cta_de', 'Jetzt starten für €5/Jahr', now);
+cmsDefault.run('features_intro_de', 'Jede Funktion entstand aus einem Problem, dem ich beim Organisieren begegnet bin. Kein unnötiger Schnickschnack — nur was Sie wirklich brauchen.', now);
+cmsDefault.run('price_label_de', '€5 pro Jahr', now);
+cmsDefault.run('footer_text_de', 'Aus persönlicher Erfahrung gebaut. Jede Funktion löst ein echtes Problem.', now);
+
 // Seed admin account (once)
 (async () => {
   const existing = db.prepare('SELECT id FROM users WHERE role = ?').get('admin');
@@ -2080,7 +2088,7 @@ app.get('/api/cms', (req, res) => {
   const rows = db.prepare('SELECT key, value FROM cms').all();
   const all  = Object.fromEntries(rows.map(r => [r.key, r.value]));
   const lang = req.lang || 'nl';
-  const LANG_SUFFIXES = ['_en', '_es'];
+  const LANG_SUFFIXES = ['_en', '_es', '_de'];
 
   // Build language-aware CMS object:
   // For non-NL: if hero_title_{lang} exists, return it under `hero_title` (client stays simple)
