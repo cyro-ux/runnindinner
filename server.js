@@ -508,6 +508,12 @@ async function sendInvoiceMail(user, payment) {
 // ── Express app ───────────────────────────────────────────────────────────────
 const app = express();
 
+// We draaien achter Cloudflare → nginx (loopback) → Express op 127.0.0.1:3000.
+// Dat zijn 2 proxy-hops. Zonder 'trust proxy' logt express-rate-limit een
+// ValidationError bij elke request met X-Forwarded-For en kan het geen
+// correct bron-IP lezen voor rate-limiting.
+app.set('trust proxy', 2);
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' })); // Mollie webhook sends urlencoded body
 app.use(cookieParser());

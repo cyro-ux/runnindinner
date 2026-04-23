@@ -39,7 +39,13 @@ jobs:
             pm2 reload running-dinner-acc --update-env
             # Health check — use a new-code marker endpoint if present
             sleep 2
-            curl -sf http://localhost:3001/api/mollie/price > /dev/null && echo "Health check OK" || { echo "Health check FAILED"; exit 1; }
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              if curl -sf http://localhost:3001/api/mollie/price > /dev/null; then
+                echo "Health check OK (na $i s)"; exit 0
+              fi
+              sleep 1
+            done
+            echo "Health check FAILED na 10s"; exit 1
 
   deploy-production:
     if: github.ref == 'refs/heads/main'
@@ -71,6 +77,12 @@ jobs:
             git pull origin main
             npm install --production
             pm2 reload running-dinner-prod --update-env
-            # Health check
-            sleep 2
-            curl -sf http://localhost:3000/api/mollie/price > /dev/null && echo "Health check OK" || { echo "Health check FAILED"; exit 1; }
+            # Health check: retry up to 10× met 1s pauze (PM2 reload duurt
+            # soms langer dan een vaste 2s sleep; deze aanpak is robuuster)
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              if curl -sf http://localhost:3000/api/mollie/price > /dev/null; then
+                echo "Health check OK (na $i s)"; exit 0
+              fi
+              sleep 1
+            done
+            echo "Health check FAILED na 10s"; exit 1
