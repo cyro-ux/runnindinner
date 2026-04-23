@@ -13,6 +13,7 @@ node_modules/
 # Temporary build files
 docx-gen/
 create-docx.js
+.tmp/
 
 # OS files
 .DS_Store

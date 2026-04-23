@@ -384,6 +384,81 @@ function wrapHtml(body, lang = 'nl') {
 </html>`;
 }
 
+/**
+ * Dedicated wrapper voor factuur-mails. Toont het runningdinner.app logo in
+ * de header en een duidelijk VMH-blok in de footer (KvK, BTW, adres). De
+ * Zoho PDF-bijlage is juridisch de factuur — deze e-mail communiceert dat
+ * de betaling door VMH B.V. wordt verwerkt (runningdinner.app is een
+ * product van VMH).
+ */
+function wrapInvoiceHtml(body, lang = 'nl') {
+  const footerLines = {
+    nl: [
+      'runningdinner.app is een product van <strong>VMH B.V.</strong>',
+      'KvK 83892183 &bull; BTW NL863034432B01',
+      'Soester Engweg 15, 3763 KK Soest, Nederland',
+      '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
+    ],
+    en: [
+      'runningdinner.app is a product of <strong>VMH B.V.</strong>',
+      'Chamber of Commerce 83892183 &bull; VAT NL863034432B01',
+      'Soester Engweg 15, 3763 KK Soest, The Netherlands',
+      '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
+    ],
+    es: [
+      'runningdinner.app es un producto de <strong>VMH B.V.</strong>',
+      'Cámara de Comercio 83892183 &bull; NIF NL863034432B01',
+      'Soester Engweg 15, 3763 KK Soest, Países Bajos',
+      '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
+    ],
+    de: [
+      'runningdinner.app ist ein Produkt der <strong>VMH B.V.</strong>',
+      'Handelskammer 83892183 &bull; USt-IdNr. NL863034432B01',
+      'Soester Engweg 15, 3763 KK Soest, Niederlande',
+      '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
+    ],
+  };
+  const lines = footerLines[lang] || footerLines.nl;
+  return `<!DOCTYPE html>
+<html lang="${lang}" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Running Dinner Planner</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f5f7;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7">
+    <tr>
+      <td align="center" style="padding:24px 16px">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;max-width:560px;width:100%">
+          <tr>
+            <td align="center" style="padding:32px 24px 8px 24px">
+              <a href="https://runningdinner.app" style="text-decoration:none">
+                <img src="https://runningdinner.app/images/runningdinner-logo-email.png" alt="runningdinner.app" width="200" style="width:200px;height:auto;display:block;border:0">
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 32px 24px 32px">
+              ${body}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:18px 32px;border-top:1px solid #e5e7eb;text-align:center">
+              <p style="margin:0;color:#6b7280;font-size:11px;line-height:17px">
+                ${lines.join('<br>')}
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -459,7 +534,8 @@ const INVOICE_LABELS = {
 async function sendInvoiceMail(user, payment) {
   const lang = user.language || 'nl';
   const locale = EMAIL_LOCALES[lang] || EMAIL_LOCALES.nl;
-  const L = INVOICE_LABELS[lang] || INVOICE_LABELS.nl;
+  // DE: val terug op EN (Engelse factuur-mail) i.p.v. NL. TODO: eigen INVOICE_LABELS.de.
+  const L = INVOICE_LABELS[lang] || INVOICE_LABELS.en || INVOICE_LABELS.nl;
   const untilDate = new Date(user.license_until).toLocaleDateString(locale);
 
   // Optioneel waiver-bevestigingsblok — uitsluitend als de klant bij checkout
@@ -476,9 +552,8 @@ async function sendInvoiceMail(user, payment) {
   }
 
   const html = `
-          <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-          <p style="color:#374151;line-height:1.6">${L.hi}</p>
-          <p style="color:#374151;line-height:1.6">${L.thanks(untilDate)}</p>
+          <p style="color:#374151;line-height:1.6;margin:0 0 12px">${L.hi}</p>
+          <p style="color:#374151;line-height:1.6;margin:0 0 16px">${L.thanks(untilDate)}</p>
           <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px">
             <tr style="background:#f3f4f6">
               <td style="padding:8px 12px;color:#374151">${L.invoice_number}</td>
@@ -499,10 +574,10 @@ async function sendInvoiceMail(user, payment) {
           </table>
           ${waiverBlock}
           <p style="margin:24px 0;text-align:center">
-            <a href="${BASE_URL}/app" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${L.open_planner}</a>
+            <a href="${BASE_URL}/app" style="background:#E85D3A;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${L.open_planner}</a>
           </p>
   `;
-  await sendMail(user.email, L.subject(payment.invoice_number), wrapHtml(html, lang));
+  await sendMail(user.email, L.subject(payment.invoice_number), wrapInvoiceHtml(html, lang));
 }
 
 // ── Express app ───────────────────────────────────────────────────────────────
@@ -519,7 +594,7 @@ app.use(express.urlencoded({ extended: false, limit: '1mb' })); // Mollie webhoo
 app.use(cookieParser());
 
 // ── Language detection middleware ─────────────────────────────────────────────
-const SUPPORTED_LANGS = ['nl', 'en', 'es'];
+const SUPPORTED_LANGS = ['nl', 'en', 'es', 'de'];
 function detectLanguage(req, res, next) {
   // 1. URL path: /en/, /es/, etc. prefix = explicit choice
   let matched = null;
@@ -538,6 +613,7 @@ function detectLanguage(req, res, next) {
   } else {
     const accept = (req.headers['accept-language'] || '').toLowerCase();
     if (accept.startsWith('es')) req.lang = 'es';
+    else if (accept.startsWith('de')) req.lang = 'de';
     else if (accept.startsWith('en')) req.lang = 'en';
     else req.lang = 'nl';
   }
@@ -640,9 +716,11 @@ app.use('/api/', apiLimiter);
 app.use('/app', express.static(path.join(__dirname)));
 app.use('/en/app', express.static(path.join(__dirname)));  // English version serves same static files
 app.use('/es/app', express.static(path.join(__dirname)));  // Spanish version serves same static files
+app.use('/de/app', express.static(path.join(__dirname)));  // German version serves same static files
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 app.use('/en', express.static(path.join(__dirname, 'public'))); // English public files (CSS, images, lang/)
 app.use('/es', express.static(path.join(__dirname, 'public'))); // Spanish public files (CSS, images, lang/)
+app.use('/de', express.static(path.join(__dirname, 'public'))); // German public files (CSS, images, lang/)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Server-side translations ─────────────────────────────────────────────────
@@ -796,7 +874,9 @@ const T = {
   }
 };
 function t(req, key, replacements) {
-  let msg = (T[req?.lang || 'nl'] || T.nl)[key] || T.nl[key] || key;
+  // DE heeft (nog) geen eigen strings — val terug op EN i.p.v. NL, beter voor
+  // Duitstalige gebruikers. TODO: eigen T.de sectie toevoegen wanneer tijd is.
+  let msg = (T[req?.lang || 'nl'] || T.en || T.nl)[key] || T.en?.[key] || T.nl[key] || key;
   if (replacements) {
     for (const [k, v] of Object.entries(replacements)) {
       msg = msg.replace(`{${k}}`, v);
@@ -922,7 +1002,7 @@ app.post('/api/auth/login', async (req, res) => {
   });
 
   // Set language cookie from user preference
-  if (user.language && ['nl', 'en'].includes(user.language)) {
+  if (user.language && SUPPORTED_LANGS.includes(user.language)) {
     res.cookie('lang', user.language, { maxAge: 365 * 86400000, sameSite: 'lax' });
   }
 
@@ -3018,23 +3098,24 @@ app.get('/sitemap.xml', (req, res) => {
   // visible content on these pages is meaningfully changed.
   const STATIC_LASTMOD = '2026-04-21';
 
-  // Pages with NL + EN + ES alternates
+  // Pages with NL + EN + ES + DE alternates
   const multilingualPages = [
-    { nl: '/',                en: '/en/',                es: '/es/',                priority: '1.0', changefreq: 'weekly' },
-    { nl: '/login.html',      en: '/en/login.html',      es: '/es/login.html',      priority: '0.6', changefreq: 'monthly' },
-    { nl: '/register.html',   en: '/en/register.html',   es: '/es/register.html',   priority: '0.7', changefreq: 'monthly' },
-    { nl: '/subscribe.html',  en: '/en/subscribe.html',  es: '/es/subscribe.html',  priority: '0.7', changefreq: 'monthly' },
+    { nl: '/',                en: '/en/',                es: '/es/',                de: '/de/',                priority: '1.0', changefreq: 'weekly' },
+    { nl: '/login.html',      en: '/en/login.html',      es: '/es/login.html',      de: '/de/login.html',      priority: '0.6', changefreq: 'monthly' },
+    { nl: '/register.html',   en: '/en/register.html',   es: '/es/register.html',   de: '/de/register.html',   priority: '0.7', changefreq: 'monthly' },
+    { nl: '/subscribe.html',  en: '/en/subscribe.html',  es: '/es/subscribe.html',  de: '/de/subscribe.html',  priority: '0.7', changefreq: 'monthly' },
   ];
 
   const hreflangBlock = (page) => `
     <xhtml:link rel="alternate" hreflang="nl" href="${base}${page.nl}"/>
     <xhtml:link rel="alternate" hreflang="en" href="${base}${page.en}"/>
     <xhtml:link rel="alternate" hreflang="es" href="${base}${page.es}"/>
+    <xhtml:link rel="alternate" hreflang="de" href="${base}${page.de}"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="${base}${page.nl}"/>`;
 
   let urls = '';
   for (const page of multilingualPages) {
-    for (const lang of ['nl', 'en', 'es']) {
+    for (const lang of ['nl', 'en', 'es', 'de']) {
       urls += `
   <url>
     <loc>${base}${page[lang]}</loc>
@@ -3048,7 +3129,7 @@ app.get('/sitemap.xml', (req, res) => {
   // Blog index — listing itself barely changes; posts are separately timestamped
   urls += `
   <url><loc>${base}/blog</loc><lastmod>${STATIC_LASTMOD}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`;
-  for (const lang of ['nl', 'en', 'es']) {
+  for (const lang of ['nl', 'en', 'es', 'de']) {
     for (const post of blog.listPublished(lang)) {
       const path = lang === 'nl' ? `/blog/${post.slug}` : `/${lang}/blog/${post.slug}`;
       const lastmod = post.date || today;
@@ -3277,6 +3358,108 @@ try {
   console.warn('[boot] Could not generate Spanish homepage variant:', e.message);
 }
 
+// ── German homepage SEO variant (built at boot, cached in memory) ──────────
+let homeHtmlDE = null;
+try {
+  let html = fs.readFileSync(homeHtmlPath, 'utf8');
+
+  // 1. <html lang>
+  html = html.replace('<html lang="nl">', '<html lang="de">');
+
+  // 2. <title>
+  html = html.replace(
+    /<title>[^<]+<\/title>/,
+    '<title>Running Dinner organisieren – Der einfachste Planer | Running Dinner Planner</title>'
+  );
+
+  // 3. <meta description>
+  html = html.replace(
+    /<meta name="description" content="[^"]*">/,
+    '<meta name="description" content="Von einem Organisator für Organisatoren entwickelt. Vom Tabellenchaos zur fertigen Planung in Minuten. Abonnement für nur €5 pro Jahr.">'
+  );
+
+  // 4. keywords
+  html = html.replace(
+    /<meta name="keywords" content="[^"]*">/,
+    '<meta name="keywords" content="running dinner, laufendes dinner, progressive dinner, running dinner organisieren, running dinner planen, running dinner app">'
+  );
+
+  // 5. canonical
+  html = html.replace(
+    /<link rel="canonical" href="https:\/\/runningdinner\.app\/">/,
+    '<link rel="canonical" href="https://runningdinner.app/de/">'
+  );
+
+  // 6. Open Graph
+  html = html.replace(
+    /<meta property="og:url" content="https:\/\/runningdinner\.app\/">/,
+    '<meta property="og:url" content="https://runningdinner.app/de/">'
+  );
+  html = html.replace(
+    /<meta property="og:title" content="[^"]*">/,
+    '<meta property="og:title" content="Running Dinner Planner – Vom Tabellenchaos zur Planung in Minuten">'
+  );
+  html = html.replace(
+    /<meta property="og:description" content="[^"]*">/,
+    '<meta property="og:description" content="Von einem Organisator für Organisatoren. Alles, worüber ich stolperte, ist bereits integriert.">'
+  );
+
+  // 7. Twitter Card
+  html = html.replace(
+    /<meta name="twitter:title" content="[^"]*">/,
+    '<meta name="twitter:title" content="Running Dinner Planner – Vom Chaos zur Planung in Minuten">'
+  );
+  html = html.replace(
+    /<meta name="twitter:description" content="[^"]*">/,
+    '<meta name="twitter:description" content="Von einem Organisator entwickelt. Alles, was Sie brauchen, ist integriert. €5 pro Jahr.">'
+  );
+
+  // 8. Schema.org SoftwareApplication
+  html = html.replace(
+    '"description": "Organiseer een running dinner moeiteloos. Plan routes, wijs tafels toe en druk enveloppen af."',
+    '"description": "Organisieren Sie ein Running Dinner mühelos. Planen Sie Routen, weisen Sie Tische zu und drucken Sie Umschläge."'
+  );
+  html = html.replace(
+    '"url": "https://runningdinner.app/"',
+    '"url": "https://runningdinner.app/de/"'
+  );
+  html = html.replace(
+    '"description": "1 jaar abonnement"',
+    '"description": "1 Jahr Abonnement"'
+  );
+
+  // 9. FAQ structured data
+  html = html.replace(
+    '"name": "Wat is een running dinner?"',
+    '"name": "Was ist ein Running Dinner?"'
+  );
+  html = html.replace(
+    '"text": "Een running dinner (ook wel lopend diner of diner en route) is een sociaal evenement waarbij deelnemers elke gang van het diner bij een andere gastheer eten. Zo ontmoet iedereen nieuwe mensen."',
+    '"text": "Ein Running Dinner (auch Laufendes Dinner oder Progressive Dinner genannt) ist eine gesellige Veranstaltung, bei der die Teilnehmer jeden Gang bei einem anderen Gastgeber einnehmen. So lernen alle neue Leute kennen."'
+  );
+  html = html.replace(
+    '"name": "Hoe werkt de Running Dinner Planner?"',
+    '"name": "Wie funktioniert der Running Dinner Planner?"'
+  );
+  html = html.replace(
+    '"text": "Je voert deelnemers in, configureert de gangenstructuur en de planner wijst automatisch tafels en routes toe zodat iedereen zoveel mogelijk nieuwe tafelgenoten ontmoet. Daarna druk je de envelop-kaartjes af."',
+    '"text": "Sie geben Teilnehmer ein, konfigurieren die Gangstruktur, und der Planer weist automatisch Tische und Routen zu, sodass jeder so viele neue Tischgäste wie möglich trifft. Anschließend drucken Sie die Umschlag-Karten."'
+  );
+  html = html.replace(
+    '"name": "Hoeveel kost de Running Dinner Planner?"',
+    '"name": "Wie viel kostet der Running Dinner Planner?"'
+  );
+  html = html.replace(
+    '"text": "Het abonnement kost slechts €5 per jaar. Je kunt daarmee onbeperkt evenementen organiseren."',
+    '"text": "Das Abonnement kostet nur €5 pro Jahr. Damit können Sie unbegrenzt Events organisieren."'
+  );
+
+  homeHtmlDE = html;
+  console.log('[boot] German homepage SEO variant generated');
+} catch (e) {
+  console.warn('[boot] Could not generate German homepage variant:', e.message);
+}
+
 // Serve English homepage with SEO-optimized <head>
 app.get('/en/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get(['/en', '/en/'], (req, res) => {
@@ -3305,6 +3488,24 @@ app.get(['/es', '/es/'], (req, res) => {
   }
 });
 app.get('/es/:page.html', (req, res) => {
+  const file = path.join(__dirname, 'public', `${req.params.page}.html`);
+  if (fs.existsSync(file)) {
+    res.sendFile(file);
+  } else {
+    res.status(404).sendFile(homeHtmlPath);
+  }
+});
+
+// Serve German homepage with SEO-optimized <head>
+app.get('/de/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get(['/de', '/de/'], (req, res) => {
+  if (homeHtmlDE) {
+    res.type('html').send(homeHtmlDE);
+  } else {
+    res.sendFile(homeHtmlPath);
+  }
+});
+app.get('/de/:page.html', (req, res) => {
   const file = path.join(__dirname, 'public', `${req.params.page}.html`);
   if (fs.existsSync(file)) {
     res.sendFile(file);
@@ -3343,7 +3544,7 @@ const BLOG_STYLE = `
 `;
 
 function renderBlogShell(title, content, locale, opts = {}) {
-  const headerLinks = `<a href="/">← ${locale === 'en' ? 'Back to home' : locale === 'es' ? 'Volver al inicio' : 'Terug naar home'}</a>`;
+  const headerLinks = `<a href="/">← ${locale === 'en' ? 'Back to home' : locale === 'es' ? 'Volver al inicio' : locale === 'de' ? 'Zurück zur Startseite' : 'Terug naar home'}</a>`;
   const robots = opts.noindex
     ? '<meta name="robots" content="noindex,nofollow">'
     : '<meta name="robots" content="index,follow">';
@@ -3376,13 +3577,14 @@ ${content}
 }
 
 // Public blog listing (only published posts)
-app.get(['/blog', '/en/blog', '/es/blog'], (req, res) => {
+app.get(['/blog', '/en/blog', '/es/blog', '/de/blog'], (req, res) => {
   const locale = req.lang || 'nl';
   const prefix = locale === 'nl' ? '/blog' : `/${locale}/blog`;
   const posts = blog.listPublished(locale);
-  const listTitle = locale === 'en' ? 'Blog' : locale === 'es' ? 'Blog' : 'Blog';
+  const listTitle = 'Blog';
   const emptyText = locale === 'en' ? 'No posts yet. Come back soon.'
     : locale === 'es' ? 'Aún no hay artículos. Vuelve pronto.'
+    : locale === 'de' ? 'Noch keine Artikel. Schauen Sie bald wieder vorbei.'
     : 'Nog geen artikelen. Kom binnenkort terug.';
   let content = `<h1>${listTitle}</h1>`;
   if (!posts.length) {
@@ -3402,12 +3604,13 @@ app.get(['/blog', '/en/blog', '/es/blog'], (req, res) => {
     canonical: `https://runningdinner.app${prefix}`,
     description: locale === 'en' ? 'Running Dinner Planner blog — tips and guides for organisers.'
       : locale === 'es' ? 'Blog de Running Dinner Planner — consejos y guías para organizadores.'
+      : locale === 'de' ? 'Running Dinner Planner Blog — Tipps und Anleitungen für Organisatoren.'
       : 'Running Dinner Planner blog — tips en gidsen voor organisatoren.',
   }));
 });
 
 // Individual blog post
-app.get(['/blog/:slug', '/en/blog/:slug', '/es/blog/:slug'], (req, res) => {
+app.get(['/blog/:slug', '/en/blog/:slug', '/es/blog/:slug', '/de/blog/:slug'], (req, res) => {
   const locale = req.lang || 'nl';
   const prefix = locale === 'nl' ? '/blog' : `/${locale}/blog`;
   const post = blog.getBySlug(req.params.slug, locale);
@@ -3447,6 +3650,7 @@ app.put('/api/admin/blog/:filename/draft', requireAdmin, (req, res) => {
   app.get('/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
   app.get('/en/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
   app.get('/es/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
+  app.get('/de/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
 });
 
 // ── SPA fallbacks ─────────────────────────────────────────────────────────────

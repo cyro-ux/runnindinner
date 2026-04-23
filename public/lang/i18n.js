@@ -19,7 +19,7 @@ const I18n = (() => {
   let _ready = false;
   const _callbacks = [];
 
-  const SUPPORTED = ['nl', 'en', 'es'];
+  const SUPPORTED = ['nl', 'en', 'es', 'de'];
 
   // Detect language from URL path, cookie, or <html lang>
   function detectLang() {
@@ -176,7 +176,7 @@ const I18n = (() => {
   }
 
   // Language display labels (used in toggle)
-  const LANG_LABELS = { nl: 'NL', en: 'EN', es: 'ES' };
+  const LANG_LABELS = { nl: 'NL', en: 'EN', es: 'ES', de: 'DE' };
 
   // Build a language toggle element (NL | EN | ES)
   function createToggle() {
