@@ -3569,6 +3569,53 @@ function renderBlogShell(title, content, locale, opts = {}) {
   // Logo-URL is taal-agnostisch; op niet-NL serves wordt het bestand
   // via /en|/es|/de-prefix static mount bereikt, maar direct pad werkt altijd.
   const logoHeader = `<header class="blog-header"><a href="/" aria-label="runningdinner.app"><img src="/images/runningdinner-logo-email.png" alt="runningdinner.app" width="200" height="50"></a></header>`;
+
+  // BlogPosting JSON-LD voor rich snippets (datum, auteur, leestijd) in
+  // Google search-resultaten. Alleen genereren voor ECHTE posts
+  // (opts.post aanwezig), niet voor de blog-listing of 404-pagina.
+  let jsonLd = '';
+  let ogTags = '';
+  if (opts.post && !opts.noindex) {
+    const p = opts.post;
+    const fallbackImg = 'https://runningdinner.app/images/screenshot-planning.jpg';
+    const imgUrl = p.image || fallbackImg;
+    const pageUrl = opts.canonical || `https://runningdinner.app/blog/${p.slug}`;
+    const ld = {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: p.title,
+      description: p.description || '',
+      image: imgUrl,
+      author: { '@type': 'Person', name: p.author || 'Cyro van Malsen' },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Running Dinner Planner',
+        logo: { '@type': 'ImageObject', url: 'https://runningdinner.app/images/runningdinner-logo-email.png' },
+      },
+      datePublished: p.date || '',
+      dateModified: p.date || '',
+      mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+      inLanguage: locale,
+      keywords: p.keywords || '',
+    };
+    jsonLd = `<script type="application/ld+json">${JSON.stringify(ld)}</script>`;
+    // Open Graph + Twitter Card zodat blog-shares op Facebook/LinkedIn/X
+    // rijke previews tonen met titel, beschrijving en afbeelding.
+    ogTags = `
+<meta property="og:type" content="article">
+<meta property="og:title" content="${String(p.title).replace(/"/g, '&quot;')}">
+<meta property="og:description" content="${String(p.description || '').replace(/"/g, '&quot;')}">
+<meta property="og:image" content="${imgUrl}">
+<meta property="og:url" content="${pageUrl}">
+<meta property="og:locale" content="${locale === 'nl' ? 'nl_NL' : locale === 'en' ? 'en_GB' : locale === 'es' ? 'es_ES' : 'de_DE'}">
+<meta property="article:published_time" content="${p.date || ''}">
+<meta property="article:author" content="${p.author || 'Cyro van Malsen'}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${String(p.title).replace(/"/g, '&quot;')}">
+<meta name="twitter:description" content="${String(p.description || '').replace(/"/g, '&quot;')}">
+<meta name="twitter:image" content="${imgUrl}">`;
+  }
+
   return `<!DOCTYPE html>
 <html lang="${locale}">
 <head>
@@ -3576,11 +3623,12 @@ function renderBlogShell(title, content, locale, opts = {}) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 ${robots}
 ${descMeta}
-${canonical}
+${canonical}${ogTags}
 <title>${title}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>${BLOG_STYLE}</style>
+${jsonLd}
 </head>
 <body>
 ${logoHeader}
@@ -3643,6 +3691,7 @@ app.get(['/blog/:slug', '/en/blog/:slug', '/es/blog/:slug', '/de/blog/:slug'], (
     noindex:     post.draft,   // drafts noindex; publicaties indexeerbaar
     canonical:   `https://runningdinner.app${prefix}/${post.slug}`,
     description: post.description || '',
+    post,                      // voor BlogPosting JSON-LD + OG-tags
   }));
 });
 
