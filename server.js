@@ -3557,6 +3557,14 @@ const BLOG_STYLE = `
   .blog-header a { display: inline-block; text-decoration: none; }
   .blog-header img { display: block; height: auto; max-width: 200px; }
   .blog-page { margin-top: 24px; }
+  .blog-related { max-width: 780px; margin: 48px auto 60px; padding: 24px; background: #FFFBF7; border-radius: 12px; border: 1px solid #FDE5D0; }
+  .blog-related h2 { font-size: 1.15rem; margin: 0 0 16px; color: #1E293B; }
+  .blog-related ul { list-style: none; margin: 0; padding: 0; }
+  .blog-related li { padding: 10px 0; border-bottom: 1px solid #FDE5D0; }
+  .blog-related li:last-child { border-bottom: none; }
+  .blog-related li a { color: #E85D3A; font-weight: 600; text-decoration: none; font-size: .98rem; }
+  .blog-related li a:hover { text-decoration: underline; }
+  .blog-related .related-desc { color: #64748B; font-size: .88rem; font-weight: 400; line-height: 1.5; display: inline-block; margin-top: 2px; }
 `;
 
 function renderBlogShell(title, content, locale, opts = {}) {
@@ -3690,7 +3698,29 @@ app.get(['/blog/:slug', '/en/blog/:slug', '/es/blog/:slug', '/de/blog/:slug'], (
   }
   const html = blog.render(post);
   const meta = `<div class="blog-meta">${post.date || ''} • ${post.author}${post.draft ? ' <span class="blog-draft-badge">DRAFT</span>' : ''}</div>`;
-  const content = meta + html;
+
+  // Related posts voor internal linking (SEO). Keyword-overlap-gebaseerd,
+  // same-locale, top 3. Versterkt topical authority voor pillar/spokes.
+  let relatedBlock = '';
+  if (!post.draft) {
+    const related = blog.getRelated(post.slug, locale, 3);
+    if (related.length) {
+      const relatedLabel = locale === 'en' ? 'Related reading'
+                        : locale === 'es' ? 'Sigue leyendo'
+                        : locale === 'de' ? 'Das könnte Sie auch interessieren'
+                        : 'Lees ook';
+      const items = related.map(r =>
+        `<li><a href="${prefix}/${r.slug}">${r.title}</a>${r.description ? `<br><span class="related-desc">${r.description}</span>` : ''}</li>`
+      ).join('');
+      relatedBlock = `
+<aside class="blog-related">
+  <h2>${relatedLabel}</h2>
+  <ul>${items}</ul>
+</aside>`;
+    }
+  }
+
+  const content = meta + html + relatedBlock;
   res.type('html').send(renderBlogShell(post.title, content, locale, {
     noindex:     post.draft,   // drafts noindex; publicaties indexeerbaar
     canonical:   `https://runningdinner.app${prefix}/${post.slug}`,
