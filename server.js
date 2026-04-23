@@ -3108,10 +3108,14 @@ app.get('/sitemap.xml', (req, res) => {
 
   // Pages with NL + EN + ES + DE alternates
   const multilingualPages = [
-    { nl: '/',                en: '/en/',                es: '/es/',                de: '/de/',                priority: '1.0', changefreq: 'weekly' },
-    { nl: '/login.html',      en: '/en/login.html',      es: '/es/login.html',      de: '/de/login.html',      priority: '0.6', changefreq: 'monthly' },
-    { nl: '/register.html',   en: '/en/register.html',   es: '/es/register.html',   de: '/de/register.html',   priority: '0.7', changefreq: 'monthly' },
-    { nl: '/subscribe.html',  en: '/en/subscribe.html',  es: '/es/subscribe.html',  de: '/de/subscribe.html',  priority: '0.7', changefreq: 'monthly' },
+    { nl: '/',                   en: '/en/',                   es: '/es/',                   de: '/de/',                   priority: '1.0', changefreq: 'weekly' },
+    { nl: '/login.html',         en: '/en/login.html',         es: '/es/login.html',         de: '/de/login.html',         priority: '0.6', changefreq: 'monthly' },
+    { nl: '/register.html',      en: '/en/register.html',      es: '/es/register.html',      de: '/de/register.html',      priority: '0.7', changefreq: 'monthly' },
+    { nl: '/subscribe.html',     en: '/en/subscribe.html',     es: '/es/subscribe.html',     de: '/de/subscribe.html',     priority: '0.7', changefreq: 'monthly' },
+    // Segment-landingspagina's (SEO-kritiek voor long-tail keywords per doelgroep)
+    { nl: '/service-clubs',      en: '/en/service-clubs',      es: '/es/service-clubs',      de: '/de/service-clubs',      priority: '0.9', changefreq: 'monthly' },
+    { nl: '/verenigingen',       en: '/en/verenigingen',       es: '/es/verenigingen',       de: '/de/verenigingen',       priority: '0.9', changefreq: 'monthly' },
+    { nl: '/vriendengroepen',    en: '/en/vriendengroepen',    es: '/es/vriendengroepen',    de: '/de/vriendengroepen',    priority: '0.9', changefreq: 'monthly' },
   ];
 
   const hreflangBlock = (page) => `
@@ -3710,12 +3714,83 @@ app.put('/api/admin/blog/:filename/draft', requireAdmin, (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
-// ── Segment-landingspagina's (preview: noindex, niet in sitemap) ────────────
-['service-clubs', 'verenigingen', 'vriendengroepen'].forEach(slug => {
-  app.get('/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
-  app.get('/en/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
-  app.get('/es/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
-  app.get('/de/' + slug, (req, res) => res.sendFile(path.join(__dirname, 'public', slug + '.html')));
+// ── Segment-landingspagina's (meertalig + indexeerbaar) ─────────────────────
+// Bij boot bouwen we per (slug × taal) een HTML-variant met correcte
+// <title>, <meta description>, <html lang>, canonical — en zonder noindex.
+// Content-vertalingen komen client-side via data-i18n + lang/{locale}.json.
+const SEGMENT_SLUGS = ['service-clubs', 'verenigingen', 'vriendengroepen'];
+const SEGMENT_TO_I18N_KEY = {
+  'service-clubs':   'clubs',
+  'verenigingen':    'verenigingen',
+  'vriendengroepen': 'vrienden',
+};
+const segmentHtmlCache = {}; // key: `${slug}:${locale}` → html
+
+try {
+  const langJSONs = {};
+  for (const l of SUPPORTED_LANGS) {
+    try { langJSONs[l] = require(`./public/lang/${l}.json`); } catch { langJSONs[l] = {}; }
+  }
+
+  for (const slug of SEGMENT_SLUGS) {
+    const srcPath = path.join(__dirname, 'public', `${slug}.html`);
+    let src;
+    try { src = fs.readFileSync(srcPath, 'utf8'); }
+    catch (e) { console.warn(`[boot] segment source not readable: ${slug}.html (${e.message})`); continue; }
+
+    // Strip the noindex meta (+ optional HTML comment after it) eenmalig.
+    // We laten het bestand op disk intact — alleen de in-memory cache is public.
+    const baseHtml = src.replace(/<meta name="robots" content="noindex"[^>]*>(<!--[^>]*-->)?\s*\n?/g, '');
+
+    for (const locale of SUPPORTED_LANGS) {
+      let html = baseHtml;
+      const segKey = SEGMENT_TO_I18N_KEY[slug];
+      const seg    = langJSONs[locale]?.segment?.[segKey];
+
+      // <html lang="nl"> → correct locale
+      html = html.replace('<html lang="nl">', `<html lang="${locale}">`);
+
+      // Vervang <title> en <meta description> met locale-specifieke SEO-tekst.
+      // Voor NL blijft de NL-default (geen seo_title in nl.json).
+      if (seg?.seo_title) {
+        html = html.replace(/<title>[^<]+<\/title>/, `<title>${seg.seo_title}</title>`);
+      }
+      if (seg?.seo_description) {
+        html = html.replace(/<meta name="description" content="[^"]*">/,
+          `<meta name="description" content="${String(seg.seo_description).replace(/"/g, '&quot;')}">`);
+      }
+
+      // Canonical: /slug voor NL, /{locale}/slug voor andere talen
+      const canonicalPath = locale === 'nl' ? `/${slug}` : `/${locale}/${slug}`;
+      // Voeg canonical toe vlak voor </head> als die er nog niet staat
+      if (!/<link[^>]+rel="canonical"/.test(html)) {
+        html = html.replace('</head>',
+          `  <link rel="canonical" href="https://runningdinner.app${canonicalPath}">\n</head>`);
+      }
+
+      segmentHtmlCache[`${slug}:${locale}`] = html;
+    }
+  }
+  console.log(`[boot] Segment SEO variants generated for ${SEGMENT_SLUGS.length} pages × ${SUPPORTED_LANGS.length} locales`);
+} catch (e) {
+  console.warn('[boot] Could not generate segment SEO variants:', e.message);
+}
+
+function sendSegmentPage(slug, locale, res) {
+  const html = segmentHtmlCache[`${slug}:${locale}`];
+  if (html) {
+    res.type('html').send(html);
+  } else {
+    // Fallback: serve de originele NL-file (geen SEO-override, werkt nog wel)
+    res.sendFile(path.join(__dirname, 'public', `${slug}.html`));
+  }
+}
+
+SEGMENT_SLUGS.forEach(slug => {
+  app.get('/' + slug,          (req, res) => sendSegmentPage(slug, 'nl', res));
+  app.get('/en/' + slug,       (req, res) => sendSegmentPage(slug, 'en', res));
+  app.get('/es/' + slug,       (req, res) => sendSegmentPage(slug, 'es', res));
+  app.get('/de/' + slug,       (req, res) => sendSegmentPage(slug, 'de', res));
 });
 
 // ── SPA fallbacks ─────────────────────────────────────────────────────────────
