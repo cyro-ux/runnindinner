@@ -404,25 +404,25 @@ function wrapInvoiceHtml(body, lang = 'nl') {
     nl: [
       'runningdinner.app is een product van <strong>VMH B.V.</strong>',
       'KvK 83892183 &bull; BTW NL863034432B01',
-      'Soester Engweg 15, 3763 KK Soest, Nederland',
+      'Hanekerweg 4, 7381 AM Klarenbeek, Nederland',
       '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
     ],
     en: [
       'runningdinner.app is a product of <strong>VMH B.V.</strong>',
       'Chamber of Commerce 83892183 &bull; VAT NL863034432B01',
-      'Soester Engweg 15, 3763 KK Soest, The Netherlands',
+      'Hanekerweg 4, 7381 AM Klarenbeek, The Netherlands',
       '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
     ],
     es: [
       'runningdinner.app es un producto de <strong>VMH B.V.</strong>',
       'Cámara de Comercio 83892183 &bull; NIF NL863034432B01',
-      'Soester Engweg 15, 3763 KK Soest, Países Bajos',
+      'Hanekerweg 4, 7381 AM Klarenbeek, Países Bajos',
       '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
     ],
     de: [
       'runningdinner.app ist ein Produkt der <strong>VMH B.V.</strong>',
       'Handelskammer 83892183 &bull; USt-IdNr. NL863034432B01',
-      'Soester Engweg 15, 3763 KK Soest, Niederlande',
+      'Hanekerweg 4, 7381 AM Klarenbeek, Niederlande',
       '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
     ],
   };
