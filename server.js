@@ -3549,6 +3549,10 @@ const BLOG_STYLE = `
   .blog-page hr { border: none; border-top: 1px solid #E2E8F0; margin: 28px 0; }
   .blog-page li.task { list-style: none; margin-left: -20px; }
   .blog-page li.task input[type=checkbox] { margin-right: 8px; }
+  .blog-header { max-width: 780px; margin: 32px auto 0; padding: 0 20px; }
+  .blog-header a { display: inline-block; text-decoration: none; }
+  .blog-header img { display: block; height: auto; max-width: 200px; }
+  .blog-page { margin-top: 24px; }
 `;
 
 function renderBlogShell(title, content, locale, opts = {}) {
@@ -3562,6 +3566,9 @@ function renderBlogShell(title, content, locale, opts = {}) {
   const canonical = opts.canonical
     ? `<link rel="canonical" href="${opts.canonical}">`
     : '';
+  // Logo-URL is taal-agnostisch; op niet-NL serves wordt het bestand
+  // via /en|/es|/de-prefix static mount bereikt, maar direct pad werkt altijd.
+  const logoHeader = `<header class="blog-header"><a href="/" aria-label="runningdinner.app"><img src="/images/runningdinner-logo-email.png" alt="runningdinner.app" width="200" height="50"></a></header>`;
   return `<!DOCTYPE html>
 <html lang="${locale}">
 <head>
@@ -3576,6 +3583,7 @@ ${canonical}
 <style>${BLOG_STYLE}</style>
 </head>
 <body>
+${logoHeader}
 <article class="blog-page">
 <div class="blog-nav">${headerLinks}</div>
 ${content}
