@@ -3582,6 +3582,9 @@ function renderBlogShell(title, content, locale, opts = {}) {
   // via /en|/es|/de-prefix static mount bereikt, maar direct pad werkt altijd.
   const logoHeader = `<header class="blog-header"><a href="/" aria-label="runningdinner.app"><img src="/images/runningdinner-logo-email.png" alt="runningdinner.app" width="200" height="50"></a></header>`;
 
+  // Helper: locale → og:locale code
+  const ogLocaleCode = locale === 'nl' ? 'nl_NL' : locale === 'en' ? 'en_GB' : locale === 'es' ? 'es_ES' : locale === 'de' ? 'de_DE' : 'nl_NL';
+
   // BlogPosting JSON-LD voor rich snippets (datum, auteur, leestijd) in
   // Google search-resultaten. Alleen genereren voor ECHTE posts
   // (opts.post aanwezig), niet voor de blog-listing of 404-pagina.
@@ -3619,13 +3622,32 @@ function renderBlogShell(title, content, locale, opts = {}) {
 <meta property="og:description" content="${String(p.description || '').replace(/"/g, '&quot;')}">
 <meta property="og:image" content="${imgUrl}">
 <meta property="og:url" content="${pageUrl}">
-<meta property="og:locale" content="${locale === 'nl' ? 'nl_NL' : locale === 'en' ? 'en_GB' : locale === 'es' ? 'es_ES' : 'de_DE'}">
+<meta property="og:locale" content="${ogLocaleCode}">
+<meta property="og:site_name" content="Running Dinner Planner">
 <meta property="article:published_time" content="${p.date || ''}">
 <meta property="article:author" content="${p.author || 'Cyro van Malsen'}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${String(p.title).replace(/"/g, '&quot;')}">
 <meta name="twitter:description" content="${String(p.description || '').replace(/"/g, '&quot;')}">
 <meta name="twitter:image" content="${imgUrl}">`;
+  } else if (!opts.noindex && (opts.canonical || opts.description)) {
+    // Generic website OG tags voor blog-listing en andere niet-post pages.
+    const fallbackImg = 'https://runningdinner.app/images/screenshot-planning.jpg';
+    const ogTitle = String(title).replace(/"/g, '&quot;');
+    const ogDesc  = String(opts.description || '').replace(/"/g, '&quot;');
+    const pageUrl = opts.canonical || '';
+    ogTags = `
+<meta property="og:type" content="website">
+<meta property="og:title" content="${ogTitle}">
+<meta property="og:description" content="${ogDesc}">
+<meta property="og:image" content="${fallbackImg}">
+<meta property="og:url" content="${pageUrl}">
+<meta property="og:locale" content="${ogLocaleCode}">
+<meta property="og:site_name" content="Running Dinner Planner">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${ogTitle}">
+<meta name="twitter:description" content="${ogDesc}">
+<meta name="twitter:image" content="${fallbackImg}">`;
   }
 
   return `<!DOCTYPE html>
@@ -3792,10 +3814,35 @@ try {
 
       // Canonical: /slug voor NL, /{locale}/slug voor andere talen
       const canonicalPath = locale === 'nl' ? `/${slug}` : `/${locale}/${slug}`;
+      const canonicalUrl  = `https://runningdinner.app${canonicalPath}`;
       // Voeg canonical toe vlak voor </head> als die er nog niet staat
       if (!/<link[^>]+rel="canonical"/.test(html)) {
         html = html.replace('</head>',
-          `  <link rel="canonical" href="https://runningdinner.app${canonicalPath}">\n</head>`);
+          `  <link rel="canonical" href="${canonicalUrl}">\n</head>`);
+      }
+
+      // Open Graph + Twitter Card voor social shares. Title/description
+      // komen uit seg.seo_title / seg.seo_description (of NL-defaults via
+      // de al-aanwezige <title> en description tags — we extracten ze).
+      if (!/<meta\s+property="og:/.test(html)) {
+        const titleMatch = html.match(/<title>([^<]+)<\/title>/);
+        const descMatch  = html.match(/<meta name="description" content="([^"]*)">/);
+        const ogTitle    = (seg?.seo_title || titleMatch?.[1] || '').replace(/"/g, '&quot;');
+        const ogDesc     = (seg?.seo_description || descMatch?.[1] || '').replace(/"/g, '&quot;');
+        const ogLocale   = locale === 'nl' ? 'nl_NL' : locale === 'en' ? 'en_GB' : locale === 'es' ? 'es_ES' : 'de_DE';
+        const ogBlock = `
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="${ogTitle}">
+  <meta property="og:description" content="${ogDesc}">
+  <meta property="og:image" content="https://runningdinner.app/images/screenshot-planning.jpg">
+  <meta property="og:url" content="${canonicalUrl}">
+  <meta property="og:locale" content="${ogLocale}">
+  <meta property="og:site_name" content="Running Dinner Planner">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${ogTitle}">
+  <meta name="twitter:description" content="${ogDesc}">
+  <meta name="twitter:image" content="https://runningdinner.app/images/screenshot-planning.jpg">`;
+        html = html.replace('</head>', `${ogBlock}\n</head>`);
       }
 
       segmentHtmlCache[`${slug}:${locale}`] = html;
