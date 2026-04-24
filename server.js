@@ -3595,20 +3595,28 @@ function renderBlogShell(title, content, locale, opts = {}) {
     const fallbackImg = 'https://runningdinner.app/images/screenshot-planning.jpg';
     const imgUrl = p.image || fallbackImg;
     const pageUrl = opts.canonical || `https://runningdinner.app/blog/${p.slug}`;
+    // Google Rich Results Test eist ISO 8601 datetime mét tijdzone.
+    // Frontmatter-datum is YYYY-MM-DD — we appenden 08:00 Amsterdam-tijd
+    // zodat de datum/tijd valid is en consistent across deploys.
+    const isoDate = p.date ? `${p.date}T08:00:00+02:00` : '';
     const ld = {
       '@context': 'https://schema.org',
       '@type': 'BlogPosting',
       headline: p.title,
       description: p.description || '',
       image: imgUrl,
-      author: { '@type': 'Person', name: p.author || 'Cyro van Malsen' },
+      author: {
+        '@type': 'Person',
+        name: p.author || 'Cyro van Malsen',
+        url: 'https://runningdinner.app/',
+      },
       publisher: {
         '@type': 'Organization',
         name: 'Running Dinner Planner',
         logo: { '@type': 'ImageObject', url: 'https://runningdinner.app/images/runningdinner-logo-email.png' },
       },
-      datePublished: p.date || '',
-      dateModified: p.date || '',
+      datePublished: isoDate,
+      dateModified: isoDate,
       mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
       inLanguage: locale,
       keywords: p.keywords || '',
