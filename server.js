@@ -249,6 +249,8 @@ if (!paymentCols.includes('zoho_invoice_id'))   db.exec("ALTER TABLE payments AD
 if (!paymentCols.includes('zoho_sync_status')) db.exec("ALTER TABLE payments ADD COLUMN zoho_sync_status TEXT NOT NULL DEFAULT 'pending'");
 if (!paymentCols.includes('zoho_sync_error'))  db.exec("ALTER TABLE payments ADD COLUMN zoho_sync_error TEXT");
 if (!paymentCols.includes('zoho_synced_at'))   db.exec("ALTER TABLE payments ADD COLUMN zoho_synced_at INTEGER");
+if (!paymentCols.includes('refunded_at'))      db.exec("ALTER TABLE payments ADD COLUMN refunded_at INTEGER");
+if (!paymentCols.includes('credit_note_id'))   db.exec("ALTER TABLE payments ADD COLUMN credit_note_id TEXT");
 
 // Ratings: add moderation columns (status + display name + who moderated)
 const ratingCols = db.prepare("PRAGMA table_info(ratings)").all().map(c => c.name);
@@ -1268,17 +1270,25 @@ app.post('/api/mollie/webhook', async (req, res) => {
 
     if (refundedCents > 0 || chargebackCents > 0) {
       const localPayment = db.prepare('SELECT * FROM payments WHERE mollie_payment_id = ?').get(payment.id);
-      if (localPayment && !localPayment.zoho_sync_error?.includes('refunded')) {
+      // Idempotency via dedicated refunded_at column (was vroeger gebaseerd op
+      // zoho_sync_error string — fragiel). Skippen als al verwerkt.
+      if (localPayment && !localPayment.refunded_at) {
         const reason = chargebackCents > 0 ? 'Chargeback' : 'Refund';
         console.log(`[mollie] ${reason} detected for payment ${payment.id}: ${refundedCents || chargebackCents} cents`);
 
         // Create credit note in Zoho (idempotency: check if already done via sync_status)
         zohoSync.syncRefund(db, localPayment.id, reason).then((r) => {
           if (r.synced) {
-            db.prepare('UPDATE payments SET status = ?, zoho_sync_error = ? WHERE id = ?')
-              .run(chargebackCents > 0 ? 'chargeback' : 'refunded',
-                   `${reason} processed; credit_note=${r.creditnote_id}`,
-                   localPayment.id);
+            db.prepare(`
+              UPDATE payments
+              SET status = ?, refunded_at = ?, credit_note_id = ?
+              WHERE id = ?
+            `).run(
+              chargebackCents > 0 ? 'chargeback' : 'refunded',
+              Date.now(),
+              r.creditnote_id || null,
+              localPayment.id
+            );
           }
         }).catch((err) => console.error('[zoho] refund sync error:', err.message));
 
@@ -1294,11 +1304,13 @@ app.post('/api/mollie/webhook', async (req, res) => {
           nl: `${reason === 'Chargeback' ? 'Chargeback' : 'Terugbetaling'} verwerkt - Running Dinner Planner`,
           en: `${reason} processed - Running Dinner Planner`,
           es: `${reason === 'Chargeback' ? 'Contracargo' : 'Reembolso'} procesado - Running Dinner Planner`,
+          de: `${reason === 'Chargeback' ? 'Rückbuchung' : 'Rückerstattung'} verarbeitet - Running Dinner Planner`,
         };
         const bodyMap = {
           nl: `<p>Hallo,</p><p>We hebben een ${reason === 'Chargeback' ? 'chargeback' : 'terugbetaling'} verwerkt voor je betaling. De creditnota is in je boekhouding opgenomen.</p>`,
           en: `<p>Hi,</p><p>We've processed a ${reason.toLowerCase()} for your payment. A credit note has been registered.</p>`,
           es: `<p>Hola,</p><p>Hemos procesado un ${reason === 'Chargeback' ? 'contracargo' : 'reembolso'} de tu pago. Se ha registrado una nota de crédito.</p>`,
+          de: `<p>Hallo,</p><p>Wir haben eine ${reason === 'Chargeback' ? 'Rückbuchung' : 'Rückerstattung'} für Ihre Zahlung verarbeitet. Eine Gutschrift wurde in Ihrer Buchhaltung erfasst.</p>`,
         };
         sendMail(user.email, subjectMap[lang] || subjectMap.nl, wrapHtml(bodyMap[lang] || bodyMap.nl, lang)).catch(console.error);
       }
@@ -1316,42 +1328,66 @@ app.post('/api/mollie/webhook', async (req, res) => {
         // 3rd failure (including this one) → disable auto-renewal
         db.prepare('UPDATE users SET auto_renew = 0 WHERE id = ?').run(userId);
         const uLang = user.language || 'nl';
-        const uEN = uLang === 'en';
+        const FAIL_L = {
+          nl: { hi: 'Hallo,', subj: 'Automatische verlenging uitgeschakeld',
+                line1: 'Je automatische verlenging is uitgeschakeld omdat de betaling meerdere keren niet gelukt is.',
+                line2: 'Je kunt je abonnement handmatig verlengen via onderstaande knop.',
+                cta:   'Abonnement verlengen' },
+          en: { hi: 'Hi,', subj: 'Auto-renewal disabled',
+                line1: 'Your auto-renewal has been disabled because the payment failed multiple times.',
+                line2: 'You can renew your subscription manually using the button below.',
+                cta:   'Renew subscription' },
+          es: { hi: 'Hola,', subj: 'Renovación automática desactivada',
+                line1: 'Hemos desactivado tu renovación automática porque el pago falló varias veces.',
+                line2: 'Puedes renovar tu suscripción manualmente con el botón de abajo.',
+                cta:   'Renovar suscripción' },
+          de: { hi: 'Hallo,', subj: 'Automatische Verlängerung deaktiviert',
+                line1: 'Ihre automatische Verlängerung wurde deaktiviert, weil die Zahlung mehrfach fehlgeschlagen ist.',
+                line2: 'Sie können Ihr Abonnement manuell über die Schaltfläche unten verlängern.',
+                cta:   'Abonnement verlängern' },
+        };
+        const F = FAIL_L[uLang] || FAIL_L.nl;
         sendMail(user.email,
-          uEN ? 'Auto-renewal disabled - Running Dinner Planner' : 'Automatische verlenging uitgeschakeld - Running Dinner Planner',
+          `${F.subj} - Running Dinner Planner`,
           wrapHtml(`
           <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-          <p style="color:#374151;line-height:1.6">${uEN ? 'Hi,' : 'Hallo,'}</p>
-          <p style="color:#374151;line-height:1.6">${uEN
-            ? 'Your auto-renewal has been disabled because the payment failed multiple times.'
-            : 'Je automatische verlenging is uitgeschakeld omdat de betaling meerdere keren niet gelukt is.'
-          }</p>
-          <p style="color:#374151;line-height:1.6">${uEN
-            ? 'You can renew your subscription manually using the button below.'
-            : 'Je kunt je abonnement handmatig verlengen via onderstaande knop.'
-          }</p>
+          <p style="color:#374151;line-height:1.6">${F.hi}</p>
+          <p style="color:#374151;line-height:1.6">${F.line1}</p>
+          <p style="color:#374151;line-height:1.6">${F.line2}</p>
           <p style="margin:24px 0;text-align:center">
-            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${uEN ? 'Renew subscription' : 'Abonnement verlengen'}</a>
+            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${F.cta}</a>
           </p>
         `, uLang)).catch(console.error);
       } else {
         const uLang2 = user.language || 'nl';
-        const uEN2 = uLang2 === 'en';
+        const RETRY_L = {
+          nl: { hi: 'Hallo,', subj: 'Automatische verlenging mislukt',
+                line1: 'De automatische verlenging van je abonnement is niet gelukt. We proberen het binnenkort opnieuw.',
+                line2: 'Wil je het zelf regelen? Verleng dan handmatig:',
+                cta:   'Handmatig verlengen' },
+          en: { hi: 'Hi,', subj: 'Auto-renewal failed',
+                line1: 'The automatic renewal of your subscription has failed. We will try again soon.',
+                line2: 'Would you rather handle it yourself? Renew manually:',
+                cta:   'Renew manually' },
+          es: { hi: 'Hola,', subj: 'La renovación automática ha fallado',
+                line1: 'La renovación automática de tu suscripción no se pudo completar. Lo intentaremos de nuevo pronto.',
+                line2: '¿Prefieres hacerlo tú? Renueva manualmente:',
+                cta:   'Renovar manualmente' },
+          de: { hi: 'Hallo,', subj: 'Automatische Verlängerung fehlgeschlagen',
+                line1: 'Die automatische Verlängerung Ihres Abonnements ist nicht gelungen. Wir versuchen es bald erneut.',
+                line2: 'Möchten Sie es selbst erledigen? Verlängern Sie manuell:',
+                cta:   'Manuell verlängern' },
+        };
+        const R = RETRY_L[uLang2] || RETRY_L.nl;
         sendMail(user.email,
-          uEN2 ? 'Auto-renewal failed - Running Dinner Planner' : 'Automatische verlenging mislukt - Running Dinner Planner',
+          `${R.subj} - Running Dinner Planner`,
           wrapHtml(`
           <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-          <p style="color:#374151;line-height:1.6">${uEN2 ? 'Hi,' : 'Hallo,'}</p>
-          <p style="color:#374151;line-height:1.6">${uEN2
-            ? 'The automatic renewal of your subscription has failed. We will try again soon.'
-            : 'De automatische verlenging van je abonnement is niet gelukt. We proberen het binnenkort opnieuw.'
-          }</p>
-          <p style="color:#374151;line-height:1.6">${uEN2
-            ? 'Would you rather handle it yourself? Renew manually:'
-            : 'Wil je het zelf regelen? Verleng dan handmatig:'
-          }</p>
+          <p style="color:#374151;line-height:1.6">${R.hi}</p>
+          <p style="color:#374151;line-height:1.6">${R.line1}</p>
+          <p style="color:#374151;line-height:1.6">${R.line2}</p>
           <p style="margin:24px 0;text-align:center">
-            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${uEN2 ? 'Renew manually' : 'Handmatig verlengen'}</a>
+            <a href="${BASE_URL}/subscribe.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${R.cta}</a>
           </p>
         `, uLang2)).catch(console.error);
       }
@@ -4071,35 +4107,52 @@ async function checkRenewalReminders() {
 
   const priceCents = parseInt(getSetting('subscription_price_cents') || '500', 10);
 
+  // Multi-language reminder labels. Uitgebreidere talen (es/de) erbij om
+  // consistent te blijven met de invoice-mail en CMS-content.
+  const REMINDER_L = {
+    nl: { hi: 'Hallo,', subject: (n) => `${n} - Running Dinner Planner`, subj: 'Je abonnement wordt binnenkort verlengd',
+          body: (d, p) => `Je abonnement wordt automatisch verlengd op <strong>${d}</strong> voor <strong>${p}</strong>.`,
+          opt:  'Je hoeft niets te doen. Wil je de automatische verlenging uitschakelen? Dat kan in je profiel.',
+          cta:  'Naar mijn profiel',
+          note: 'Je ontvangt na verlenging automatisch een factuur per e-mail.' },
+    en: { hi: 'Hi,', subj: 'Your subscription will be renewed soon',
+          body: (d, p) => `Your subscription will be automatically renewed on <strong>${d}</strong> for <strong>${p}</strong>.`,
+          opt:  'No action needed. Want to disable auto-renewal? You can do so in your profile.',
+          cta:  'Go to my profile',
+          note: 'You will automatically receive an invoice by email after renewal.' },
+    es: { hi: 'Hola,', subj: 'Tu suscripción se renovará pronto',
+          body: (d, p) => `Tu suscripción se renovará automáticamente el <strong>${d}</strong> por <strong>${p}</strong>.`,
+          opt:  'No es necesario hacer nada. ¿Quieres desactivar la renovación automática? Puedes hacerlo en tu perfil.',
+          cta:  'Ir a mi perfil',
+          note: 'Recibirás automáticamente una factura por correo electrónico tras la renovación.' },
+    de: { hi: 'Hallo,', subj: 'Ihr Abonnement wird bald verlängert',
+          body: (d, p) => `Ihr Abonnement wird automatisch am <strong>${d}</strong> für <strong>${p}</strong> verlängert.`,
+          opt:  'Keine Aktion erforderlich. Möchten Sie die automatische Verlängerung deaktivieren? Das geht in Ihrem Profil.',
+          cta:  'Zu meinem Profil',
+          note: 'Sie erhalten nach der Verlängerung automatisch eine Rechnung per E-Mail.' },
+  };
+  const LOCALE_MAP = { nl: 'nl-NL', en: 'en-GB', es: 'es-ES', de: 'de-DE' };
+
   for (const user of users) {
-    const uLang = user.language || 'nl';
-    const uEN = uLang === 'en';
-    const locale = uEN ? 'en-GB' : 'nl-NL';
+    const uLang  = user.language || 'nl';
+    const L      = REMINDER_L[uLang] || REMINDER_L.nl;
+    const locale = LOCALE_MAP[uLang] || LOCALE_MAP.nl;
     const renewDate = new Date(user.license_until).toLocaleDateString(locale, {
       year: 'numeric', month: 'long', day: 'numeric'
     });
 
     try {
       await sendMail(user.email,
-        uEN ? 'Your subscription will be renewed soon - Running Dinner Planner' : 'Je abonnement wordt binnenkort verlengd - Running Dinner Planner',
+        `${L.subj} - Running Dinner Planner`,
         wrapHtml(`
         <h2 style="color:#1a56db;margin:0 0 16px">Running Dinner Planner</h2>
-        <p style="color:#374151;line-height:1.6">${uEN ? 'Hi,' : 'Hallo,'}</p>
-        <p style="color:#374151;line-height:1.6">${uEN
-          ? `Your subscription will be automatically renewed on <strong>${renewDate}</strong> for <strong>${formatEur(priceCents)}</strong>.`
-          : `Je abonnement wordt automatisch verlengd op <strong>${renewDate}</strong> voor <strong>${formatEur(priceCents)}</strong>.`
-        }</p>
-        <p style="color:#374151;line-height:1.6">${uEN
-          ? 'No action needed. Want to disable auto-renewal? You can do so in your profile.'
-          : 'Je hoeft niets te doen. Wil je de automatische verlenging uitschakelen? Dat kan in je profiel.'
-        }</p>
+        <p style="color:#374151;line-height:1.6">${L.hi}</p>
+        <p style="color:#374151;line-height:1.6">${L.body(renewDate, formatEur(priceCents))}</p>
+        <p style="color:#374151;line-height:1.6">${L.opt}</p>
         <p style="margin:24px 0;text-align:center">
-          <a href="${BASE_URL}/profile.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${uEN ? 'Go to my profile' : 'Naar mijn profiel'}</a>
+          <a href="${BASE_URL}/profile.html" style="background:#1a56db;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block">${L.cta}</a>
         </p>
-        <p style="color:#6b7280;font-size:13px;line-height:1.5">${uEN
-          ? 'You will automatically receive an invoice by email after renewal.'
-          : 'Je ontvangt na verlenging automatisch een factuur per e-mail.'
-        }</p>
+        <p style="color:#6b7280;font-size:13px;line-height:1.5">${L.note}</p>
       `, uLang));
       db.prepare('UPDATE users SET renewal_reminder_sent = ? WHERE id = ?').run(now, user.id);
       console.log(`[scheduler] renewal reminder sent to ${user.email}`);
