@@ -3,7 +3,6 @@
     "language": "en",
     "label": "English"
   },
-
   "nav": {
     "features": "Features",
     "how_it_works": "How it works",
@@ -12,7 +11,6 @@
     "login": "Log in",
     "cta": "Start for €5/year"
   },
-
   "hero": {
     "badge": "👨‍🍳 Built by an organiser, for organisers",
     "ghost_cta": "See how it works ↓",
@@ -21,7 +19,6 @@
     "screenshot_planning": "Smart planning",
     "screenshot_envelopes": "Envelope cards"
   },
-
   "social_proof": {
     "label": "Trusted by organisers across the Netherlands",
     "dinners": "Running dinners planned",
@@ -29,7 +26,6 @@
     "rating": "Average rating",
     "new": "New"
   },
-
   "features": {
     "title": "Everything you need",
     "routing_title": "Smart route planning",
@@ -45,7 +41,6 @@
     "drinks_title": "Pre-dinner & after-party drinks",
     "drinks_desc": "The first time I forgot to include the pre-dinner drinks in my plan. Never again: set a central location and the planner automatically factors it into the schedule."
   },
-
   "how_it_works": {
     "title": "Done in 4 steps",
     "subtitle": "What used to take me an entire evening now takes half an hour. Four steps, done.",
@@ -58,7 +53,6 @@
     "step4_title": "Print & enjoy",
     "step4_desc": "Print the envelope cards and the overview. Ready to enjoy a successful running dinner!"
   },
-
   "testimonials": {
     "title": "What organisers say",
     "quote1": "\"Planning our neighbourhood running dinner used to take an entire evening. Now I'm done in 20 minutes. Fantastic!\"",
@@ -68,7 +62,6 @@
     "quote3": "\"Finally a tool that accounts for dietary requirements and allergies. A must-have for any running dinner organiser.\"",
     "role3": "Organiser, Rotterdam"
   },
-
   "pricing": {
     "title": "Simple, fair pricing",
     "subtitle": "I didn't want to pay a lot for a tool I only use a few times a year either. So: €5 per year, unlimited planning.",
@@ -86,7 +79,6 @@
     "cta": "Get a subscription",
     "note": "Instant access after payment. Invoice sent by email."
   },
-
   "faq": {
     "title": "Frequently asked questions",
     "q1": "What is a running dinner?",
@@ -106,14 +98,12 @@
     "q8": "Is my data stored?",
     "a8": "Your account details (email, password) are stored securely. The participant information you enter in the planner is <strong>not</strong> stored permanently — that data only lives in your browser session."
   },
-
   "cta": {
     "title": "Save yourself the spreadsheet evening",
     "subtitle": "Start planning today and discover why you didn't do it this way sooner.",
     "button": "Start now for €5/year",
     "note": "Instant access &bull; iDEAL &bull; Bancontact &bull; PayPal &bull; No auto-renewal"
   },
-
   "contact": {
     "title": "Contact",
     "subtitle": "Questions or suggestions? I'd love to hear from you and will reply personally.",
@@ -129,7 +119,6 @@
     "error": "Something went wrong.",
     "network_error": "Network error. Please try again later."
   },
-
   "footer": {
     "product_heading": "Product",
     "features": "Features",
@@ -148,7 +137,6 @@
     "terms": "Terms & conditions",
     "waiver": "Right of withdrawal"
   },
-
   "auth": {
     "login": {
       "title": "Log in",
@@ -164,7 +152,6 @@
       "error_failed": "Login failed",
       "error_network": "Network error. Please try again."
     },
-
     "register": {
       "title": "Create account",
       "subtitle": "Step 1 of 2 — sign up, then pay",
@@ -194,7 +181,6 @@
       "error_failed": "Registration failed",
       "error_network": "Network error. Please try again."
     },
-
     "subscribe": {
       "title": "Annual subscription",
       "subtitle": "Pay once and get immediate access for 1 year.",
@@ -220,7 +206,6 @@
       "error_payment": "Payment could not be started.",
       "error_network": "Network error. Please try again."
     },
-
     "profile": {
       "title": "My Profile",
       "nav_planner": "Go to planner",
@@ -262,7 +247,6 @@
       "review_intro": "Write or edit your review of the Running Dinner Planner.",
       "review_cta": "Write / edit review"
     },
-
     "forgot": {
       "title": "Forgot your password?",
       "subtitle": "Enter your email address. If it's on file, we'll send you a reset link.",
@@ -274,7 +258,6 @@
       "back_to_login": "← Back to login",
       "error_network": "Network error. Please try again."
     },
-
     "reset": {
       "title": "New password",
       "subtitle": "Choose a new password for your account.",
@@ -289,7 +272,6 @@
       "error_failed": "Reset failed",
       "error_network": "Network error. Please try again."
     },
-
     "payment_success": {
       "title": "Payment successful!",
       "message": "Thank you for subscribing. You now have full access to the Running Dinner Planner.",
@@ -303,7 +285,6 @@
       "invoice_note": "You'll receive an invoice by email."
     }
   },
-
   "app": {
     "courses": {
       "voorborrel": "Pre-dinner drinks",
@@ -312,7 +293,6 @@
       "nagerecht": "Dessert",
       "naborrel": "After-party drinks"
     },
-
     "steps": {
       "step1_btn": "1. Configuration",
       "step2_btn": "2. Participants",
@@ -323,7 +303,6 @@
       "step3_title": "Step 3: Automatic Planning",
       "step4_title": "Step 4: Overview"
     },
-
     "nav": {
       "next_participants": "Next: Participants →",
       "next_planning": "Next: Planning →",
@@ -331,7 +310,6 @@
       "back": "← Back",
       "back_to_planning": "← Back to planning"
     },
-
     "config": {
       "select_courses": "Select active courses",
       "optional": "Optional",
@@ -350,9 +328,15 @@
       "event_details": "Event details",
       "event_name": "Event name",
       "event_date": "Date",
-      "event_city": "City/town"
+      "event_city": "City/town",
+      "routing_title": "Routes & distances",
+      "routing_hint": "Optional: choose transport mode and the maximum acceptable distance between tables. In step 3 you can then check all routes with one click.",
+      "transport_mode": "Transport mode",
+      "transport_walking": "Walking",
+      "transport_cycling": "Bicycle",
+      "transport_driving": "Car",
+      "max_distance": "Maximum distance per route"
     },
-
     "participants": {
       "title": "Participants",
       "add_btn": "+ Add participant",
@@ -367,7 +351,6 @@
       "unavailable": "Not available",
       "edit_btn": "Edit"
     },
-
     "import": {
       "title": "Import / Export",
       "hint": "Download the Excel template, fill in the participants and import the file back. Remove the example row before importing.",
@@ -379,7 +362,6 @@
       "skipped": "skipped",
       "failed": "Import failed"
     },
-
     "groups": {
       "title": "Group management",
       "hint": "Save the current participant list to reuse next year.",
@@ -395,7 +377,6 @@
       "load_btn": "Load",
       "saved_at": "saved"
     },
-
     "planning": {
       "social_locations": "Social course locations",
       "social_locations_hint": "Select which participant hosts the social course, or enter a custom address.",
@@ -416,7 +397,6 @@
       "moved_from": "moved from",
       "undo": "Undo"
     },
-
     "overview": {
       "tab_per_person": "📋 Route per participant",
       "tab_per_location": "📍 Per location",
@@ -439,7 +419,6 @@
       "dietary": "Dietary needs",
       "guest": "Guest"
     },
-
     "envelope": {
       "no_cards": "No envelope cards available for the current planning.",
       "location_unknown": "Location unknown",
@@ -449,7 +428,6 @@
       "your_next_destination": "Your next destination",
       "at": "At"
     },
-
     "snapshots": {
       "title": "Snapshots",
       "hint": "Save the current planning as a snapshot to review later.",
@@ -459,7 +437,6 @@
       "load_title": "📂 Load snapshot",
       "no_snapshots": "No saved snapshots."
     },
-
     "modal": {
       "add_participant": "Add participant",
       "edit_participant": "Edit participant",
@@ -495,7 +472,6 @@
       "save": "Save",
       "manage": "Manage"
     },
-
     "social": {
       "unknown_location": "Location unknown / fill in later",
       "participant_host": "Participant as host",
@@ -506,21 +482,18 @@
       "postcode": "Postcode",
       "city": "City"
     },
-
     "postcode": {
       "loading": "Looking up…",
       "found": "✓ Address found",
       "not_found": "Address not found. Please fill in manually.",
       "failed": "Lookup failed. Please fill in manually."
     },
-
     "stats": {
       "participants": "Participants",
       "couples": "Couples",
       "avg_new_tablemates": "Avg. new tablemates",
       "courses": "Courses"
     },
-
     "alert": {
       "min_participants": "Add at least 3 participants to generate a planning.",
       "same_course_only": "Guests can only be moved within the same course.",
@@ -531,7 +504,6 @@
       "generate_first": "Generate a planning in step 3 first.",
       "xlsx_not_loaded": "Excel library not yet loaded. Check your internet connection and try again."
     },
-
     "confirm": {
       "delete_participant": "Delete participant?",
       "undo_all": "Undo all manual changes?",
@@ -543,7 +515,6 @@
       "delete_all_suffix": "participants delete? This cannot be undone.",
       "load_snapshot_suffix": "load? The current state will be overwritten."
     },
-
     "warning": {
       "not_enough_hosts": "Not enough available hosts for",
       "consider_more_participants": "Consider adding more participants.",
@@ -555,7 +526,6 @@
       "guests": "guest(s)",
       "guideline_min": "guideline minimum"
     },
-
     "rating": {
       "title": "Rating",
       "update_title": "Update your rating",
@@ -581,22 +551,20 @@
       "network_error": "Network error",
       "hint_high": "Your review is even more valuable with a sentence — it will appear on the homepage once approved."
     },
-
     "onboarding": {
       "skip": "Skip",
-      "next": "Next \u2192",
-      "finish": "Let's go! \u2713",
+      "next": "Next →",
+      "finish": "Let's go! ✓",
       "counter": "Step {n} of 4",
       "step1_title": "1. Set up the event",
-      "step1_body":  "Pick a date, a name, and which courses you want (aperitif, starter, main, dessert, digestif). Click \"To participants\" when ready.",
+      "step1_body": "Pick a date, a name, and which courses you want (aperitif, starter, main, dessert, digestif). Click \"To participants\" when ready.",
       "step2_title": "2. Add participants",
-      "step2_body":  "Add participants manually, import via Excel, or use \"Load sample data\" (?dev in URL) to test quickly. Include dietary preferences where possible.",
+      "step2_body": "Add participants manually, import via Excel, or use \"Load sample data\" (?dev in URL) to test quickly. Include dietary preferences where possible.",
       "step3_title": "3. Calculate the plan",
-      "step3_body":  "The planner assigns tables automatically, taking dietary needs, availability and preferences into account. You can still adjust by hand afterwards.",
+      "step3_body": "The planner assigns tables automatically, taking dietary needs, availability and preferences into account. You can still adjust by hand afterwards.",
       "step4_title": "4. Overview & print",
-      "step4_body":  "Print per-person routes or envelope cards for a table surprise. Save your planning as a snapshot to revisit later."
+      "step4_body": "Print per-person routes or envelope cards for a table surprise. Save your planning as a snapshot to revisit later."
     },
-
     "auth": {
       "subscribe": "Subscribe",
       "profile": "Profile",
@@ -607,7 +575,6 @@
       "login_other": "Log in with another account",
       "subscription_valid": "Subscription valid until"
     },
-
     "excel": {
       "sheet_participants": "Participants",
       "sheet_instructions": "Instructions",
@@ -677,15 +644,29 @@
       "instr_avoid_eg": "e.g. Kevin Peters",
       "instr_warning": "NOTE: Delete the example row (row 2 in the Participants sheet) before importing!"
     },
-
     "dev": {
       "load_sample": "📋 Load sample data"
+    },
+    "distance": {
+      "title": "🗺️ Check distances",
+      "hint": "Verify that all routes between tables are feasible with the selected transport mode. Uses OpenStreetMap data — first run can take a moment.",
+      "check_btn": "🗺️ Check distances",
+      "loading": "Checking...",
+      "in_progress": "Geocoding addresses via OpenStreetMap. First time can take ~30 seconds.",
+      "none": "No routes to check (no hosting courses or addresses missing).",
+      "error": "Distance-check failed",
+      "routes_too_long": "route(s) exceed the threshold of",
+      "geocode_errors": "addresses could not be found — check street/city values",
+      "all_ok": "All routes within threshold",
+      "col_route": "Route",
+      "col_courses": "Courses",
+      "col_distance": "Distance",
+      "col_duration": "Time",
+      "legend": "🟢 within 70% of threshold · 🟡 near threshold · 🔴 exceeds threshold"
     }
   },
-
   "legal": {
     "back_home": "Back to home",
-
     "contact": {
       "title": "Contact &amp; Company details",
       "updated": "Last updated: 21 April 2026",
@@ -705,7 +686,6 @@
       "link_terms": "Terms &amp; conditions",
       "link_waiver": "Right of withdrawal"
     },
-
     "privacy": {
       "title": "Privacy policy",
       "updated": "Version: April 2026",
@@ -766,7 +746,6 @@
       "complaints_heading": "Complaints",
       "complaints_text": "Do you have a complaint about how we process your personal data? You can file a complaint with the Dutch <strong>Data Protection Authority</strong> via <a href=\"https://autoriteitpersoonsgegevens.nl\" target=\"_blank\" rel=\"noopener\">autoriteitpersoonsgegevens.nl</a>."
     },
-
     "terms": {
       "title": "Terms &amp; conditions",
       "updated": "Last updated: 21 April 2026",
@@ -793,7 +772,6 @@
       "contact_heading": "Contact",
       "contact_text": "For questions about these terms, contact us via <a href=\"mailto:info@runningdinner.app\">info@runningdinner.app</a> or through the <a href=\"/contact.html\">company details page</a>. Our <a href=\"/privacy.html\">privacy policy</a> and <a href=\"/herroepingsrecht.html\">right of withdrawal information</a> are integral parts of these terms."
     },
-
     "waiver": {
       "title": "Right of withdrawal",
       "updated": "Last updated: 21 April 2026",
@@ -814,7 +792,6 @@
       "questions_heading": "Questions?",
       "questions_text": "Do you have questions about your subscription or about the applicability of the right of withdrawal? Contact us at <a href=\"mailto:info@runningdinner.app\">info@runningdinner.app</a>."
     },
-
     "cookies": {
       "title": "Cookie statement",
       "updated": "Last updated: 21 April 2026",
@@ -837,7 +814,6 @@
       "questions_text": "Questions about cookies or our privacy policy? Contact us at <a href=\"mailto:info@runningdinner.app\">info@runningdinner.app</a> or read our <a href=\"/privacy.html\">privacy policy</a>."
     }
   },
-
   "segment": {
     "clubs": {
       "seo_title": "Running Dinner for Lions, Rotary & Kiwanis | €5/year",

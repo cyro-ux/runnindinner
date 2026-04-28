@@ -144,6 +144,23 @@
         </div>
       </div>
 
+      <div class="card">
+        <h3 data-i18n="app.config.routing_title">Routes en afstanden</h3>
+        <p class="hint" data-i18n="app.config.routing_hint">Optioneel: bepaal het vervoersmiddel en de maximale acceptabele afstand tussen tafels. In stap 3 kun je dan met één klik alle routes laten controleren.</p>
+        <div class="routing-config">
+          <label><span data-i18n="app.config.transport_mode">Vervoersmiddel</span>:
+            <select id="transport-mode">
+              <option value="walking" data-i18n="app.config.transport_walking">Lopen</option>
+              <option value="cycling" data-i18n="app.config.transport_cycling">Fiets</option>
+              <option value="driving" data-i18n="app.config.transport_driving">Auto</option>
+            </select>
+          </label>
+          <label><span data-i18n="app.config.max_distance">Maximum afstand per route</span>:
+            <input type="number" id="max-distance-km" value="3" min="0.5" max="50" step="0.5"> km
+          </label>
+        </div>
+      </div>
+
       <div class="btn-row">
         <button class="btn-primary" onclick="goToStep(2)" data-i18n="app.nav.next_participants">Volgende: Deelnemers →</button>
       </div>
@@ -221,6 +238,15 @@
         <div class="card">
           <h3 data-i18n="app.planning.table_layout">Tafelindeling per gang</h3>
           <div id="courses-overview"></div>
+        </div>
+
+        <div class="card" id="distance-check-card">
+          <h3 data-i18n="app.distance.title">🗺️ Afstanden controleren</h3>
+          <p class="hint" data-i18n="app.distance.hint">Controleer of alle routes tussen tafels haalbaar zijn met het gekozen vervoersmiddel. Werkt op basis van OpenStreetMap-data — kan even duren bij eerste keer.</p>
+          <div class="btn-row">
+            <button class="btn-secondary" onclick="checkDistances()" id="btn-check-distances" data-i18n="app.distance.check_btn">🗺️ Afstanden checken</button>
+          </div>
+          <div id="distance-results" style="display:none;margin-top:16px"></div>
         </div>
 
         <div class="card">

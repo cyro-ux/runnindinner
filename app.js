@@ -31,7 +31,9 @@ const state = {
     maxTableSize: 6,
     eventName: 'Running Dinner 2026',
     eventDate: '2026-05-16',
-    eventCity: ''
+    eventCity: '',
+    transportMode: 'walking',     // walking | cycling | driving
+    maxDistanceKm: 3              // drempel voor warnings in distance-check
   },
   participants: [],
   forcedCombos: [],
@@ -125,6 +127,14 @@ function initStep1() {
   document.getElementById('event-name').addEventListener('input', e => { state.config.eventName = e.target.value; });
   document.getElementById('event-date').addEventListener('change', e => { state.config.eventDate = e.target.value; });
   document.getElementById('event-city').addEventListener('input', e => { state.config.eventCity = e.target.value; });
+
+  const transportEl = document.getElementById('transport-mode');
+  if (transportEl) transportEl.addEventListener('change', e => { state.config.transportMode = e.target.value; });
+  const maxDistEl = document.getElementById('max-distance-km');
+  if (maxDistEl) maxDistEl.addEventListener('change', e => {
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v) && v > 0) state.config.maxDistanceKm = v;
+  });
 }
 
 // ---- Step 2: Participants ----
@@ -877,6 +887,144 @@ function renderChangeLog() {
           <button class="btn-secondary btn-small" onclick="undoChange(${c.id})">↩ ${I18n.t('app.planning.undo', 'Ongedaan')}</button>
         </div>`).join('')}
     </div>`;
+}
+
+// ---- Distance check (geographic) ----
+function _addrToString(addr) {
+  if (!addr) return '';
+  const parts = [
+    addr.street,
+    addr.housenumber,
+    addr.postcode,
+    addr.city,
+  ].filter(Boolean);
+  return parts.join(' ').trim();
+}
+
+async function checkDistances() {
+  if (!state.planning) {
+    alert(I18n.t('app.alert.generate_first', 'Genereer eerst een planning in stap 3.'));
+    return;
+  }
+
+  const courses = state.planning.courses;
+  const tablesByCourse = state.planning.tables;
+
+  // Verzamel host-info per gang. Sociale gangen hebben geen host-tafels en
+  // worden overgeslagen — daar reist iedereen samen naar één locatie.
+  const hostsByCourse = {};
+  for (const course of courses) {
+    const tbls = tablesByCourse[course] || [];
+    hostsByCourse[course] = tbls
+      .filter(t => !t.isSocial && t.address)
+      .map(t => ({ hostName: t.hostName || '', address: _addrToString(t.address) }))
+      .filter(h => h.address);
+  }
+
+  // Genereer alle unieke (host-A, host-B) paren tussen opeenvolgende gangen
+  // — dat zijn de echte routes die deelnemers afleggen.
+  const pairs = [];
+  const pairKeys = new Set();
+  for (let i = 0; i < courses.length - 1; i++) {
+    const c1 = courses[i], c2 = courses[i + 1];
+    for (const a of (hostsByCourse[c1] || [])) {
+      for (const b of (hostsByCourse[c2] || [])) {
+        if (a.address === b.address) continue; // zelfde host = 0m, skippen
+        const key = `${a.address}||${b.address}`;
+        if (pairKeys.has(key)) continue;
+        pairKeys.add(key);
+        pairs.push({
+          fromCourse: c1, fromName: a.hostName, from: a.address,
+          toCourse:   c2, toName:   b.hostName, to:   b.address,
+        });
+      }
+    }
+  }
+
+  const btn = document.getElementById('btn-check-distances');
+  const resultsEl = document.getElementById('distance-results');
+
+  if (pairs.length === 0) {
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = `<p class="hint">${I18n.t('app.distance.none', 'Geen routes om te checken (geen hostende gangen of geen adressen ingevuld).')}</p>`;
+    return;
+  }
+
+  btn.disabled = true;
+  const oldLabel = btn.textContent;
+  btn.textContent = '⏳ ' + I18n.t('app.distance.loading', 'Bezig met checken...');
+  resultsEl.style.display = 'block';
+  resultsEl.innerHTML = `<p class="hint">${I18n.t('app.distance.in_progress', 'Adressen worden geocodeerd via OpenStreetMap. Eerste keer kan dit ~30 sec duren.')}</p>`;
+
+  try {
+    const apiPairs = pairs.map(p => ({ from: p.from, to: p.to }));
+    const resp = await fetch('/api/distance-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pairs:   apiPairs,
+        profile: state.config.transportMode || 'walking',
+      }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'request failed');
+    const enriched = pairs.map((p, idx) => ({ ...p, ...(data.pairs[idx] || {}) }));
+    renderDistanceResults(enriched);
+  } catch (err) {
+    resultsEl.innerHTML = `<p style="color:#c62828">${I18n.t('app.distance.error', 'Fout bij afstand-check')}: ${escapeHtml(err.message)}</p>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldLabel;
+  }
+}
+
+function renderDistanceResults(enriched) {
+  const resultsEl = document.getElementById('distance-results');
+  const maxKm = state.config.maxDistanceKm || 3;
+  const maxM = maxKm * 1000;
+
+  let warnCount = 0, errCount = 0;
+
+  // Sorteer op afstand desc — problemen bovenaan
+  enriched.sort((a, b) => (b.distanceMeters || 0) - (a.distanceMeters || 0));
+
+  const rows = enriched.map(r => {
+    if (r.error) {
+      errCount++;
+      return `<tr class="dist-error"><td>${escapeHtml(r.fromName || '?')} → ${escapeHtml(r.toName || '?')}</td><td>${getCourseLabel(r.fromCourse)} → ${getCourseLabel(r.toCourse)}</td><td colspan="2">⚠️ ${escapeHtml(r.error)}</td></tr>`;
+    }
+    const km = (r.distanceMeters / 1000).toFixed(1);
+    const min = Math.max(1, Math.round(r.durationSeconds / 60));
+    let icon = '🟢';
+    if (r.distanceMeters > maxM) { icon = '🔴'; warnCount++; }
+    else if (r.distanceMeters > maxM * 0.7) { icon = '🟡'; }
+    return `<tr><td>${icon} ${escapeHtml(r.fromName || '?')} → ${escapeHtml(r.toName || '?')}</td><td>${getCourseLabel(r.fromCourse)} → ${getCourseLabel(r.toCourse)}</td><td>${km} km</td><td>${min} min</td></tr>`;
+  });
+
+  let summary = '';
+  if (warnCount > 0) {
+    summary = `<p style="color:#c62828;font-weight:600">⚠️ ${warnCount} ${I18n.t('app.distance.routes_too_long', 'route(s) overschrijden de drempel van')} ${maxKm} km</p>`;
+  } else if (errCount > 0) {
+    summary = `<p style="color:#92400e;font-weight:600">${errCount} ${I18n.t('app.distance.geocode_errors', 'adressen konden niet worden gevonden — controleer of straat/plaats correct ingevuld zijn')}</p>`;
+  } else {
+    summary = `<p style="color:#15803d;font-weight:600">✅ ${I18n.t('app.distance.all_ok', 'Alle routes binnen drempel')} (${maxKm} km)</p>`;
+  }
+
+  resultsEl.innerHTML = `
+    ${summary}
+    <table class="distance-table" style="width:100%;border-collapse:collapse;font-size:0.9rem;margin-top:8px">
+      <thead>
+        <tr style="background:#f8fafc;text-align:left">
+          <th style="padding:8px;border-bottom:1px solid #e2e8f0">${I18n.t('app.distance.col_route', 'Route')}</th>
+          <th style="padding:8px;border-bottom:1px solid #e2e8f0">${I18n.t('app.distance.col_courses', 'Gangen')}</th>
+          <th style="padding:8px;border-bottom:1px solid #e2e8f0">${I18n.t('app.distance.col_distance', 'Afstand')}</th>
+          <th style="padding:8px;border-bottom:1px solid #e2e8f0">${I18n.t('app.distance.col_duration', 'Tijd')}</th>
+        </tr>
+      </thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>
+    <p class="hint" style="margin-top:8px;font-size:0.78rem">${I18n.t('app.distance.legend', '🟢 binnen 70% van drempel · 🟡 dichtbij drempel · 🔴 overschrijdt drempel')}</p>
+  `;
 }
 
 // ---- Step 4: Overview ----

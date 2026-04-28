@@ -183,6 +183,19 @@ db.exec(`
     created_at           INTEGER NOT NULL,
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
   );
+
+  -- Persistent geocoding cache. Address-strings are normalised (trim/lowercase)
+  -- before hashing so kleine variaties dezelfde cache-hit geven. Nominatim's
+  -- usage policy schrijft serverside-caching voor en deze tabel voorkomt dat
+  -- we het rate-limit raken bij meerdere distance-checks in één event.
+  CREATE TABLE IF NOT EXISTS geocode_cache (
+    address_hash         TEXT PRIMARY KEY,    -- sha1 van genormaliseerde adres-string
+    address_normalized   TEXT NOT NULL,
+    lat                  REAL NOT NULL,
+    lon                  REAL NOT NULL,
+    display_name         TEXT,
+    created_at           INTEGER NOT NULL
+  );
 `);
 
 // Migrate existing DB: add columns if missing (SQLite has limited ALTER TABLE)
@@ -2106,6 +2119,124 @@ app.get('/api/cms', (req, res) => {
   }
 
   res.json({ ok: true, cms });
+});
+
+// ── Distance check (geocode + route via Nominatim/OSRM, DB-gecached) ────────
+//
+// Berekent reisafstanden tussen host-adressen voor de planning. Gebruikt
+// route-calculator.js (Nominatim + OSRM) met een persistente DB-cache laag
+// erbovenop, zodat we het Nominatim 1-req/s rate-limit niet halen bij
+// herhaalde checks binnen hetzelfde event.
+//
+// Privacy: alleen door de organisator zelf-ingegeven adressen worden naar
+// OSM/OSRM gestuurd. We sturen GEEN namen, e-mails of andere PII mee.
+const routeCalc = require('./lib/route-calculator');
+
+function _normalizeAddress(addr) {
+  return String(addr || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+function _hashAddress(addr) {
+  return crypto.createHash('sha1').update(_normalizeAddress(addr)).digest('hex');
+}
+const GEOCODE_TTL_MS = 90 * 86400000; // 90 dagen — adressen veranderen zelden
+
+async function _geocodeWithCache(address) {
+  const norm = _normalizeAddress(address);
+  if (!norm) throw new Error('empty address');
+  const hash = _hashAddress(norm);
+
+  const cached = db.prepare(
+    'SELECT lat, lon, display_name, created_at FROM geocode_cache WHERE address_hash = ?'
+  ).get(hash);
+  if (cached && (Date.now() - cached.created_at) < GEOCODE_TTL_MS) {
+    return { lat: cached.lat, lon: cached.lon, displayName: cached.display_name, cached: true };
+  }
+
+  const result = await routeCalc.geocode(norm);
+  db.prepare(`
+    INSERT OR REPLACE INTO geocode_cache
+      (address_hash, address_normalized, lat, lon, display_name, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(hash, norm, result.lat, result.lon, result.displayName || '', Date.now());
+  return { ...result, cached: false };
+}
+
+const distanceCheckLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 uur
+  max: 20,                  // max 20 calls per uur per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Te veel afstand-checks. Probeer het later opnieuw.' },
+});
+
+app.post('/api/distance-check', distanceCheckLimiter, async (req, res) => {
+  try {
+    const { pairs, profile = 'walking' } = req.body || {};
+    if (!Array.isArray(pairs) || pairs.length === 0) {
+      return res.status(400).json({ error: 'pairs[] required' });
+    }
+    if (pairs.length > 200) {
+      return res.status(400).json({ error: 'max 200 pairs per call' });
+    }
+    if (!['driving', 'cycling', 'walking'].includes(profile)) {
+      return res.status(400).json({ error: 'invalid profile (driving|cycling|walking)' });
+    }
+
+    // Verzamel unieke adressen — minder Nominatim-calls bij overlap
+    const uniqueAddresses = new Set();
+    for (const p of pairs) {
+      if (p.from) uniqueAddresses.add(_normalizeAddress(p.from));
+      if (p.to)   uniqueAddresses.add(_normalizeAddress(p.to));
+    }
+
+    // Geocode (DB-cache + Nominatim met 1 req/s respect)
+    const geo = {};
+    let nominatimCallCount = 0;
+    for (const addr of uniqueAddresses) {
+      try {
+        const g = await _geocodeWithCache(addr);
+        geo[addr] = g;
+        if (!g.cached) {
+          nominatimCallCount++;
+          // Respect Nominatim policy: 1 req/s tussen non-cached calls
+          if (nominatimCallCount > 0) await new Promise(r => setTimeout(r, 1100));
+        }
+      } catch (err) {
+        geo[addr] = { error: err.message };
+      }
+    }
+
+    // Route per paar
+    const results = [];
+    for (const pair of pairs) {
+      const from = geo[_normalizeAddress(pair.from)];
+      const to   = geo[_normalizeAddress(pair.to)];
+      if (!from || from.error || !to || to.error) {
+        results.push({
+          from: pair.from,
+          to:   pair.to,
+          error: from?.error || to?.error || 'geocode failed',
+        });
+        continue;
+      }
+      try {
+        const r = await routeCalc.route(from, to, profile);
+        results.push({
+          from: pair.from,
+          to:   pair.to,
+          distanceMeters:  r.distanceMeters,
+          durationSeconds: r.durationSeconds,
+        });
+      } catch (err) {
+        results.push({ from: pair.from, to: pair.to, error: err.message });
+      }
+    }
+
+    res.json({ ok: true, profile, pairs: results });
+  } catch (err) {
+    console.error('[distance-check] error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // PUT /api/cms  (admin only)

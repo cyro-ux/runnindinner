@@ -3,7 +3,6 @@
     "language": "es",
     "label": "Español"
   },
-
   "nav": {
     "features": "Funcionalidades",
     "how_it_works": "Cómo funciona",
@@ -12,7 +11,6 @@
     "login": "Iniciar sesión",
     "cta": "Empieza por €5/año"
   },
-
   "hero": {
     "badge": "👨‍🍳 Creado por un organizador, para organizadores",
     "ghost_cta": "Ver cómo funciona ↓",
@@ -21,7 +19,6 @@
     "screenshot_planning": "Planificación inteligente",
     "screenshot_envelopes": "Tarjetas en sobres"
   },
-
   "social_proof": {
     "label": "Utilizado por organizadores en toda Europa",
     "dinners": "Cenas itinerantes planificadas",
@@ -29,7 +26,6 @@
     "rating": "Valoración media",
     "new": "Nuevo"
   },
-
   "features": {
     "title": "Todo lo que necesitas",
     "routing_title": "Planificación inteligente de rutas",
@@ -45,7 +41,6 @@
     "drinks_title": "Aperitivo previo y copas finales",
     "drinks_desc": "La primera vez se me olvidó incluir el aperitivo previo en mi plan. Nunca más: fija una ubicación central y el planificador lo incluye automáticamente en el horario."
   },
-
   "how_it_works": {
     "title": "Listo en 4 pasos",
     "subtitle": "Lo que antes me llevaba una tarde entera, ahora se hace en media hora. Cuatro pasos, y listo.",
@@ -58,7 +53,6 @@
     "step4_title": "Imprime y disfruta",
     "step4_desc": "Imprime las tarjetas en sobres y el resumen. ¡Listo para disfrutar de una cena itinerante de éxito!"
   },
-
   "testimonials": {
     "title": "Lo que dicen los organizadores",
     "quote1": "\"Planificar la cena itinerante de nuestro barrio me llevaba toda una tarde. Ahora lo hago en 20 minutos. ¡Fantástico!\"",
@@ -68,7 +62,6 @@
     "quote3": "\"Por fin una herramienta que tiene en cuenta las necesidades dietéticas y alergias. Imprescindible para cualquier organizador de cenas itinerantes.\"",
     "role3": "Organizadora, Róterdam"
   },
-
   "pricing": {
     "title": "Precio sencillo y justo",
     "subtitle": "Yo tampoco quería pagar mucho por una herramienta que solo uso unas pocas veces al año. Así que: €5 al año, planificaciones ilimitadas.",
@@ -86,7 +79,6 @@
     "cta": "Suscríbete",
     "note": "Acceso inmediato tras el pago. Factura enviada por correo electrónico."
   },
-
   "faq": {
     "title": "Preguntas frecuentes",
     "q1": "¿Qué es una cena itinerante?",
@@ -106,14 +98,12 @@
     "q8": "¿Se almacenan mis datos?",
     "a8": "Los datos de tu cuenta (correo, contraseña) se almacenan de forma segura. La información de los participantes que introduces en el planificador <strong>no</strong> se guarda de forma permanente — esos datos solo viven en la sesión de tu navegador."
   },
-
   "cta": {
     "title": "Ahórrate la tarde de hojas de cálculo",
     "subtitle": "Empieza a planificar hoy y descubre por qué no lo hiciste así antes.",
     "button": "Empieza ahora por €5/año",
     "note": "Acceso inmediato &bull; iDEAL &bull; Bancontact &bull; PayPal &bull; Sin renovación automática"
   },
-
   "contact": {
     "title": "Contacto",
     "subtitle": "¿Preguntas o sugerencias? Me encantará saber de ti y responderé personalmente.",
@@ -129,7 +119,6 @@
     "error": "Algo ha ido mal.",
     "network_error": "Error de red. Inténtalo de nuevo más tarde."
   },
-
   "footer": {
     "product_heading": "Producto",
     "features": "Funcionalidades",
@@ -148,7 +137,6 @@
     "terms": "Términos y condiciones",
     "waiver": "Derecho de desistimiento"
   },
-
   "auth": {
     "login": {
       "title": "Iniciar sesión",
@@ -164,7 +152,6 @@
       "error_failed": "Error al iniciar sesión",
       "error_network": "Error de red. Inténtalo de nuevo."
     },
-
     "register": {
       "title": "Crear cuenta",
       "subtitle": "Paso 1 de 2 — regístrate y luego paga",
@@ -194,7 +181,6 @@
       "error_failed": "Error en el registro",
       "error_network": "Error de red. Inténtalo de nuevo."
     },
-
     "subscribe": {
       "title": "Suscripción anual",
       "subtitle": "Paga una vez y obtén acceso inmediato durante 1 año.",
@@ -220,7 +206,6 @@
       "error_payment": "No se pudo iniciar el pago.",
       "error_network": "Error de red. Inténtalo de nuevo."
     },
-
     "profile": {
       "title": "Mi perfil",
       "nav_planner": "Ir al planificador",
@@ -262,7 +247,6 @@
       "review_intro": "Escribe o edita tu reseña del Running Dinner Planner.",
       "review_cta": "Escribir / editar reseña"
     },
-
     "forgot": {
       "title": "¿Has olvidado tu contraseña?",
       "subtitle": "Introduce tu correo electrónico. Si está registrado, te enviaremos un enlace para restablecerla.",
@@ -274,7 +258,6 @@
       "back_to_login": "← Volver al inicio de sesión",
       "error_network": "Error de red. Inténtalo de nuevo."
     },
-
     "reset": {
       "title": "Nueva contraseña",
       "subtitle": "Elige una nueva contraseña para tu cuenta.",
@@ -289,7 +272,6 @@
       "error_failed": "Error al restablecer",
       "error_network": "Error de red. Inténtalo de nuevo."
     },
-
     "payment_success": {
       "title": "¡Pago correcto!",
       "message": "Gracias por suscribirte. Ya tienes acceso completo a Running Dinner Planner.",
@@ -303,7 +285,6 @@
       "invoice_note": "Recibirás una factura por correo electrónico."
     }
   },
-
   "app": {
     "courses": {
       "voorborrel": "Aperitivo previo",
@@ -312,7 +293,6 @@
       "nagerecht": "Postre",
       "naborrel": "Copas finales"
     },
-
     "steps": {
       "step1_btn": "1. Configuración",
       "step2_btn": "2. Participantes",
@@ -323,7 +303,6 @@
       "step3_title": "Paso 3: Planificación automática",
       "step4_title": "Paso 4: Resumen"
     },
-
     "nav": {
       "next_participants": "Siguiente: Participantes →",
       "next_planning": "Siguiente: Planificación →",
@@ -331,7 +310,6 @@
       "back": "← Atrás",
       "back_to_planning": "← Volver a la planificación"
     },
-
     "config": {
       "select_courses": "Selecciona los platos activos",
       "optional": "Opcional",
@@ -350,9 +328,15 @@
       "event_details": "Detalles del evento",
       "event_name": "Nombre del evento",
       "event_date": "Fecha",
-      "event_city": "Ciudad/localidad"
+      "event_city": "Ciudad/localidad",
+      "routing_title": "Rutas y distancias",
+      "routing_hint": "Opcional: elige el medio de transporte y la distancia máxima aceptable entre mesas. En el paso 3 puedes comprobar todas las rutas con un clic.",
+      "transport_mode": "Medio de transporte",
+      "transport_walking": "A pie",
+      "transport_cycling": "Bicicleta",
+      "transport_driving": "Coche",
+      "max_distance": "Distancia máxima por ruta"
     },
-
     "participants": {
       "title": "Participantes",
       "add_btn": "+ Añadir participante",
@@ -367,7 +351,6 @@
       "unavailable": "No disponible",
       "edit_btn": "Editar"
     },
-
     "import": {
       "title": "Importar / Exportar",
       "hint": "Descarga la plantilla de Excel, rellena los participantes e importa el archivo de nuevo. Elimina la fila de ejemplo antes de importar.",
@@ -379,7 +362,6 @@
       "skipped": "omitido(s)",
       "failed": "Error al importar"
     },
-
     "groups": {
       "title": "Gestión de grupos",
       "hint": "Guarda la lista actual de participantes para reutilizarla el año que viene.",
@@ -395,7 +377,6 @@
       "load_btn": "Cargar",
       "saved_at": "guardado"
     },
-
     "planning": {
       "social_locations": "Ubicaciones de los momentos sociales",
       "social_locations_hint": "Selecciona qué participante acoge el momento social, o introduce una dirección personalizada.",
@@ -416,7 +397,6 @@
       "moved_from": "movido desde",
       "undo": "Deshacer"
     },
-
     "overview": {
       "tab_per_person": "📋 Ruta por participante",
       "tab_per_location": "📍 Por ubicación",
@@ -439,7 +419,6 @@
       "dietary": "Necesidades dietéticas",
       "guest": "Invitado"
     },
-
     "envelope": {
       "no_cards": "No hay tarjetas en sobres disponibles para la planificación actual.",
       "location_unknown": "Ubicación desconocida",
@@ -449,7 +428,6 @@
       "your_next_destination": "Tu siguiente destino",
       "at": "En"
     },
-
     "snapshots": {
       "title": "Instantáneas",
       "hint": "Guarda la planificación actual como instantánea para revisarla más tarde.",
@@ -459,7 +437,6 @@
       "load_title": "📂 Cargar instantánea",
       "no_snapshots": "No hay instantáneas guardadas."
     },
-
     "modal": {
       "add_participant": "Añadir participante",
       "edit_participant": "Editar participante",
@@ -495,7 +472,6 @@
       "save": "Guardar",
       "manage": "Gestionar"
     },
-
     "social": {
       "unknown_location": "Ubicación desconocida / rellenar más tarde",
       "participant_host": "Participante como anfitrión",
@@ -506,21 +482,18 @@
       "postcode": "Código postal",
       "city": "Ciudad"
     },
-
     "postcode": {
       "loading": "Buscando…",
       "found": "✓ Dirección encontrada",
       "not_found": "Dirección no encontrada. Rellénala manualmente.",
       "failed": "Error en la búsqueda. Rellénala manualmente."
     },
-
     "stats": {
       "participants": "Participantes",
       "couples": "Parejas",
       "avg_new_tablemates": "Media de nuevos compañeros de mesa",
       "courses": "Platos"
     },
-
     "alert": {
       "min_participants": "Añade al menos 3 participantes para generar una planificación.",
       "same_course_only": "Los invitados solo pueden moverse dentro del mismo plato.",
@@ -531,7 +504,6 @@
       "generate_first": "Genera primero una planificación en el paso 3.",
       "xlsx_not_loaded": "La biblioteca de Excel aún no está cargada. Comprueba tu conexión a internet e inténtalo de nuevo."
     },
-
     "confirm": {
       "delete_participant": "¿Eliminar participante?",
       "undo_all": "¿Deshacer todos los cambios manuales?",
@@ -543,7 +515,6 @@
       "delete_all_suffix": "¿eliminar participantes? Esta acción no se puede deshacer.",
       "load_snapshot_suffix": "¿cargar? El estado actual será sobrescrito."
     },
-
     "warning": {
       "not_enough_hosts": "No hay suficientes anfitriones disponibles para",
       "consider_more_participants": "Considera añadir más participantes.",
@@ -555,7 +526,6 @@
       "guests": "invitado(s)",
       "guideline_min": "mínimo recomendado"
     },
-
     "rating": {
       "title": "Valoración",
       "update_title": "Actualiza tu valoración",
@@ -579,24 +549,22 @@
       "thanks": "¡Gracias!",
       "error": "Algo ha ido mal",
       "network_error": "Error de red",
-      "hint_high": "Tu reseña es aún más valiosa con una frase \u2014 aparecerá en la página principal una vez aprobada."
+      "hint_high": "Tu reseña es aún más valiosa con una frase — aparecerá en la página principal una vez aprobada."
     },
-
     "onboarding": {
       "skip": "Omitir",
-      "next": "Siguiente \u2192",
-      "finish": "\u00A1Empezar! \u2713",
+      "next": "Siguiente →",
+      "finish": "¡Empezar! ✓",
       "counter": "Paso {n} de 4",
       "step1_title": "1. Configura el evento",
-      "step1_body":  "Elige fecha, nombre y qu\u00E9 platos quieres (aperitivo, primer plato, plato principal, postre, caf\u00E9). Haz clic en \"A los participantes\" cuando est\u00E9 listo.",
-      "step2_title": "2. A\u00F1ade participantes",
-      "step2_body":  "A\u00F1ade participantes manualmente, importa desde Excel o usa \"Cargar datos de ejemplo\" (?dev en la URL) para probar r\u00E1pido. Incluye preferencias dietarias siempre que sea posible.",
-      "step3_title": "3. Calcula la planificaci\u00F3n",
-      "step3_body":  "El planificador asigna mesas autom\u00E1ticamente, teniendo en cuenta dietas, disponibilidad y preferencias. Despu\u00E9s puedes ajustar manualmente.",
+      "step1_body": "Elige fecha, nombre y qué platos quieres (aperitivo, primer plato, plato principal, postre, café). Haz clic en \"A los participantes\" cuando esté listo.",
+      "step2_title": "2. Añade participantes",
+      "step2_body": "Añade participantes manualmente, importa desde Excel o usa \"Cargar datos de ejemplo\" (?dev en la URL) para probar rápido. Incluye preferencias dietarias siempre que sea posible.",
+      "step3_title": "3. Calcula la planificación",
+      "step3_body": "El planificador asigna mesas automáticamente, teniendo en cuenta dietas, disponibilidad y preferencias. Después puedes ajustar manualmente.",
       "step4_title": "4. Resumen e imprimir",
-      "step4_body":  "Imprime rutas por persona o tarjetas de sobres para la sorpresa en la mesa. Guarda la planificaci\u00F3n como snapshot para consultarla m\u00E1s tarde."
+      "step4_body": "Imprime rutas por persona o tarjetas de sobres para la sorpresa en la mesa. Guarda la planificación como snapshot para consultarla más tarde."
     },
-
     "auth": {
       "subscribe": "Suscribirse",
       "profile": "Perfil",
@@ -607,7 +575,6 @@
       "login_other": "Inicia sesión con otra cuenta",
       "subscription_valid": "Suscripción válida hasta"
     },
-
     "excel": {
       "sheet_participants": "Participantes",
       "sheet_instructions": "Instrucciones",
@@ -677,15 +644,29 @@
       "instr_avoid_eg": "p. ej. Kevin Pérez",
       "instr_warning": "NOTA: ¡Elimina la fila de ejemplo (fila 2 en la hoja de Participantes) antes de importar!"
     },
-
     "dev": {
       "load_sample": "📋 Cargar datos de ejemplo"
+    },
+    "distance": {
+      "title": "🗺️ Comprobar distancias",
+      "hint": "Verifica que todas las rutas entre mesas son viables con el medio de transporte elegido. Usa datos de OpenStreetMap — la primera vez puede tardar un poco.",
+      "check_btn": "🗺️ Comprobar distancias",
+      "loading": "Comprobando...",
+      "in_progress": "Geocodificando direcciones vía OpenStreetMap. La primera vez puede tardar ~30 segundos.",
+      "none": "No hay rutas que comprobar (sin platos con anfitrión o sin direcciones).",
+      "error": "Error en la comprobación",
+      "routes_too_long": "ruta(s) superan el umbral de",
+      "geocode_errors": "direcciones no encontradas — revisa calle/ciudad",
+      "all_ok": "Todas las rutas dentro del umbral",
+      "col_route": "Ruta",
+      "col_courses": "Platos",
+      "col_distance": "Distancia",
+      "col_duration": "Tiempo",
+      "legend": "🟢 dentro del 70% · 🟡 cerca del umbral · 🔴 supera umbral"
     }
   },
-
   "legal": {
     "back_home": "Volver al inicio",
-
     "contact": {
       "title": "Contacto y datos de empresa",
       "updated": "Última actualización: 21 de abril de 2026",
@@ -705,7 +686,6 @@
       "link_terms": "Términos y condiciones",
       "link_waiver": "Derecho de desistimiento"
     },
-
     "privacy": {
       "title": "Política de privacidad",
       "updated": "Versión: abril de 2026",
@@ -766,7 +746,6 @@
       "complaints_heading": "Reclamaciones",
       "complaints_text": "¿Tienes alguna reclamación sobre el tratamiento de tus datos personales? Puedes presentar una reclamación ante la <strong>Autoridad Holandesa de Protección de Datos</strong> en <a href=\"https://autoriteitpersoonsgegevens.nl\" target=\"_blank\" rel=\"noopener\">autoriteitpersoonsgegevens.nl</a>."
     },
-
     "terms": {
       "title": "Términos y condiciones",
       "updated": "Última actualización: 21 de abril de 2026",
@@ -793,7 +772,6 @@
       "contact_heading": "Contacto",
       "contact_text": "Para consultas sobre estas condiciones contacta con nosotros en <a href=\"mailto:info@runningdinner.app\">info@runningdinner.app</a> o mediante la <a href=\"/contact.html\">página de datos de empresa</a>. Nuestra <a href=\"/privacy.html\">política de privacidad</a> y la <a href=\"/herroepingsrecht.html\">información sobre el derecho de desistimiento</a> forman parte integral de estas condiciones."
     },
-
     "waiver": {
       "title": "Derecho de desistimiento",
       "updated": "Última actualización: 21 de abril de 2026",
@@ -814,7 +792,6 @@
       "questions_heading": "¿Preguntas?",
       "questions_text": "¿Tienes dudas sobre tu suscripción o sobre la aplicabilidad del derecho de desistimiento? Contáctanos en <a href=\"mailto:info@runningdinner.app\">info@runningdinner.app</a>."
     },
-
     "cookies": {
       "title": "Política de cookies",
       "updated": "Última actualización: 21 de abril de 2026",
@@ -837,7 +814,6 @@
       "questions_text": "¿Preguntas sobre las cookies o nuestra política de privacidad? Contáctanos en <a href=\"mailto:info@runningdinner.app\">info@runningdinner.app</a> o lee nuestra <a href=\"/privacy.html\">política de privacidad</a>."
     }
   },
-
   "segment": {
     "clubs": {
       "seo_title": "Cena itinerante para Lions, Rotary y Kiwanis | 5 €/año",
