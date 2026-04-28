@@ -403,25 +403,25 @@ function wrapInvoiceHtml(body, lang = 'nl') {
   const footerLines = {
     nl: [
       'runningdinner.app is een product van <strong>VMH B.V.</strong>',
-      'KvK 83892183 &bull; BTW NL863034432B01',
+      'KvK 08142482 &bull; BTW NL8152.92.715.B01',
       'Hanekerweg 4, 7381 AM Klarenbeek, Nederland',
       '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
     ],
     en: [
       'runningdinner.app is a product of <strong>VMH B.V.</strong>',
-      'Chamber of Commerce 83892183 &bull; VAT NL863034432B01',
+      'Chamber of Commerce 08142482 &bull; VAT NL8152.92.715.B01',
       'Hanekerweg 4, 7381 AM Klarenbeek, The Netherlands',
       '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
     ],
     es: [
       'runningdinner.app es un producto de <strong>VMH B.V.</strong>',
-      'Cámara de Comercio 83892183 &bull; NIF NL863034432B01',
+      'Cámara de Comercio 08142482 &bull; NIF NL8152.92.715.B01',
       'Hanekerweg 4, 7381 AM Klarenbeek, Países Bajos',
       '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
     ],
     de: [
       'runningdinner.app ist ein Produkt der <strong>VMH B.V.</strong>',
-      'Handelskammer 83892183 &bull; USt-IdNr. NL863034432B01',
+      'Handelskammer 08142482 &bull; USt-IdNr. NL8152.92.715.B01',
       'Hanekerweg 4, 7381 AM Klarenbeek, Niederlande',
       '<a href="mailto:info@runningdinner.app" style="color:#6b7280">info@runningdinner.app</a>',
     ],
@@ -2003,8 +2003,8 @@ app.get('/api/payments/invoice/:invoiceNumber', requireAuth, (req, res) => {
   doc.fontSize(24).fillColor(blue).text('Running Dinner Planner', 50, 50);
   doc.fontSize(10).fillColor(gray).text('runningdinner.app', 50, 80);
   doc.moveDown(0.5);
-  doc.fontSize(10).fillColor(gray).text('VMH BV', 50, 100);
-  doc.text('KvK: 88765432', 50, 115);
+  doc.fontSize(10).fillColor(gray).text('VMH B.V.', 50, 100);
+  doc.text('KvK: 08142482 · BTW NL8152.92.715.B01', 50, 115);
 
   // Invoice title
   doc.fontSize(18).fillColor(dark).text('FACTUUR', 400, 50, { align: 'right' });
