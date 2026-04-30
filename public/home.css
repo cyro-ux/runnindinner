@@ -192,11 +192,11 @@ img { max-width: 100%; display: block; }
 }
 .nav-icon { font-size: 1.4rem; }
 .nav-logo-img {
-  display: block; height: 40px; width: auto;
-  max-height: 40px; max-width: 200px;
+  display: block; height: 44px; width: auto;
+  max-height: 44px; max-width: 220px;
 }
 @media (max-width: 640px) {
-  .nav-logo-img { height: 32px; max-width: 160px; }
+  .nav-logo-img { height: 36px; max-width: 176px; }
 }
 
 .nav-links {
