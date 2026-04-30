@@ -191,6 +191,13 @@ img { max-width: 100%; display: block; }
   letter-spacing: -.02em;
 }
 .nav-icon { font-size: 1.4rem; }
+.nav-logo-img {
+  display: block; height: 40px; width: auto;
+  max-height: 40px; max-width: 200px;
+}
+@media (max-width: 640px) {
+  .nav-logo-img { height: 32px; max-width: 160px; }
+}
 
 .nav-links {
   display: flex; align-items: center; gap: 28px; margin-left: auto;
@@ -725,6 +732,14 @@ img { max-width: 100%; display: block; }
   font-size: 1.15rem; font-weight: 700; color: #fff;
   margin-bottom: 12px;
 }
+.footer-logo-img {
+  display: block; height: 48px; width: auto;
+  max-height: 48px; max-width: 200px;
+  margin-bottom: 12px;
+  /* Light footer-bg achter het logo (logo is zwart-oranje, footer is donker —
+     daarom kleine witte achtergrond met padding voor leesbaarheid) */
+  background: #fff; padding: 6px 10px; border-radius: 6px;
+}
 .footer-brand p { font-size: .88rem; line-height: 1.7; color: #94A3B8; }
 .footer-links { display: flex; flex-direction: column; gap: 10px; }
 .footer-links h4 {
@@ -752,7 +767,8 @@ img { max-width: 100%; display: block; }
   width: 100%; max-width: 440px;
   box-shadow: var(--shadow-lg);
 }
-.auth-logo { text-align: center; font-size: 2rem; margin-bottom: 8px; }
+.auth-logo { text-align: center; font-size: 2rem; margin-bottom: 16px; display: block; text-decoration: none; }
+.auth-logo img { max-width: 200px; height: auto; margin: 0 auto; display: block; }
 .auth-title {
   text-align: center; font-size: 1.5rem; font-weight: 800;
   margin-bottom: 6px; letter-spacing: -.02em;

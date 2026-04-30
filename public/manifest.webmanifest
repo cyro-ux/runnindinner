@@ -1,0 +1,28 @@
+{
+  "name": "Running Dinner Planner",
+  "short_name": "RDA",
+  "description": "Plan een running dinner in minuten — automatische tafelindeling, routes en envelop-kaartjes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFBF7",
+  "theme_color": "#E85D3A",
+  "icons": [
+    {
+      "src": "/images/runningdinner-icon-240.png",
+      "sizes": "240x240",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/runningdinner-icon-512.png",
+      "sizes": "400x400",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/runningdinner-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

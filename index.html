@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Favicons + PWA manifest -->
+  <link rel="icon" type="image/svg+xml" href="/images/runningdinner-logo.svg">
+  <link rel="icon" type="image/png" sizes="240x240" href="/images/runningdinner-icon-240.png">
+  <link rel="apple-touch-icon" sizes="240x240" href="/images/runningdinner-icon-240.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#E85D3A">
   <title>Running Dinner Planner</title>
   <link rel="alternate" hreflang="nl" href="https://runningdinner.app/app">
   <link rel="alternate" hreflang="en" href="https://runningdinner.app/en/app">
@@ -22,7 +28,7 @@
 
 <!-- ── Auth top bar (only shown when served via Node.js server) ── -->
 <div id="auth-bar" style="display:none;background:#1E293B;color:#fff;padding:10px 20px;font-size:.83rem;align-items:center;gap:16px;font-family:'Plus Jakarta Sans',system-ui,sans-serif">
-  <span style="font-weight:700">🍽️ Running Dinner Planner</span>
+  <a href="/" style="display:inline-flex;align-items:center;text-decoration:none"><img src="/images/runningdinner-logo-nav.png" alt="runningdinner.app" height="32" style="height:32px;width:auto;display:block"></a>
   <span id="auth-license-info" style="opacity:.85"></span>
   <span style="margin-left:auto;display:flex;align-items:center;gap:12px">
     <a id="auth-subscribe-link" href="/subscribe.html" style="color:#fff;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:100px;font-weight:600;text-decoration:none;display:none" data-i18n="app.auth.subscribe">Abonnement nemen</a>
@@ -44,7 +50,7 @@
 
   <div id="app">
     <header>
-      <h1>🍽️ Running Dinner Planner</h1>
+      <h1><img src="/images/runningdinner-logo-nav.png" alt="runningdinner.app" height="48" style="height:48px;width:auto;vertical-align:middle"></h1>
       <nav class="steps-nav">
         <button class="step-btn active" data-step="1" data-i18n="app.steps.step1_btn">1. Configuratie</button>
         <button class="step-btn" data-step="2" data-i18n="app.steps.step2_btn">2. Deelnemers</button>

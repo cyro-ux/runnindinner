@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 240" width="1000" height="240">
+  <!-- Oranje cirkel met mes + vork icoon -->
+  <circle cx="120" cy="120" r="100" fill="#E85D3A"/>
+
+  <!-- Vork (links van centrum) -->
+  <g fill="#FFFFFF">
+    <rect x="83"  y="70" width="6" height="28" rx="2"/>
+    <rect x="95"  y="70" width="6" height="28" rx="2"/>
+    <rect x="107" y="70" width="6" height="28" rx="2"/>
+    <rect x="82"  y="98" width="34" height="10" rx="3"/>
+    <rect x="95"  y="108" width="10" height="67" rx="3"/>
+  </g>
+
+  <!-- Mes (rechts van centrum) -->
+  <g fill="#FFFFFF">
+    <path d="M 138 70 L 158 70 L 158 115 L 138 122 Z"/>
+    <rect x="141" y="115" width="13" height="60" rx="3"/>
+  </g>
+
+  <!-- Tekst "runningdinner" (zonder tagline, iets groter) -->
+  <text x="245" y="143" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#1E293B" letter-spacing="-1">runningdinner</text>
+
+  <!-- Tekst ".app" in oranje -->
+  <text x="840" y="143" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" fill="#E85D3A">.app</text>
+</svg>
