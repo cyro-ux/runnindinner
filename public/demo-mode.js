@@ -112,6 +112,23 @@
   const lang = getLang();
   const T = I18N[lang] || I18N.nl;
 
+  // ============================================================
+  // Dieet-labels per taal — gebruikt om sample-data tags te vertalen
+  // De NL-key blijft de bron-key in SAMPLE_PARTICIPANTS_NL.
+  // ============================================================
+  const DIETS_I18N = {
+    Vegetarisch:        { nl: 'Vegetarisch',        en: 'Vegetarian',         es: 'Vegetariano',          de: 'Vegetarisch' },
+    Vegan:              { nl: 'Vegan',              en: 'Vegan',              es: 'Vegano',               de: 'Vegan' },
+    Glutenvrij:         { nl: 'Glutenvrij',         en: 'Gluten-free',        es: 'Sin gluten',           de: 'Glutenfrei' },
+    'Lactose-intolerant': { nl: 'Lactose-intolerant', en: 'Lactose-intolerant', es: 'Intolerante a la lactosa', de: 'Laktoseintoleranz' },
+    Notenallergie:      { nl: 'Notenallergie',      en: 'Nut allergy',        es: 'Alergia a frutos secos', de: 'Nussallergie' },
+  };
+  function tDiet(label) {
+    if (!label) return null;
+    const entry = DIETS_I18N[label];
+    return entry ? (entry[lang] || label) : label;
+  }
+
   // Subscribe-link prefix per taal
   const SUBSCRIBE_URL = lang === 'nl' ? '/subscribe.html' : `/${lang}/subscribe.html`;
 
@@ -159,8 +176,8 @@
         address: { ...p.address, full: `${p.address.street} ${p.address.housenumber}, ${p.address.postcode} ${p.address.city}` },
         availability,
         hostPreference: p.hostPreference,
-        diet1: p.diet1,
-        diet2: p.diet2,
+        diet1: tDiet(p.diet1),
+        diet2: tDiet(p.diet2),
         preferWith: p.preferWith || [],
         avoid: p.avoid || [],
       };
