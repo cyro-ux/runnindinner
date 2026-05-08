@@ -2002,6 +2002,7 @@ function closeRatingModal() {
 // Show rating prompt when user first visits step 4
 let _ratingPromptShown = false;
 function maybeShowRatingPrompt() {
+  if (window.RDA_DEMO?.isActive?.()) return; // Geen review-prompt in demo
   if (_ratingPromptShown) return;
   _ratingPromptShown = true;
   // Wait a moment so user sees the overview first
