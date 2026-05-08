@@ -1293,6 +1293,7 @@ function printWithStyle(css) {
 }
 
 function printSection(section) {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_print'); return; }
   printWithStyle(`
     @media print {
       #tab-per-person, #tab-per-location, #tab-envelope { display: none !important; }
@@ -1301,6 +1302,7 @@ function printSection(section) {
 }
 
 function printSingleEnvelopes() {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_print'); return; }
   printWithStyle(`
     @media print {
       #tab-per-person, #tab-per-location { display: none !important; }
@@ -1454,6 +1456,7 @@ function getStoredSnapshots() {
 }
 
 function showSaveGroupModal() {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_export'); return; }
   const groups = getStoredGroups();
   document.getElementById('list-modal-title').textContent = I18n.t('app.groups.save_title', '💾 Deelnemersgroep opslaan');
   document.getElementById('list-modal-body').innerHTML = `
@@ -1529,6 +1532,7 @@ function deleteAllParticipants() {
 
 // ---- Planning Snapshots ----
 function savePlanningSnapshot() {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_export'); return; }
   if (!state.planning) { alert(I18n.t('app.alert.generate_first', 'Genereer eerst een planning in stap 3.')); return; }
   const name = prompt(I18n.t('app.snapshots.name_prompt', 'Naam voor deze momentopname:'), `Planning ${new Date().toLocaleDateString(I18n.getLang() === 'en' ? 'en-GB' : 'nl-NL')}`);
   if (!name) return;
@@ -1670,6 +1674,7 @@ function getInstructiesRows() {
 }
 
 async function downloadTemplate() {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_excel'); return; }
   try { await loadXlsx(); } catch {
     alert(I18n.t('app.alert.xlsx_not_loaded', 'Excel-bibliotheek nog niet geladen. Controleer de internetverbinding en probeer opnieuw.'));
     return;
@@ -1703,6 +1708,11 @@ async function downloadTemplate() {
 }
 
 async function importParticipantsFromFile(event) {
+  if (window.RDA_DEMO?.isActive?.()) {
+    window.RDA_DEMO.showPaywall('paywall_excel');
+    if (event?.target) event.target.value = '';
+    return;
+  }
   const file = event.target.files[0];
   if (!file) return;
 
