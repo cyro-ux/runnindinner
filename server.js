@@ -3429,6 +3429,9 @@ try {
     '"text": "The subscription costs only €5 per year. You can organize unlimited events with it."'
   );
 
+  // Demo-link wijzen naar de Engelse demo zodat de demo in de juiste taal start
+  html = html.replace(/href="\/demo"/g, 'href="/en/demo"');
+
   homeHtmlEN = html;
   console.log('[boot] English homepage SEO variant generated');
 } catch (e) {
@@ -3531,6 +3534,9 @@ try {
     '"text": "La suscripción cuesta solo €5 al año. Con ella puedes organizar eventos de forma ilimitada."'
   );
 
+  // Demo-link wijzen naar de Spaanse demo
+  html = html.replace(/href="\/demo"/g, 'href="/es/demo"');
+
   homeHtmlES = html;
   console.log('[boot] Spanish homepage SEO variant generated');
 } catch (e) {
@@ -3632,6 +3638,9 @@ try {
     '"text": "Het abonnement kost slechts €5 per jaar. Je kunt daarmee onbeperkt evenementen organiseren."',
     '"text": "Das Abonnement kostet nur €5 pro Jahr. Damit können Sie unbegrenzt Events organisieren."'
   );
+
+  // Demo-link wijzen naar de Duitse demo
+  html = html.replace(/href="\/demo"/g, 'href="/de/demo"');
 
   homeHtmlDE = html;
   console.log('[boot] German homepage SEO variant generated');
@@ -4044,6 +4053,14 @@ SEGMENT_SLUGS.forEach(slug => {
   app.get('/es/' + slug,       (req, res) => sendSegmentPage(slug, 'es', res));
   app.get('/de/' + slug,       (req, res) => sendSegmentPage(slug, 'de', res));
 });
+
+// ── Demo (publiek toegankelijk) ───────────────────────────────────────────────
+// Serveert dezelfde index.html, maar /demo-mode.js detecteert het URL-pad en
+// schakelt sample-data + paywall-modus aan. Geen auth, geen DB, geen schade.
+app.get(['/demo', '/demo/'],            (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get(['/en/demo', '/en/demo/'],      (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get(['/es/demo', '/es/demo/'],      (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get(['/de/demo', '/de/demo/'],      (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // ── SPA fallbacks ─────────────────────────────────────────────────────────────
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));

@@ -458,11 +458,15 @@
 
   <script defer data-domain="runningdinner.app" data-api="/api/event" src="/js/script.js"></script>
   <script src="/lang/i18n.js?v=de1"></script>
+  <!-- Demo-mode controller (zelf-uit als URL-pad geen /demo is) -->
+  <script src="/demo-mode.js?v=1"></script>
   <script src="app.js"></script>
   <script>
   // Auth check – only runs when accessed via the Node.js server (not file://)
+  // In demo-mode wordt de auth-check overgeslagen: demo is publiek toegankelijk.
   (async function initAuthBar() {
     if (location.protocol === 'file:') return; // Direct file open – skip auth
+    if (window.RDA_DEMO?.isActive?.()) return;  // Demo-modus – geen auth
     try {
       const res  = await fetch('/api/app/access');
       if (!res.ok) {

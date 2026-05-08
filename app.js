@@ -2017,6 +2017,15 @@ function init() {
   initStep1();
   updateHostPreferenceOptions();
 
+  // Demo-modus: vul state met sample-data en render UI direct
+  if (window.RDA_DEMO?.isActive?.()) {
+    try {
+      window.RDA_DEMO.applyToState(state);
+      // Render direct de deelnemerslijst zodat gebruikers de data zien als ze naar stap 2 gaan
+      if (typeof renderParticipantsList === 'function') renderParticipantsList();
+    } catch (e) { console.warn('[demo] applyToState failed', e); }
+  }
+
   // Add sample data button only in dev mode (?dev in URL)
   if (new URLSearchParams(location.search).has('dev')) {
     const devBtn = document.createElement('button');
@@ -2033,7 +2042,8 @@ function init() {
   }
 
   // Onboarding-tour bij eerste bezoek (skipbaar + onthouden in localStorage)
-  maybeShowOnboarding();
+  // In demo-modus overslaan zodat de tour de paywall-modal niet hindert.
+  if (!window.RDA_DEMO?.isActive?.()) maybeShowOnboarding();
 }
 
 // ---- Onboarding Tour ----
