@@ -32,9 +32,26 @@
     return m ? m[1].toLowerCase() : 'nl';
   }
 
+  // ============================================================
+  // Carry-over key — gebruikt in zowel demo (capture) als app (load)
+  // ============================================================
+  const CARRYOVER_KEY = 'rda_demo_carryover';
+
   if (!isActive()) {
     // Geen demo — exporteer minimale stub zodat app.js veilig kan checken
-    window.RDA_DEMO = { isActive: () => false };
+    window.RDA_DEMO = {
+      isActive: () => false,
+      // Helpers voor de echte app om carry-over uit demo te detecteren/laden:
+      getCarryover() {
+        try {
+          const raw = sessionStorage.getItem(CARRYOVER_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+      },
+      clearCarryover() {
+        try { sessionStorage.removeItem(CARRYOVER_KEY); } catch {}
+      },
+    };
     return;
   }
 
@@ -196,6 +213,31 @@
   }
 
   // ============================================================
+  // Carry-over: serialiseer demo-state vóór navigatie naar /subscribe
+  // Wordt later opgepikt door app.js (regular mode) na succesvolle login.
+  // ============================================================
+  function captureStateForCarryover() {
+    try {
+      // app.js exposed `state` via global func (set in toCarryover hook below).
+      // Fallback: lees waarden direct uit DOM-velden.
+      const s = (typeof window.__rda_getState === 'function') ? window.__rda_getState() : null;
+      if (!s) return;
+      const payload = {
+        savedAt: Date.now(),
+        lang,
+        config: s.config,
+        participants: s.participants,
+        forcedCombos: s.forcedCombos,
+        socialHosts: s.socialHosts,
+      };
+      sessionStorage.setItem(CARRYOVER_KEY, JSON.stringify(payload));
+      try { window.plausible?.('Demo Carryover Captured', { props: { lang, count: s.participants?.length || 0 } }); } catch {}
+    } catch (e) {
+      console.warn('[demo] carryover capture failed', e);
+    }
+  }
+
+  // ============================================================
   // Banner + Modal opbouw (DOM)
   // ============================================================
   function injectBanner() {
@@ -205,7 +247,7 @@
       <div class="demo-banner-inner">
         <span class="demo-banner-icon">🍽️</span>
         <span class="demo-banner-text">${escapeHtml(T.banner_text)}</span>
-        <a href="${SUBSCRIBE_URL}" class="demo-banner-cta">${escapeHtml(T.banner_cta)}</a>
+        <a href="${SUBSCRIBE_URL}" class="demo-banner-cta" data-rda-carryover>${escapeHtml(T.banner_cta)}</a>
         <button type="button" class="demo-banner-reset" title="${escapeHtml(T.reset)}" onclick="window.location.reload()">↻</button>
       </div>`;
     document.body.insertBefore(banner, document.body.firstChild);
@@ -223,7 +265,7 @@
         <p class="demo-modal-reason" id="demo-modal-reason"></p>
         <p class="demo-modal-body">${escapeHtml(T.modal_body)}</p>
         <div class="demo-modal-actions">
-          <a href="${SUBSCRIBE_URL}" class="demo-modal-btn-primary">${escapeHtml(T.modal_cta_subscribe)}</a>
+          <a href="${SUBSCRIBE_URL}" class="demo-modal-btn-primary" data-rda-carryover>${escapeHtml(T.modal_cta_subscribe)}</a>
           <button type="button" class="demo-modal-btn-secondary" onclick="RDA_DEMO.closePaywall()">${escapeHtml(T.modal_cta_close)}</button>
         </div>
       </div>`;
@@ -306,6 +348,16 @@
   }
 
   // ============================================================
+  // Hook carry-over op alle data-rda-carryover elementen
+  // ============================================================
+  function bindCarryoverHandlers() {
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest('[data-rda-carryover]');
+      if (target) captureStateForCarryover();
+    }, true); // capture-fase zodat het altijd vóór navigatie loopt
+  }
+
+  // ============================================================
   // Init — banner direct, modal direct, hooks na DOM ready
   // ============================================================
   function init() {
@@ -313,6 +365,7 @@
     injectModal();
     interceptApp();
     hideIrrelevantUI();
+    bindCarryoverHandlers();
     trackStarted();
   }
   if (document.readyState === 'loading') {

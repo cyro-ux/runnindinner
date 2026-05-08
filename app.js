@@ -2024,6 +2024,75 @@ document.addEventListener('keydown', e => {
 });
 
 // ---- Init ----
+// Expose state-getter zodat demo-mode.js de state kan serialiseren bij carry-over
+window.__rda_getState = () => state;
+
+// ---- Carry-over uit demo-sessie: prompt om data over te nemen ----
+function showCarryoverPrompt(carryover) {
+  const lang = (typeof I18n !== 'undefined' && I18n.getLang) ? I18n.getLang() : 'nl';
+  const tT = {
+    nl: { title: '🍽️ Je demo-data staat klaar', body: 'We hebben je werk uit de demo bewaard. Wil je hiermee verder of fris beginnen?', load: 'Verder met demo-data', discard: 'Fris beginnen', loaded: 'Demo-data geladen' },
+    en: { title: '🍽️ Your demo data is ready', body: 'We saved your work from the demo. Continue with it or start fresh?', load: 'Continue with demo data', discard: 'Start fresh', loaded: 'Demo data loaded' },
+    es: { title: '🍽️ Tus datos de la demo están listos', body: 'Hemos guardado tu trabajo de la demo. ¿Quieres continuar con eso o empezar de cero?', load: 'Continuar con datos de la demo', discard: 'Empezar de cero', loaded: 'Datos de la demo cargados' },
+    de: { title: '🍽️ Deine Demo-Daten sind bereit', body: 'Wir haben deine Arbeit aus der Demo gespeichert. Damit weitermachen oder neu beginnen?', load: 'Mit Demo-Daten fortfahren', discard: 'Neu starten', loaded: 'Demo-Daten geladen' },
+  };
+  const T = tT[lang] || tT.nl;
+
+  const card = document.createElement('div');
+  card.id = 'demo-carryover-card';
+  card.style.cssText = 'position:sticky;top:0;z-index:500;background:linear-gradient(135deg,#fff7ed 0%,#fef3c7 100%);border-bottom:2px solid #fcd34d;padding:14px 20px;font-family:"Plus Jakarta Sans",system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.06)';
+  card.innerHTML = `
+    <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <div style="font-weight:700;color:#1E293B;font-size:.95rem;margin-bottom:2px">${T.title}</div>
+        <div style="color:#64748B;font-size:.85rem">${T.body}</div>
+      </div>
+      <button type="button" id="co-load-btn" style="background:#E85D3A;color:#fff;border:none;font-weight:700;padding:9px 18px;border-radius:9px;cursor:pointer;font-size:.88rem;font-family:inherit;box-shadow:0 3px 10px rgba(232,93,58,.25)">${T.load}</button>
+      <button type="button" id="co-discard-btn" style="background:transparent;border:1px solid #E2E8F0;color:#64748B;font-weight:600;padding:8px 16px;border-radius:9px;cursor:pointer;font-size:.85rem;font-family:inherit">${T.discard}</button>
+    </div>`;
+  document.body.insertBefore(card, document.body.firstChild);
+
+  document.getElementById('co-load-btn').addEventListener('click', () => {
+    try {
+      // Vervang state met carry-over data
+      Object.assign(state.config, carryover.config || {});
+      state.participants = (carryover.participants || []).map(p => ({ ...p }));
+      state.forcedCombos = carryover.forcedCombos || [];
+      state.socialHosts  = carryover.socialHosts  || { voorborrel: null, naborrel: null };
+      state.nextId = (state.participants.length || 0) + 1;
+      state.planning = null;
+
+      // Sync UI-velden
+      const evName = document.getElementById('event-name');
+      const evDate = document.getElementById('event-date');
+      const evCity = document.getElementById('event-city');
+      if (evName) evName.value = state.config.eventName || '';
+      if (evDate) evDate.value = state.config.eventDate || '';
+      if (evCity) evCity.value = state.config.eventCity || '';
+      const minEl = document.getElementById('min-table-size');
+      const maxEl = document.getElementById('max-table-size');
+      if (minEl) minEl.value = state.config.minTableSize || 4;
+      if (maxEl) maxEl.value = state.config.maxTableSize || 6;
+
+      if (typeof renderParticipantsList === 'function') renderParticipantsList();
+      window.RDA_DEMO?.clearCarryover?.();
+      try { window.plausible?.('Demo Carryover Loaded', { props: { count: state.participants.length, lang } }); } catch {}
+
+      // Toon kort succes-feedback en verberg de card
+      card.innerHTML = `<div style="max-width:1200px;margin:0 auto;text-align:center;color:#166534;font-weight:700;font-size:.95rem">✓ ${T.loaded}</div>`;
+      setTimeout(() => card.remove(), 2200);
+    } catch (e) {
+      console.warn('[demo] carryover load failed', e);
+      card.remove();
+    }
+  });
+
+  document.getElementById('co-discard-btn').addEventListener('click', () => {
+    window.RDA_DEMO?.clearCarryover?.();
+    card.remove();
+  });
+}
+
 function init() {
   initStep1();
   updateHostPreferenceOptions();
@@ -2035,6 +2104,14 @@ function init() {
       // Render direct de deelnemerslijst zodat gebruikers de data zien als ze naar stap 2 gaan
       if (typeof renderParticipantsList === 'function') renderParticipantsList();
     } catch (e) { console.warn('[demo] applyToState failed', e); }
+  } else if (window.RDA_DEMO?.getCarryover) {
+    // Niet-demo modus: check of er een carry-over is uit een eerdere demo-sessie
+    try {
+      const co = window.RDA_DEMO.getCarryover();
+      if (co && co.participants && co.participants.length > 0) {
+        showCarryoverPrompt(co);
+      }
+    } catch (e) { console.warn('[demo] carryover check failed', e); }
   }
 
   // Add sample data button only in dev mode (?dev in URL)
