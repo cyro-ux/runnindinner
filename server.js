@@ -4057,10 +4057,14 @@ SEGMENT_SLUGS.forEach(slug => {
 // ── Demo (publiek toegankelijk) ───────────────────────────────────────────────
 // Serveert dezelfde index.html, maar /demo-mode.js detecteert het URL-pad en
 // schakelt sample-data + paywall-modus aan. Geen auth, geen DB, geen schade.
-app.get(['/demo', '/demo/'],            (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get(['/en/demo', '/en/demo/'],      (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get(['/es/demo', '/es/demo/'],      (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get(['/de/demo', '/de/demo/'],      (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+//
+// Belangrijk: zelfde patroon als /app gebruiken (express.static op __dirname),
+// zodat /demo automatisch 301-redirect naar /demo/ doet en relatieve URLs
+// (style.css, app.js, /lang/*) correct resolven.
+app.use('/demo',     express.static(path.join(__dirname)));
+app.use('/en/demo',  express.static(path.join(__dirname)));
+app.use('/es/demo',  express.static(path.join(__dirname)));
+app.use('/de/demo',  express.static(path.join(__dirname)));
 
 // ── SPA fallbacks ─────────────────────────────────────────────────────────────
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
