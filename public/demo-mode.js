@@ -351,6 +351,47 @@
   }
 
   // ============================================================
+  // Onderschep /api/distance-check zodat de demo geen geocode-fouten
+  // toont. Geeft fictieve maar deterministisch-plausibele afstanden
+  // (0.4-2.5 km) terug — alle routes binnen de 3 km drempel.
+  // ============================================================
+  function interceptDistanceCheck() {
+    const _fetch = window.fetch.bind(window);
+    function pseudoHash(s) {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+      return Math.abs(h);
+    }
+    window.fetch = async function (url, options) {
+      const u = typeof url === 'string' ? url : url?.url;
+      if (u === '/api/distance-check' && options?.method === 'POST') {
+        try {
+          const body = JSON.parse(options.body);
+          const pairs = body.pairs || [];
+          const profile = body.profile || 'walking';
+          // km/h per modus voor reistijd-berekening
+          const speedKmh = profile === 'walking' ? 5 : profile === 'cycling' ? 15 : 30;
+          const fakePairs = pairs.map(p => {
+            const seed = pseudoHash((p.from || '') + '|' + (p.to || ''));
+            // 0.4 .. 2.5 km, deterministic per from/to-paar
+            const distanceKm = 0.4 + ((seed % 2100) / 1000);
+            const distanceMeters = Math.round(distanceKm * 1000);
+            const durationSeconds = Math.round((distanceKm / speedKmh) * 3600);
+            return { from: p.from, to: p.to, distanceMeters, durationSeconds };
+          });
+          // Korte vertraging zodat 'loading'-state zichtbaar is
+          await new Promise(r => setTimeout(r, 700));
+          return new Response(
+            JSON.stringify({ ok: true, profile, pairs: fakePairs }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        } catch { /* val terug op echte fetch */ }
+      }
+      return _fetch(url, options);
+    };
+  }
+
+  // ============================================================
   // Hook carry-over op alle data-rda-carryover elementen
   // ============================================================
   function bindCarryoverHandlers() {
@@ -367,6 +408,7 @@
     injectBanner();
     injectModal();
     interceptApp();
+    interceptDistanceCheck();
     hideIrrelevantUI();
     bindCarryoverHandlers();
     trackStarted();
