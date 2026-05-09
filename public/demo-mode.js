@@ -59,19 +59,22 @@
   // SAMPLE DATA — 16 deelnemers in/rond Klarenbeek (8 koppels + variaties)
   // Adressen zijn fictief maar plausibel voor de regio.
   // ============================================================
+  // Adressen zijn fictief maar gebruiken alleen straatnamen die in
+  // OpenStreetMap-Klarenbeek bekend zijn, zodat de afstandscheck-functie
+  // (Nominatim/OSRM) elk koppel kan geocoderen.
   const SAMPLE_PARTICIPANTS_NL = [
     { name1: 'Lieke',   name2: 'Mark',    address: { street: 'Hanekerweg',       housenumber: '8',  postcode: '7381 AM', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegetarisch',     hostPreference: 'voorgerecht',  preferWith: [], avoid: [] },
     { name1: 'Sanne',   name2: 'Joost',   address: { street: 'Klarenbeekseweg',  housenumber: '32', postcode: '7382 BB', city: 'Klarenbeek' }, diet1: 'Glutenvrij', diet2: null,      hostPreference: 'hoofdgerecht', preferWith: [], avoid: [] },
     { name1: 'Peter',   name2: 'Anouk',   address: { street: 'Woudweg',          housenumber: '14', postcode: '7383 RC', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: null,           preferWith: [], avoid: [] },
-    { name1: 'Daan',    name2: 'Eva',     address: { street: 'Hessenallee',      housenumber: '5',  postcode: '7383 RB', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegan',          hostPreference: 'nagerecht',    preferWith: [], avoid: [] },
+    { name1: 'Daan',    name2: 'Eva',     address: { street: 'Hoofdweg',         housenumber: '12', postcode: '7381 AT', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegan',          hostPreference: 'nagerecht',    preferWith: [], avoid: [] },
     { name1: 'Maaike',  name2: 'Bram',    address: { street: 'Hoofdweg',         housenumber: '47', postcode: '7381 AT', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: 'voorgerecht',  preferWith: [], avoid: [] },
-    { name1: 'Tim',     name2: 'Judith',  address: { street: 'Veldhuizen',       housenumber: '21', postcode: '7382 CD', city: 'Klarenbeek' }, diet1: 'Lactose-intolerant', diet2: null, hostPreference: 'hoofdgerecht', preferWith: [], avoid: [] },
+    { name1: 'Tim',     name2: 'Judith',  address: { street: 'Klarenbeekseweg',  housenumber: '18', postcode: '7382 BB', city: 'Klarenbeek' }, diet1: 'Lactose-intolerant', diet2: null, hostPreference: 'hoofdgerecht', preferWith: [], avoid: [] },
     { name1: 'Roos',    name2: 'Niels',   address: { street: 'Molenweg',         housenumber: '9',  postcode: '7383 AB', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: null,           preferWith: [], avoid: [] },
     { name1: 'Esther',  name2: 'Joep',    address: { street: 'Bosweg',           housenumber: '18', postcode: '7382 BC', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: 'nagerecht',    preferWith: [], avoid: [] },
-    { name1: 'Kim',     name2: 'Lars',    address: { street: 'Beekstraat',       housenumber: '12', postcode: '7381 BX', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: 'voorgerecht',  preferWith: [], avoid: [] },
-    { name1: 'Floor',   name2: 'Bas',     address: { street: 'Kerkstraat',       housenumber: '7',  postcode: '7382 AB', city: 'Klarenbeek' }, diet1: 'Notenallergie', diet2: null,  hostPreference: 'hoofdgerecht', preferWith: [], avoid: [] },
-    { name1: 'Yara',    name2: 'Sven',    address: { street: 'Lindenlaan',       housenumber: '3',  postcode: '7383 ED', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: 'nagerecht',    preferWith: [], avoid: [] },
-    { name1: 'Anne',    name2: 'Rik',     address: { street: 'Esdoornstraat',    housenumber: '22', postcode: '7382 CE', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegetarisch',    hostPreference: null,           preferWith: [], avoid: [] },
+    { name1: 'Kim',     name2: 'Lars',    address: { street: 'Bosweg',           housenumber: '4',  postcode: '7382 BC', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: 'voorgerecht',  preferWith: [], avoid: [] },
+    { name1: 'Floor',   name2: 'Bas',     address: { street: 'Molenweg',         housenumber: '22', postcode: '7383 AB', city: 'Klarenbeek' }, diet1: 'Notenallergie', diet2: null,  hostPreference: 'hoofdgerecht', preferWith: [], avoid: [] },
+    { name1: 'Yara',    name2: 'Sven',    address: { street: 'Woudweg',          housenumber: '8',  postcode: '7383 RC', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: 'nagerecht',    preferWith: [], avoid: [] },
+    { name1: 'Anne',    name2: 'Rik',     address: { street: 'Hanekerweg',       housenumber: '14', postcode: '7381 AM', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegetarisch',    hostPreference: null,           preferWith: [], avoid: [] },
   ];
 
   // Vertalingen banner + modal — minimaal, alleen voor demo-UI
