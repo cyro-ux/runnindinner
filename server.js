@@ -2906,7 +2906,7 @@ app.put('/api/admin/planning-count', requireAdmin, (req, res) => {
 
 const PLAUSIBLE_API_KEY = process.env.PLAUSIBLE_API_KEY || '';
 const PLAUSIBLE_BASE    = process.env.PLAUSIBLE_BASE_URL || 'http://127.0.0.1:8000';
-const PLAUSIBLE_SITE_ID = process.env.PLAUSIBLE_SITE_ID || 'runningdiner.nl';
+const PLAUSIBLE_SITE_ID = process.env.PLAUSIBLE_SITE_ID || 'runningdinner.app';
 
 function plausibleFetch(apiPath) {
   return new Promise((resolve, reject) => {
