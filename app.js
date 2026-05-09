@@ -196,6 +196,7 @@ function togglePartnerAvailability() {
 }
 
 function openAddParticipant(id) {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_edit'); return; }
   const modal = document.getElementById('participant-modal');
   const form = document.getElementById('participant-form');
   form.reset();
@@ -289,6 +290,7 @@ function saveParticipant(event) {
 }
 
 function deleteParticipant(id) {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_edit'); return; }
   if (!confirm(I18n.t('app.confirm.delete_participant', 'Deelnemer verwijderen?'))) return;
   state.participants = state.participants.filter(p => p.id !== id);
   renderParticipantsList();
@@ -338,12 +340,14 @@ function renderParticipantsList() {
 
 // ---- Forced Combos ----
 function addForcedCombo() {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_edit'); return; }
   const id = Date.now();
   state.forcedCombos.push({ id, person1: '', person2: '', courses: [] });
   renderForcedCombos();
 }
 
 function removeForcedCombo(id) {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_edit'); return; }
   state.forcedCombos = state.forcedCombos.filter(fc => fc.id !== id);
   renderForcedCombos();
 }
@@ -1569,6 +1573,7 @@ function confirmLoadGroup(name) {
 }
 
 function deleteAllParticipants() {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_edit'); return; }
   if (!confirm(I18n.t('app.confirm.delete_all_prefix', 'Alle') + ` ${state.participants.length} ` + I18n.t('app.confirm.delete_all_suffix', 'deelnemers verwijderen? Dit kan niet ongedaan worden gemaakt.'))) return;
   state.participants = [];
   state.planning = null;
