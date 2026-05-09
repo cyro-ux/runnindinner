@@ -1005,7 +1005,8 @@ function renderDistanceResults(enriched) {
   if (warnCount > 0) {
     summary = `<p style="color:#c62828;font-weight:600">⚠️ ${warnCount} ${I18n.t('app.distance.routes_too_long', 'route(s) overschrijden de drempel van')} ${maxKm} km</p>`;
   } else if (errCount > 0) {
-    summary = `<p style="color:#92400e;font-weight:600">${errCount} ${I18n.t('app.distance.geocode_errors', 'adressen konden niet worden gevonden — controleer of straat/plaats correct ingevuld zijn')}</p>`;
+    summary = `<p style="color:#92400e;font-weight:600">${errCount} ${I18n.t('app.distance.geocode_errors', 'adressen konden niet worden gevonden — controleer of straat/plaats correct ingevuld zijn')}</p>
+      <p class="hint" style="margin:4px 0 0;color:#64748b;font-size:.82rem">${I18n.t('app.distance.threshold_hint', 'Drempel ingesteld op')} ${maxKm} km · ${I18n.t('app.distance.threshold_change_hint', 'aan te passen in stap 1 → Routes en afstanden')}</p>`;
   } else {
     summary = `<p style="color:#15803d;font-weight:600">✅ ${I18n.t('app.distance.all_ok', 'Alle routes binnen drempel')} (${maxKm} km)</p>`;
   }
