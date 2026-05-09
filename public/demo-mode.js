@@ -355,6 +355,27 @@
   }
 
   // ============================================================
+  // Maak het app-header-logo klikbaar — terug naar homepage van de
+  // huidige taal (omdat de auth-bar verborgen is in demo, zou je
+  // anders alleen via de browser-back-knop terug kunnen).
+  // ============================================================
+  function makeLogoClickable() {
+    const logo = document.querySelector('#app header h1 img');
+    if (!logo) return;
+    if (logo.parentElement && logo.parentElement.tagName === 'A') return; // al gedaan
+    const homeUrl = lang === 'nl' ? '/' : '/' + lang;
+    const a = document.createElement('a');
+    a.href = homeUrl;
+    a.title = lang === 'nl' ? 'Terug naar homepage'
+            : lang === 'en' ? 'Back to homepage'
+            : lang === 'es' ? 'Volver a la página principal'
+            : 'Zurück zur Startseite';
+    a.style.cssText = 'display:inline-block;text-decoration:none;cursor:pointer';
+    logo.parentNode.insertBefore(a, logo);
+    a.appendChild(logo);
+  }
+
+  // ============================================================
   // Onderschep /api/distance-check zodat de demo geen geocode-fouten
   // toont. Geeft fictieve maar deterministisch-plausibele afstanden
   // (0.4-2.5 km) terug — alle routes binnen de 3 km drempel.
@@ -414,6 +435,7 @@
     interceptApp();
     interceptDistanceCheck();
     hideIrrelevantUI();
+    makeLogoClickable();
     bindCarryoverHandlers();
     trackStarted();
   }
