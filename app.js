@@ -339,7 +339,7 @@ function renderParticipantsList() {
 // ---- Forced Combos ----
 function addForcedCombo() {
   const id = Date.now();
-  state.forcedCombos.push({ id, person1: '', person2: '' });
+  state.forcedCombos.push({ id, person1: '', person2: '', courses: [] });
   renderForcedCombos();
 }
 
@@ -356,25 +356,65 @@ function renderForcedCombos() {
   }
 
   const names = state.participants.map(p => p.name2 ? [p.name1, p.name2] : [p.name1]).flat();
+  const activeCourses = getActiveCourses();
+  const hostCourses = activeCourses.filter(c => c === 'voorgerecht' || c === 'hoofdgerecht' || c === 'nagerecht');
 
-  list.innerHTML = state.forcedCombos.map(fc => `
-    <div class="forced-combo-item">
-      <select onchange="updateForcedCombo(${fc.id}, 'person1', this.value)">
-        <option value="">${I18n.t('app.participants.select_person1', 'Selecteer persoon 1...')}</option>
-        ${names.map(n => `<option value="${escapeHtml(n)}" ${fc.person1 === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
-      </select>
-      <span>${I18n.t('app.participants.always_together', 'altijd samen met')}</span>
-      <select onchange="updateForcedCombo(${fc.id}, 'person2', this.value)">
-        <option value="">${I18n.t('app.participants.select_person2', 'Selecteer persoon 2...')}</option>
-        ${names.map(n => `<option value="${escapeHtml(n)}" ${fc.person2 === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
-      </select>
-      <button class="btn-danger btn-small" onclick="removeForcedCombo(${fc.id})">✕</button>
-    </div>`).join('');
+  list.innerHTML = state.forcedCombos.map(fc => {
+    // Backward-compat: bestaande combos zonder courses-veld → []  (= alle gangen)
+    const selectedCourses = Array.isArray(fc.courses) ? fc.courses : [];
+    const allCoursesMode = selectedCourses.length === 0;
+
+    const courseChips = hostCourses.map(c => {
+      const checked = selectedCourses.includes(c);
+      const icon = COURSE_ICONS[c] || '';
+      return `<label class="forced-combo-course ${checked ? 'is-active' : ''}">
+        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleForcedComboCourse(${fc.id}, '${c}', this.checked)">
+        <span>${icon} ${escapeHtml(getCourseLabel(c))}</span>
+      </label>`;
+    }).join('');
+
+    const scopeHint = allCoursesMode
+      ? I18n.t('app.forcedcombos.scope_all', 'Bij alle gangen samen')
+      : I18n.t('app.forcedcombos.scope_some', 'Alleen bij geselecteerde gangen');
+
+    return `
+      <div class="forced-combo-item">
+        <div class="forced-combo-row">
+          <select onchange="updateForcedCombo(${fc.id}, 'person1', this.value)">
+            <option value="">${I18n.t('app.participants.select_person1', 'Selecteer persoon 1...')}</option>
+            ${names.map(n => `<option value="${escapeHtml(n)}" ${fc.person1 === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
+          </select>
+          <span>${I18n.t('app.participants.always_together', 'altijd samen met')}</span>
+          <select onchange="updateForcedCombo(${fc.id}, 'person2', this.value)">
+            <option value="">${I18n.t('app.participants.select_person2', 'Selecteer persoon 2...')}</option>
+            ${names.map(n => `<option value="${escapeHtml(n)}" ${fc.person2 === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
+          </select>
+          <button class="btn-danger btn-small" onclick="removeForcedCombo(${fc.id})">✕</button>
+        </div>
+        <div class="forced-combo-scope">
+          <span class="forced-combo-scope-label">${escapeHtml(scopeHint)}:</span>
+          ${courseChips}
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function updateForcedCombo(id, field, value) {
   const fc = state.forcedCombos.find(f => f.id === id);
   if (fc) fc[field] = value;
+}
+
+function toggleForcedComboCourse(id, course, isChecked) {
+  const fc = state.forcedCombos.find(f => f.id === id);
+  if (!fc) return;
+  if (!Array.isArray(fc.courses)) fc.courses = [];
+  if (isChecked) {
+    if (!fc.courses.includes(course)) fc.courses.push(course);
+  } else {
+    fc.courses = fc.courses.filter(c => c !== course);
+  }
+  renderForcedCombos();
+  state.planning = null; // invalidate planning
 }
 
 // ---- Step 3: Planning Algorithm ----
@@ -532,7 +572,7 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
   const forcedGroups = buildForcedGroups(state.forcedCombos, participants);
 
   sortedGuests.forEach(guest => {
-    const forcedTable = findForcedTable(guest.id, forcedGroups, tables, participants);
+    const forcedTable = findForcedTable(guest.id, forcedGroups, tables, participants, course);
     let targetTable;
 
     if (forcedTable !== null) {
@@ -607,19 +647,24 @@ function countOverlap(guestId, table, history) {
 }
 
 function buildForcedGroups(combos, participants) {
+  // Geeft array van { ids: [p1, p2], courses: [...] } terug.
+  // courses = [] betekent "alle gangen" (backward-compat).
   return combos.map(fc => {
     const p1 = participants.find(p => p.name1 === fc.person1 || p.name2 === fc.person1);
     const p2 = participants.find(p => p.name1 === fc.person2 || p.name2 === fc.person2);
-    if (p1 && p2) return [p1.id, p2.id];
+    if (p1 && p2) return { ids: [p1.id, p2.id], courses: Array.isArray(fc.courses) ? fc.courses : [] };
     return null;
   }).filter(Boolean);
 }
 
-function findForcedTable(guestId, forcedGroups, tables, participants) {
-  // Find if this guest has a forced partner already placed somewhere
+function findForcedTable(guestId, forcedGroups, tables, participants, currentCourse) {
+  // Find if this guest has a forced partner already placed somewhere,
+  // and only honor the combo if the current course is in scope.
   for (const group of forcedGroups) {
-    if (!group.includes(guestId)) continue;
-    const partner = group.find(id => id !== guestId);
+    if (!group.ids.includes(guestId)) continue;
+    // Scope-check: lege courses-array = alle gangen, anders alleen geselecteerde
+    if (group.courses.length > 0 && !group.courses.includes(currentCourse)) continue;
+    const partner = group.ids.find(id => id !== guestId);
     // Find if partner is already at a table
     for (const table of tables) {
       if (table.hostId === partner || table.guestIds.includes(partner)) return table;

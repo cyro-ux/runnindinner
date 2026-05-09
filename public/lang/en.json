@@ -353,6 +353,10 @@
       "unavailable": "Not available",
       "edit_btn": "Edit"
     },
+    "forcedcombos": {
+      "scope_all": "Together at all courses",
+      "scope_some": "Only at selected courses"
+    },
     "import": {
       "title": "Import / Export",
       "hint": "Download the Excel template, fill in the participants and import the file back. Remove the example row before importing.",

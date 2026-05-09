@@ -353,6 +353,10 @@
       "unavailable": "Nicht verfügbar",
       "edit_btn": "Bearbeiten"
     },
+    "forcedcombos": {
+      "scope_all": "Bei allen Gängen zusammen",
+      "scope_some": "Nur bei ausgewählten Gängen"
+    },
     "import": {
       "title": "Import / Export",
       "hint": "Laden Sie die Excel-Vorlage herunter, tragen Sie die Teilnehmer ein und importieren Sie die Datei wieder. Entfernen Sie vor dem Import die Beispielzeile.",

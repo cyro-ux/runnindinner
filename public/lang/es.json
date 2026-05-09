@@ -353,6 +353,10 @@
       "unavailable": "No disponible",
       "edit_btn": "Editar"
     },
+    "forcedcombos": {
+      "scope_all": "Juntos en todos los platos",
+      "scope_some": "Solo en los platos seleccionados"
+    },
     "import": {
       "title": "Importar / Exportar",
       "hint": "Descarga la plantilla de Excel, rellena los participantes e importa el archivo de nuevo. Elimina la fila de ejemplo antes de importar.",
