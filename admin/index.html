@@ -495,6 +495,7 @@
             <option value="12mo">12 maanden</option>
           </select>
           <button class="btn btn-outline" id="refresh-analytics-btn" style="font-size:.8rem;padding:6px 12px">↻</button>
+          <span id="analytics-last-updated" style="font-size:.72rem;color:var(--muted);font-style:italic;white-space:nowrap" title="Tijdstip van laatste data-refresh"></span>
         </div>
       </div>
 
@@ -1573,10 +1574,39 @@ async function loadAnalytics() {
       ? rows.map(e => `<tr><td>${eventLabels[e.name] || e.name}</td><td style="text-align:right">${e.visitors}</td></tr>`).join('')
       : '<tr class="empty-row"><td colspan="2">Geen events geregistreerd</td></tr>';
   } catch {}
+
+  // Update "laatste update" timestamp na alle calls
+  const lu = document.getElementById('analytics-last-updated');
+  if (lu) {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    lu.textContent = `Laatste update: ${hh}:${mm}:${ss}`;
+  }
+
+  // Start/herstart auto-refresh zolang Analytics zichtbaar is
+  startAnalyticsAutoRefresh();
 }
 
 document.getElementById('analytics-period').addEventListener('change', loadAnalytics);
 document.getElementById('refresh-analytics-btn').addEventListener('click', loadAnalytics);
+
+// Auto-refresh elke 60s zolang Analytics-tab actief is. Bij elke navigatie naar
+// Analytics (showPage → loadAnalytics) wordt de timer opnieuw gestart. Stopt
+// vanzelf zodra de page niet meer 'active' is.
+let _analyticsAutoRefresh = null;
+function startAnalyticsAutoRefresh() {
+  if (_analyticsAutoRefresh) clearInterval(_analyticsAutoRefresh);
+  _analyticsAutoRefresh = setInterval(() => {
+    if (document.getElementById('page-analytics')?.classList.contains('active')) {
+      loadAnalytics();
+    } else {
+      clearInterval(_analyticsAutoRefresh);
+      _analyticsAutoRefresh = null;
+    }
+  }, 60000);
+}
 
 // ── BOEKHOUDING (Zoho Books) ─────────────────────────────────────────────
 async function loadAccounting() {
