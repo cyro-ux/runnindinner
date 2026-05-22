@@ -5,7 +5,7 @@ locale: es
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: ¿Cómo se planifica una buena ruta para una cena progresiva? Todo sobre distancias, tiempos de desplazamiento y herramientas inteligentes que hacen los cálculos por ti.
+description: Deja de adivinar distancias en tu cena itinerante. Planifica rutas a pie automáticamente con una herramienta gratuita — tiempos calculados por ti. Prueba la demo.
 keywords: cena progresiva ruta, planificación cena itinerante, ruta cena progresiva, cena progresiva logística, horario cena progresiva
 ---
 

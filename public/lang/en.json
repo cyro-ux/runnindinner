@@ -98,7 +98,9 @@
     "q7": "Which payment methods are accepted?",
     "a7": "You can pay via iDEAL, credit card (Visa/Mastercard) or SEPA direct debit. After payment you'll immediately receive an invoice by email.",
     "q8": "Is my data stored?",
-    "a8": "Your account details (email, password) are stored securely. The participant information you enter in the planner is <strong>not</strong> stored permanently — that data only lives in your browser session."
+    "a8": "Your account details (email, password) are stored securely. The participant information you enter in the planner is <strong>not</strong> stored permanently — that data only lives in your browser session.",
+    "q_demo": "Can I try it for free before paying?",
+    "a_demo": "Yes! With the free demo you play with 12 sample couples and see exactly how the planner works — automatic table layouts, routes and envelope cards. No account or payment needed. <a href=\"/en/demo\">Try the demo →</a>"
   },
   "cta": {
     "title": "Save yourself the spreadsheet evening",

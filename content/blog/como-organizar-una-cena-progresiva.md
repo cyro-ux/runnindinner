@@ -5,7 +5,7 @@ locale: es
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: Organiza una cena progresiva (cena itinerante) de principio a fin — planteamiento, invitaciones, asignación de mesas, rutas, la velada y seguimiento. Incluye lista de comprobación, errores habituales y costes.
+description: Planifica una cena itinerante completa en minutos, no en horas. Guía paso a paso más un planificador gratuito de mesas, rutas y dietas. Prueba la demo.
 keywords: cena progresiva, cena itinerante, organizar cena progresiva, running dinner español, planificador cena progresiva, cómo organizar cena itinerante
 ---
 

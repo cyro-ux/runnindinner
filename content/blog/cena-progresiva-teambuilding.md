@@ -5,7 +5,7 @@ locale: es
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: Una cena progresiva es una de las mejores actividades de team building para asociaciones y clubs. Por qué funciona y cómo organizarla — con consejos para clubs deportivos, asociaciones de vecinos y grupos de empresa.
+description: Convierte la noche de tu club en el mejor team building del año. Por qué funcionan las cenas itinerantes más un planificador gratuito para organizarla. Prueba la demo.
 keywords: cena progresiva team building, team building cena, evento empresa cena, actividad empresa cena, cena progresiva empresas
 ---
 

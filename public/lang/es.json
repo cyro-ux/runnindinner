@@ -98,7 +98,9 @@
     "q7": "¿Qué métodos de pago se aceptan?",
     "a7": "Puedes pagar con iDEAL, tarjeta de crédito (Visa/Mastercard) o domiciliación SEPA. Tras el pago recibirás inmediatamente una factura por correo electrónico.",
     "q8": "¿Se almacenan mis datos?",
-    "a8": "Los datos de tu cuenta (correo, contraseña) se almacenan de forma segura. La información de los participantes que introduces en el planificador <strong>no</strong> se guarda de forma permanente — esos datos solo viven en la sesión de tu navegador."
+    "a8": "Los datos de tu cuenta (correo, contraseña) se almacenan de forma segura. La información de los participantes que introduces en el planificador <strong>no</strong> se guarda de forma permanente — esos datos solo viven en la sesión de tu navegador.",
+    "q_demo": "¿Puedo probarlo gratis antes de pagar?",
+    "a_demo": "¡Sí! Con la demo gratuita juegas con 12 parejas de ejemplo y ves exactamente cómo funciona el planificador — distribución de mesas, rutas y tarjetas en sobres. Sin cuenta ni pago. <a href=\"/es/demo\">Probar la demo →</a>"
   },
   "cta": {
     "title": "Ahórrate la tarde de hojas de cálculo",

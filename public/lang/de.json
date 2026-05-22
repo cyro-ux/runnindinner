@@ -98,7 +98,9 @@
     "q7": "Welche Zahlungsmethoden werden akzeptiert?",
     "a7": "Sie können per iDEAL, Kreditkarte (Visa/Mastercard) oder SEPA-Lastschrift zahlen. Nach der Zahlung erhalten Sie sofort eine Rechnung per E-Mail.",
     "q8": "Werden meine Daten gespeichert?",
-    "a8": "Ihre Kontodaten (E-Mail, Passwort) werden sicher gespeichert. Die Teilnehmerinformationen, die Sie im Planer eingeben, werden <strong>nicht</strong> dauerhaft gespeichert – diese Daten existieren nur in Ihrer Browser-Session."
+    "a8": "Ihre Kontodaten (E-Mail, Passwort) werden sicher gespeichert. Die Teilnehmerinformationen, die Sie im Planer eingeben, werden <strong>nicht</strong> dauerhaft gespeichert – diese Daten existieren nur in Ihrer Browser-Session.",
+    "q_demo": "Kann ich es kostenlos testen, bevor ich bezahle?",
+    "a_demo": "Ja! Mit der kostenlosen Demo spielst du mit 12 Beispielpaaren und siehst genau, wie der Planer funktioniert — Tischzuteilung, Routen und Umschlagkarten. Kein Konto, keine Zahlung nötig. <a href=\"/de/demo\">Demo testen →</a>"
   },
   "cta": {
     "title": "Ersparen Sie sich den Abend mit der Excel-Tabelle",

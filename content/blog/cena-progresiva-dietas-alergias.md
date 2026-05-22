@@ -5,7 +5,7 @@ locale: es
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: ¿Cómo gestionas las necesidades dietéticas y las alergias en una cena progresiva? Consejos prácticos para organizadores para evitar errores y que todos disfruten la velada con seguridad.
+description: Gestiona alergias y dietas en tu cena itinerante sin estrés. Consejos prácticos más un planificador que registra cada necesidad por invitado. Prueba la demo gratis.
 keywords: cena progresiva dietas, alergias cena progresiva, cena itinerante vegetariana, cena progresiva sin gluten, cena progresiva halal
 ---
 
