@@ -137,7 +137,12 @@
     "privacy": "Privacy policy",
     "cookies": "Cookie statement",
     "terms": "Terms & conditions",
-    "waiver": "Right of withdrawal"
+    "waiver": "Right of withdrawal",
+    "demo": "Demo",
+    "usecases_heading": "Use cases",
+    "uc_associations": "Associations",
+    "uc_clubs": "Service clubs",
+    "uc_friends": "Friend groups"
   },
   "auth": {
     "login": {
@@ -887,5 +892,16 @@
       "price_note": "per year, VAT included",
       "cta2": "Organise now →"
     }
+  },
+  "usecases": {
+    "title": "Who is the running dinner planner for?",
+    "subtitle": "Whether you organise a neighbourhood, a club or a group of friends - the planner adapts to your group.",
+    "associations_title": "Associations",
+    "associations_desc": "Strengthen the bond between members with a running dinner as a club activity - from sports clubs to music associations.",
+    "clubs_title": "Service clubs",
+    "clubs_desc": "Lions, Rotary and other service clubs effortlessly organise a fun club night or fundraiser with the planner.",
+    "friends_title": "Friend groups",
+    "friends_desc": "An unforgettable evening with friends - without spreadsheet hassle. The planner handles tables, routes and cards.",
+    "read_more": "Read more →"
   }
 }

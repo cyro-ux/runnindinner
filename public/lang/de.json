@@ -137,7 +137,12 @@
     "privacy": "Datenschutzerklärung",
     "cookies": "Cookie-Erklärung",
     "terms": "AGB",
-    "waiver": "Widerrufsrecht"
+    "waiver": "Widerrufsrecht",
+    "demo": "Demo",
+    "usecases_heading": "Für wen?",
+    "uc_associations": "Vereine",
+    "uc_clubs": "Service-Clubs",
+    "uc_friends": "Freundesgruppen"
   },
   "auth": {
     "login": {
@@ -887,5 +892,16 @@
       "price_note": "pro Jahr, inkl. MwSt.",
       "cta2": "Jetzt organisieren →"
     }
+  },
+  "usecases": {
+    "title": "Für wen ist der Running-Dinner-Planer?",
+    "subtitle": "Ob du eine Nachbarschaft, einen Verein oder eine Freundesgruppe organisierst - der Planer passt sich deiner Gruppe an.",
+    "associations_title": "Vereine",
+    "associations_desc": "Stärke die Bindung zwischen Mitgliedern mit einem Running Dinner als Vereinsaktivität - vom Sportverein bis zum Musikverein.",
+    "clubs_title": "Service-Clubs",
+    "clubs_desc": "Lions, Rotary und andere Service-Clubs organisieren mühelos einen geselligen Clubabend oder eine Fundraising-Aktion.",
+    "friends_title": "Freundesgruppen",
+    "friends_desc": "Ein unvergesslicher Abend mit Freunden - ohne Tabellenchaos. Der Planer kümmert sich um Tische, Routen und Karten.",
+    "read_more": "Mehr erfahren →"
   }
 }

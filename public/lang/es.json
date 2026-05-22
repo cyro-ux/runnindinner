@@ -137,7 +137,12 @@
     "privacy": "Política de privacidad",
     "cookies": "Política de cookies",
     "terms": "Términos y condiciones",
-    "waiver": "Derecho de desistimiento"
+    "waiver": "Derecho de desistimiento",
+    "demo": "Demo",
+    "usecases_heading": "¿Para quién?",
+    "uc_associations": "Asociaciones",
+    "uc_clubs": "Clubes de servicio",
+    "uc_friends": "Grupos de amigos"
   },
   "auth": {
     "login": {
@@ -887,5 +892,16 @@
       "price_note": "al año, IVA incluido",
       "cta2": "Organiza ahora →"
     }
+  },
+  "usecases": {
+    "title": "¿Para quién es el planificador de cenas itinerantes?",
+    "subtitle": "Ya sea que organices un barrio, un club o un grupo de amigos, el planificador se adapta a tu grupo.",
+    "associations_title": "Asociaciones",
+    "associations_desc": "Refuerza el vínculo entre socios con una cena itinerante como actividad - desde clubes deportivos hasta asociaciones musicales.",
+    "clubs_title": "Clubes de servicio",
+    "clubs_desc": "Lions, Rotary y otros clubes de servicio organizan sin esfuerzo una velada o evento benéfico con el planificador.",
+    "friends_title": "Grupos de amigos",
+    "friends_desc": "Una velada inolvidable con amigos, sin líos de hojas de cálculo. El planificador gestiona mesas, rutas y tarjetas.",
+    "read_more": "Leer más →"
   }
 }

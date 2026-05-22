@@ -3431,6 +3431,8 @@ try {
 
   // Demo-link wijzen naar de Engelse demo zodat de demo in de juiste taal start
   html = html.replace(/href="\/demo"/g, 'href="/en/demo"');
+  // Segment-landingspagina's taal-prefixen (Voor wie?-sectie + footer)
+  html = html.replace(/href="\/(verenigingen|service-clubs|vriendengroepen)"/g, 'href="/en/$1"');
 
   homeHtmlEN = html;
   console.log('[boot] English homepage SEO variant generated');
@@ -3536,6 +3538,8 @@ try {
 
   // Demo-link wijzen naar de Spaanse demo
   html = html.replace(/href="\/demo"/g, 'href="/es/demo"');
+  // Segment-landingspagina's taal-prefixen (Voor wie?-sectie + footer)
+  html = html.replace(/href="\/(verenigingen|service-clubs|vriendengroepen)"/g, 'href="/es/$1"');
 
   homeHtmlES = html;
   console.log('[boot] Spanish homepage SEO variant generated');
@@ -3641,6 +3645,8 @@ try {
 
   // Demo-link wijzen naar de Duitse demo
   html = html.replace(/href="\/demo"/g, 'href="/de/demo"');
+  // Segment-landingspagina's taal-prefixen (Voor wie?-sectie + footer)
+  html = html.replace(/href="\/(verenigingen|service-clubs|vriendengroepen)"/g, 'href="/de/$1"');
 
   homeHtmlDE = html;
   console.log('[boot] German homepage SEO variant generated');

@@ -851,3 +851,58 @@ img { max-width: 100%; display: block; }
 }
 
 @media print { .nav, .hero-visual, .cta-section, .contact-section { display: none; } }
+
+/* ── Voor wie? (use-cases / segment-landingspagina's) ────── */
+.usecases.section { background: var(--bg-alt); }
+.usecases-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.usecase-card {
+  display: block;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-decoration: none;
+  color: inherit;
+  transition: all .3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.usecase-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--amber));
+  opacity: 0;
+  transition: opacity .3s;
+}
+.usecase-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  border-color: transparent;
+}
+.usecase-card:hover::before { opacity: 1; }
+.usecase-icon {
+  width: 52px; height: 52px;
+  background: var(--bg-alt);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; margin-bottom: 18px;
+}
+.usecase-card h3 {
+  font-size: 1.05rem; font-weight: 700;
+  margin-bottom: 10px; letter-spacing: -.01em;
+}
+.usecase-card p {
+  font-size: .9rem; color: var(--text-light);
+  line-height: 1.7; margin-bottom: 16px;
+}
+.usecase-link {
+  font-size: .9rem; font-weight: 600; color: var(--primary);
+}
+@media (max-width: 768px) {
+  .usecases-grid { grid-template-columns: 1fr; }
+}
