@@ -3234,6 +3234,43 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
+// ── Newsletter signup ──────────────────────────────────────────────────────────
+// Vangt bezoekers die nog niet willen betalen maar wel op de hoogte willen
+// blijven. Voegt het e-mailadres toe aan de Brevo-lijst "Nieuwsbrief".
+const NEWSLETTER_LIST_ID = parseInt(process.env.NEWSLETTER_LIST_ID, 10) || 3;
+const newsletterLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 uur
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Te veel aanmeldingen. Probeer het later opnieuw.' },
+});
+app.post('/api/newsletter', newsletterLimiter, async (req, res) => {
+  const email = String(req.body?.email || '').trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'invalid_email' });
+  }
+  const brevo = require('./lib/brevo');
+  if (!brevo.isConfigured()) {
+    // Geen Brevo → toch niet falen voor de bezoeker; log alleen.
+    console.warn('[newsletter] Brevo niet geconfigureerd, aanmelding genegeerd:', email);
+    return res.json({ ok: true });
+  }
+  try {
+    await brevo.addContactToList({
+      email,
+      listIds: [NEWSLETTER_LIST_ID],
+      attributes: { LANG: (req.lang || 'nl').toUpperCase(), SOURCE: 'homepage' },
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    // "Contact already exist" o.i.d. is geen echte fout voor de bezoeker.
+    if (/already exist/i.test(err.message)) return res.json({ ok: true });
+    console.error('[newsletter] error:', err.message);
+    res.status(500).json({ error: 'newsletter_failed' });
+  }
+});
+
 // ── App access check ──────────────────────────────────────────────────────────
 
 // GET /api/app/access  – check if user may use the planner

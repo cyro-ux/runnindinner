@@ -905,5 +905,13 @@
     "friends_title": "Friend groups",
     "friends_desc": "An unforgettable evening with friends - without spreadsheet hassle. The planner handles tables, routes and cards.",
     "read_more": "Read more →"
+  },
+  "newsletter": {
+    "label": "Stay up to date with updates",
+    "placeholder": "your@email.com",
+    "button": "Subscribe",
+    "success": "Thanks! You're on the list.",
+    "error": "Something went wrong. Please check your email.",
+    "network_error": "Network error. Please try again later."
   }
 }

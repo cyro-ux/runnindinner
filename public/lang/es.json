@@ -905,5 +905,13 @@
     "friends_title": "Grupos de amigos",
     "friends_desc": "Una velada inolvidable con amigos, sin líos de hojas de cálculo. El planificador gestiona mesas, rutas y tarjetas.",
     "read_more": "Leer más →"
+  },
+  "newsletter": {
+    "label": "Mantente al día de las novedades",
+    "placeholder": "tu@correo.com",
+    "button": "Suscribirse",
+    "success": "¡Gracias! Estás en la lista.",
+    "error": "Algo salió mal. Comprueba tu correo.",
+    "network_error": "Error de red. Inténtalo más tarde."
   }
 }

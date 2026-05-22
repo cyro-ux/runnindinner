@@ -905,5 +905,13 @@
     "friends_title": "Freundesgruppen",
     "friends_desc": "Ein unvergesslicher Abend mit Freunden - ohne Tabellenchaos. Der Planer kümmert sich um Tische, Routen und Karten.",
     "read_more": "Mehr erfahren →"
+  },
+  "newsletter": {
+    "label": "Bleib über Updates auf dem Laufenden",
+    "placeholder": "deine@email.de",
+    "button": "Anmelden",
+    "success": "Danke! Du bist auf der Liste.",
+    "error": "Etwas ist schiefgelaufen. Prüfe deine E-Mail.",
+    "network_error": "Netzwerkfehler. Bitte später erneut versuchen."
   }
 }

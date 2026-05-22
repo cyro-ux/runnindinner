@@ -906,3 +906,39 @@ img { max-width: 100%; display: block; }
 @media (max-width: 768px) {
   .usecases-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Newsletter signup (footer) ────────────────────────────── */
+.newsletter-form { margin-top: 18px; max-width: 320px; }
+.newsletter-form label {
+  display: block; font-size: .82rem; font-weight: 600;
+  margin-bottom: 8px; opacity: .9;
+}
+.newsletter-row { display: flex; gap: 8px; }
+.newsletter-row input {
+  flex: 1; min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px;
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  font-size: .88rem;
+  font-family: inherit;
+}
+.newsletter-row input::placeholder { color: rgba(255,255,255,.45); }
+.newsletter-row input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(255,255,255,.12);
+}
+.newsletter-row button {
+  background: var(--primary); color: #fff;
+  border: none; border-radius: 8px;
+  padding: 9px 16px; font-weight: 700; font-size: .85rem;
+  cursor: pointer; white-space: nowrap; font-family: inherit;
+  transition: filter .15s;
+}
+.newsletter-row button:hover { filter: brightness(1.08); }
+.newsletter-row button:disabled { opacity: .6; cursor: default; }
+.newsletter-msg { font-size: .8rem; margin: 8px 0 0; min-height: 1em; }
+.newsletter-msg.ok  { color: #6ee7a8; }
+.newsletter-msg.err { color: #fca5a5; }

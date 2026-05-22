@@ -551,6 +551,16 @@
         <img src="/images/runningdinner-logo-nav.png" alt="runningdinner.app" width="180" height="48" class="footer-logo-img">
 
         <p id="cms-footer-text">Gebouwd uit eigen ervaring. Elke feature lost een echt probleem op.</p>
+
+        <form class="newsletter-form" id="newsletter-form">
+          <label for="newsletter-email" data-i18n="newsletter.label">Blijf op de hoogte van updates</label>
+          <div class="newsletter-row">
+            <input type="email" id="newsletter-email" name="email" required
+                   placeholder="jouw@email.nl" data-i18n-placeholder="newsletter.placeholder" autocomplete="email">
+            <button type="submit" data-i18n="newsletter.button">Aanmelden</button>
+          </div>
+          <p class="newsletter-msg" id="newsletter-msg" role="status"></p>
+        </form>
       </div>
       <div class="footer-links">
         <h4 data-i18n="footer.product_heading">Product</h4>
@@ -750,6 +760,40 @@
     btn.disabled = false;
     btn.textContent = I18n.t('contact.submit', 'Verstuur bericht');
   });
+
+  // ── Newsletter signup
+  const nlForm = document.getElementById('newsletter-form');
+  if (nlForm) {
+    nlForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = document.getElementById('newsletter-msg');
+      const btn = nlForm.querySelector('button[type=submit]');
+      const email = document.getElementById('newsletter-email').value;
+      btn.disabled = true;
+      msg.textContent = '';
+      msg.className = 'newsletter-msg';
+      try {
+        const res = await fetch('/api/newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        if (res.ok) {
+          msg.textContent = I18n.t('newsletter.success', 'Bedankt! Je staat op de lijst.');
+          msg.classList.add('ok');
+          nlForm.reset();
+          if (window.plausible) plausible('Newsletter-Signup');
+        } else {
+          msg.textContent = I18n.t('newsletter.error', 'Er ging iets mis. Controleer je e-mailadres.');
+          msg.classList.add('err');
+        }
+      } catch {
+        msg.textContent = I18n.t('newsletter.network_error', 'Netwerkfout. Probeer het later opnieuw.');
+        msg.classList.add('err');
+      }
+      btn.disabled = false;
+    });
+  }
 
   // ── Smooth scroll for anchor links
   document.querySelectorAll('a[href^="#"]').forEach(a => {
