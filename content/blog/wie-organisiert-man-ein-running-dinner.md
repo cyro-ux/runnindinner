@@ -5,7 +5,7 @@ locale: de
 date: 2026-04-23
 author: Cyro van Malsen
 draft: false
-description: Schritt-für-Schritt-Anleitung für ein unvergessliches Running Dinner – von der Planung über die Routengestaltung bis zur Menüabstimmung.
+description: Plane dein Running Dinner in Minuten statt Stunden. Schritt-für-Schritt-Anleitung plus kostenloser Planer für Tische, Routen und Diäten. Demo testen.
 keywords: running dinner organisieren, laufendes dinner, progressive dinner, running dinner planen, running dinner app
 ---
 

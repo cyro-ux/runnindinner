@@ -5,7 +5,7 @@ locale: en
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: A progressive dinner is one of the best team-building activities for clubs and associations. Why it works and how to organise it — including tips for sports clubs, community groups and staff associations.
+description: Turn your club night into the best team-building event of the year. Why progressive dinners work plus a free planner to organise one fast. Try the demo.
 keywords: progressive dinner team building, team building dinner, association team event, team building idea, corporate progressive dinner
 ---
 

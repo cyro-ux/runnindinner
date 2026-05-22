@@ -5,7 +5,7 @@ locale: en
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: Organise a progressive dinner from start to finish — setup, invitations, table planning, routes, the evening itself and follow-up. Includes checklist, pitfalls and cost breakdown.
+description: Plan a complete progressive dinner in minutes, not hours. Step-by-step guide plus a free planner that auto-assigns tables, routes and diets. Try the demo.
 keywords: progressive dinner, organise progressive dinner, running dinner, progressive dinner planner, progressive dinner tips
 ---
 

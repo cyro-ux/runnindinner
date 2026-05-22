@@ -3,6 +3,7 @@ User-agent: *
 Allow: /
 Allow: /en/
 Allow: /es/
+Allow: /de/
 
 # Auth/account pages – not useful for indexing
 Disallow: /forgot-password.html
@@ -26,5 +27,18 @@ Disallow: /es/reset-password.html
 Disallow: /es/payment-success.html
 Disallow: /es/profile.html
 Disallow: /es/app
+
+# German equivalents
+Disallow: /de/forgot-password.html
+Disallow: /de/reset-password.html
+Disallow: /de/payment-success.html
+Disallow: /de/profile.html
+Disallow: /de/app
+
+# Demo (interactieve sandbox – geen indexeerbare content)
+Disallow: /demo
+Disallow: /en/demo
+Disallow: /es/demo
+Disallow: /de/demo
 
 Sitemap: https://runningdinner.app/sitemap.xml

@@ -5,7 +5,7 @@ locale: en
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: How do you handle dietary requirements and allergies at a progressive dinner? Practical tips for organisers to prevent mistakes and ensure everyone can enjoy the evening safely.
+description: Handle allergies and diets at your progressive dinner without stress. Practical tips plus a planner that tracks dietary needs per guest. Try the free demo.
 keywords: progressive dinner dietary requirements, allergies progressive dinner, vegetarian progressive dinner, gluten-free progressive dinner, halal progressive dinner
 ---
 

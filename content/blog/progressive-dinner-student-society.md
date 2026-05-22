@@ -5,7 +5,7 @@ locale: en
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: Organising a progressive dinner for your student society or university club? Everything you need to know — from committee work to seating plans and the best tips for an unforgettable evening.
+description: Plan an unforgettable progressive dinner for your student society. Committee tips, seating plans plus a free planner that does the hard work. Try the demo.
 keywords: progressive dinner student society, student society event, university progressive dinner, student dinner idea, society progressive dinner
 ---
 

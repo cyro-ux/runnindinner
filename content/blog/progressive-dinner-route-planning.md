@@ -5,7 +5,7 @@ locale: en
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: How do you plan a good route for a progressive dinner? Everything about distances, travel times and smart tools that do the calculations for you.
+description: Stop guessing distances for your progressive dinner. Plan walkable routes automatically with a free tool — travel times calculated for you. Try the demo.
 keywords: progressive dinner route, progressive dinner planning, route planning progressive dinner, progressive dinner schedule, progressive dinner logistics
 ---
 

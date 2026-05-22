@@ -5,7 +5,7 @@ locale: de
 date: 2026-04-23
 author: Cyro van Malsen
 draft: false
-description: Wie Lions Clubs ein Running Dinner als gesellschaftliches Highlight organisieren – mit Tipps zur Planung, Routengestaltung und Mitgliederbindung.
+description: Running Dinner als Clubabend-Highlight für Lions Clubs. Planungstipps plus kostenloser Planer, der Tische und Routen automatisch erstellt. Demo testen.
 keywords: running dinner lions club, lions clubabend, lions fundraising, lions dinner
 ---
 
