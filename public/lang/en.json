@@ -358,7 +358,8 @@
       "always_together": "always together with",
       "host_label": "Host",
       "unavailable": "Not available",
-      "edit_btn": "Edit"
+      "edit_btn": "Edit",
+      "with_extra": "With extra passenger"
     },
     "forcedcombos": {
       "scope_all": "Together at all courses",
@@ -466,7 +467,7 @@
       "city": "City *",
       "auto_filled": "Auto-filled from postcode",
       "availability": "Availability",
-      "availability_hint": "Indicate at which courses person 1 and optionally the partner can attend.",
+      "availability_hint": "Mark which courses person 1, the partner and any extra passenger can attend.",
       "person1": "Person 1",
       "partner": "Partner",
       "host_preference": "Hosting preference",
@@ -483,7 +484,12 @@
       "names_comma_separated": "Names, comma separated",
       "cancel": "Cancel",
       "save": "Save",
-      "manage": "Manage"
+      "manage": "Manage",
+      "name_extra": "Extra passenger (optional)",
+      "name3_placeholder": "E.g. a single guest without own transport",
+      "diet_extra": "Extra passenger – diet/allergies",
+      "diet3_placeholder": "e.g. gluten-free",
+      "extra_person": "Extra passenger"
     },
     "social": {
       "unknown_location": "Location unknown / fill in later",

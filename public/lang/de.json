@@ -358,7 +358,8 @@
       "always_together": "immer zusammen mit",
       "host_label": "Gastgeber",
       "unavailable": "Nicht verfügbar",
-      "edit_btn": "Bearbeiten"
+      "edit_btn": "Bearbeiten",
+      "with_extra": "Mit Mitfahrer"
     },
     "forcedcombos": {
       "scope_all": "Bei allen Gängen zusammen",
@@ -466,7 +467,7 @@
       "city": "Stadt *",
       "auto_filled": "Automatisch anhand der Postleitzahl ausgefüllt",
       "availability": "Verfügbarkeit",
-      "availability_hint": "Geben Sie an, bei welchen Gängen Person 1 und ggf. der Partner dabei sein können.",
+      "availability_hint": "Gib an, an welchen Gängen Person 1, der Partner und ggf. der Mitfahrer teilnehmen können.",
       "person1": "Person 1",
       "partner": "Partner",
       "host_preference": "Gastgeber-Präferenz",
@@ -483,7 +484,12 @@
       "names_comma_separated": "Namen, durch Komma getrennt",
       "cancel": "Abbrechen",
       "save": "Speichern",
-      "manage": "Verwalten"
+      "manage": "Verwalten",
+      "name_extra": "Mitfahrer (optional)",
+      "name3_placeholder": "z. B. eine alleinreisende Person ohne eigenes Verkehrsmittel",
+      "diet_extra": "Mitfahrer – Diät/Allergien",
+      "diet3_placeholder": "z. B. glutenfrei",
+      "extra_person": "Mitfahrer"
     },
     "social": {
       "unknown_location": "Standort unbekannt / später ausfüllen",

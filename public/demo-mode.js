@@ -63,7 +63,7 @@
   // OpenStreetMap-Klarenbeek bekend zijn, zodat de afstandscheck-functie
   // (Nominatim/OSRM) elk koppel kan geocoderen.
   const SAMPLE_PARTICIPANTS_NL = [
-    { name1: 'Lieke',   name2: 'Mark',    address: { street: 'Hanekerweg',       housenumber: '8',  postcode: '7381 AM', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegetarisch',     hostPreference: 'voorgerecht',  preferWith: [], avoid: [] },
+    { name1: 'Lieke',   name2: 'Mark',    name3: 'Sophie',  address: { street: 'Hanekerweg',       housenumber: '8',  postcode: '7381 AM', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegetarisch', diet3: 'Glutenvrij', hostPreference: 'voorgerecht',  preferWith: [], avoid: [] },
     { name1: 'Sanne',   name2: 'Joost',   address: { street: 'Klarenbeekseweg',  housenumber: '32', postcode: '7382 BB', city: 'Klarenbeek' }, diet1: 'Glutenvrij', diet2: null,      hostPreference: 'hoofdgerecht', preferWith: [], avoid: [] },
     { name1: 'Peter',   name2: 'Anouk',   address: { street: 'Woudweg',          housenumber: '14', postcode: '7383 RC', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: null,           preferWith: [], avoid: [] },
     { name1: 'Daan',    name2: 'Eva',     address: { street: 'Hoofdweg',         housenumber: '12', postcode: '7381 AT', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegan',          hostPreference: 'nagerecht',    preferWith: [], avoid: [] },
@@ -192,16 +192,18 @@
     const courses = ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'naborrel'];
     state.participants = SAMPLE_PARTICIPANTS_NL.map((p, i) => {
       const availability = {};
-      courses.forEach(c => { availability[c] = { person1: true, person2: true }; });
+      courses.forEach(c => { availability[c] = { person1: true, person2: true, person3: true }; });
       return {
         id: i + 1,
         name1: p.name1,
         name2: p.name2,
+        name3: p.name3 || null,
         address: { ...p.address, full: `${p.address.street} ${p.address.housenumber}, ${p.address.postcode} ${p.address.city}` },
         availability,
         hostPreference: p.hostPreference,
         diet1: tDiet(p.diet1),
         diet2: tDiet(p.diet2),
+        diet3: tDiet(p.diet3),
         preferWith: p.preferWith || [],
         avoid: p.avoid || [],
       };

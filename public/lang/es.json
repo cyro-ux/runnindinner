@@ -358,7 +358,8 @@
       "always_together": "siempre junto a",
       "host_label": "Anfitrión",
       "unavailable": "No disponible",
-      "edit_btn": "Editar"
+      "edit_btn": "Editar",
+      "with_extra": "Con acompañante"
     },
     "forcedcombos": {
       "scope_all": "Juntos en todos los platos",
@@ -466,7 +467,7 @@
       "city": "Ciudad *",
       "auto_filled": "Rellenado automáticamente desde el código postal",
       "availability": "Disponibilidad",
-      "availability_hint": "Indica en qué platos pueden asistir la persona 1 y, opcionalmente, la pareja.",
+      "availability_hint": "Indica en qué platos pueden asistir la persona 1, la pareja y, en su caso, el acompañante.",
       "person1": "Persona 1",
       "partner": "Pareja",
       "host_preference": "Preferencia como anfitrión",
@@ -483,7 +484,12 @@
       "names_comma_separated": "Nombres separados por comas",
       "cancel": "Cancelar",
       "save": "Guardar",
-      "manage": "Gestionar"
+      "manage": "Gestionar",
+      "name_extra": "Acompañante (opcional)",
+      "name3_placeholder": "P. ej. una persona sola sin transporte propio",
+      "diet_extra": "Acompañante – dieta/alergias",
+      "diet3_placeholder": "p. ej. sin gluten",
+      "extra_person": "Acompañante"
     },
     "social": {
       "unknown_location": "Ubicación desconocida / rellenar más tarde",

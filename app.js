@@ -44,6 +44,32 @@ const state = {
   manualChanges: []
 };
 
+// ---- Display + seat helpers (handelt name1 / name2 / optionele name3 af) ----
+// Een deelnemer-entry kan 1 persoon, een koppel (name1+name2), of een koppel
+// met een meereiziger zonder eigen vervoer (name1+name2+name3) bevatten.
+function displayName(p) {
+  if (!p) return '';
+  let s = p.name1 || '';
+  if (p.name2) s += ' & ' + p.name2;
+  if (p.name3) s += ' & ' + p.name3;
+  return s;
+}
+function displayNameSafe(p) {
+  if (!p) return '';
+  let s = escapeHtml(p.name1 || '');
+  if (p.name2) s += ' &amp; ' + escapeHtml(p.name2);
+  if (p.name3) s += ' &amp; ' + escapeHtml(p.name3);
+  return s;
+}
+// Returns het aantal bezette stoelen voor een entry bij een specifieke course
+// (1, 2 of 3) op basis van wie aanwezig is en wie deze gang skipt.
+function personSeatsAt(p, course) {
+  let n = 1;
+  if (p.name2 && p.availability?.[course]?.person2 !== false) n++;
+  if (p.name3 && p.availability?.[course]?.person3 !== false) n++;
+  return n;
+}
+
 function getCourseLabel(key) {
   const labels = {
     voorborrel: I18n.t('app.courses.voorborrel', 'Voorborrel'),
@@ -162,9 +188,9 @@ function buildAvailabilityGrid(participant) {
     const row = document.createElement('div');
     row.className = 'availability-row';
 
-    const hasPartner = document.getElementById('p-name2') && document.getElementById('p-name2').value.trim();
     const p1avail = participant ? participant.availability[course]?.person1 !== false : true;
     const p2avail = participant ? participant.availability[course]?.person2 !== false : true;
+    const p3avail = participant ? participant.availability[course]?.person3 !== false : true;
 
     row.innerHTML = `
       <span class="availability-course-name">${COURSE_ICONS[course]} ${getCourseLabel(course)}</span>
@@ -175,24 +201,33 @@ function buildAvailabilityGrid(participant) {
         <label class="availability-check" id="avail-partner-${course}">
           <input type="checkbox" name="avail-${course}-p2" ${p2avail ? 'checked' : ''}> ${I18n.t('app.modal.partner', 'Partner')}
         </label>
+        <label class="availability-check" id="avail-extra-${course}">
+          <input type="checkbox" name="avail-${course}-p3" ${p3avail ? 'checked' : ''}> ${I18n.t('app.modal.extra_person', 'Meereiziger')}
+        </label>
       </div>`;
     grid.appendChild(row);
   });
 
-  // Hide partner rows if no partner
+  // Hide partner / meereiziger rows als die velden leeg zijn
   togglePartnerAvailability();
 }
 
 function togglePartnerAvailability() {
   const name2 = document.getElementById('p-name2');
-  const hasPartner = name2 && name2.value.trim();
+  const name3 = document.getElementById('p-name3');
+  const hasPartner = !!(name2 && name2.value.trim());
+  const hasExtra   = !!(name3 && name3.value.trim());
   const courses = getActiveCourses();
   courses.forEach(course => {
-    const el = document.getElementById('avail-partner-' + course);
-    if (el) el.style.display = hasPartner ? 'flex' : 'none';
+    const el2 = document.getElementById('avail-partner-' + course);
+    if (el2) el2.style.display = hasPartner ? 'flex' : 'none';
+    const el3 = document.getElementById('avail-extra-' + course);
+    if (el3) el3.style.display = hasExtra ? 'flex' : 'none';
   });
   const diet2 = document.getElementById('diet2-group');
   if (diet2) diet2.style.display = hasPartner ? 'flex' : 'none';
+  const diet3 = document.getElementById('diet3-group');
+  if (diet3) diet3.style.display = hasExtra ? 'flex' : 'none';
 }
 
 function openAddParticipant(id) {
@@ -208,6 +243,8 @@ function openAddParticipant(id) {
     document.getElementById('participant-id').value = id;
     document.getElementById('p-name1').value = participant.name1;
     document.getElementById('p-name2').value = participant.name2 || '';
+    const name3El = document.getElementById('p-name3');
+    if (name3El) name3El.value = participant.name3 || '';
     document.getElementById('p-street').value = participant.address.street;
     document.getElementById('p-housenumber').value = participant.address.housenumber || '';
     document.getElementById('p-postcode').value = participant.address.postcode;
@@ -215,6 +252,8 @@ function openAddParticipant(id) {
     document.getElementById('p-host-preference').value = participant.hostPreference || '';
     document.getElementById('p-diet1').value = participant.diet1 || '';
     document.getElementById('p-diet2').value = participant.diet2 || '';
+    const diet3El = document.getElementById('p-diet3');
+    if (diet3El) diet3El.value = participant.diet3 || '';
     document.getElementById('p-prefer-with').value = (participant.preferWith || []).join(', ');
     document.getElementById('p-avoid').value = (participant.avoid || []).join(', ');
   } else {
@@ -225,10 +264,15 @@ function openAddParticipant(id) {
   updateHostPreferenceOptions();
   buildAvailabilityGrid(participant);
 
-  // Rebuild availability when partner name changes (remove old listener to prevent leak)
+  // Rebuild availability als partner of meereiziger ingevuld wordt
   const name2El = document.getElementById('p-name2');
   name2El.removeEventListener('input', togglePartnerAvailability);
   name2El.addEventListener('input', togglePartnerAvailability);
+  const name3El2 = document.getElementById('p-name3');
+  if (name3El2) {
+    name3El2.removeEventListener('input', togglePartnerAvailability);
+    name3El2.addEventListener('input', togglePartnerAvailability);
+  }
 
   modal.style.display = 'flex';
   document.getElementById('p-name1').focus();
@@ -246,9 +290,11 @@ function saveParticipant(event) {
   courses.forEach(course => {
     const p1El = document.querySelector(`input[name="avail-${course}-p1"]`);
     const p2El = document.querySelector(`input[name="avail-${course}-p2"]`);
+    const p3El = document.querySelector(`input[name="avail-${course}-p3"]`);
     availability[course] = {
       person1: p1El ? p1El.checked : true,
-      person2: p2El ? p2El.checked : true
+      person2: p2El ? p2El.checked : true,
+      person3: p3El ? p3El.checked : true
     };
   });
 
@@ -261,6 +307,7 @@ function saveParticipant(event) {
   const data = {
     name1: document.getElementById('p-name1').value.trim(),
     name2: document.getElementById('p-name2').value.trim() || null,
+    name3: (document.getElementById('p-name3')?.value || '').trim() || null,
     address: {
       street,
       housenumber,
@@ -272,6 +319,7 @@ function saveParticipant(event) {
     hostPreference: document.getElementById('p-host-preference').value || null,
     diet1: document.getElementById('p-diet1').value.trim() || null,
     diet2: document.getElementById('p-diet2').value.trim() || null,
+    diet3: (document.getElementById('p-diet3')?.value || '').trim() || null,
     preferWith: document.getElementById('p-prefer-with').value.split(',').map(s => s.trim()).filter(Boolean),
     avoid: document.getElementById('p-avoid').value.split(',').map(s => s.trim()).filter(Boolean)
   };
@@ -309,16 +357,18 @@ function renderParticipantsList() {
 
   list.innerHTML = state.participants.map(p => {
     const initials = escapeHtml((p.name1[0] + (p.name2 ? p.name2[0] : '')).toUpperCase());
-    const fullName = p.name2 ? `${escapeHtml(p.name1)} &amp; ${escapeHtml(p.name2)}` : escapeHtml(p.name1);
+    const fullName = displayNameSafe(p);
     const tags = [];
     if (p.hostPreference) tags.push(`<span class="tag tag-host">${COURSE_ICONS[p.hostPreference]} ${I18n.t('app.participants.host_label', 'Host')}: ${getCourseLabel(p.hostPreference)}</span>`);
-    if (p.diet1) tags.push(`<span class="tag tag-diet">🥦 ${escapeHtml(p.diet1)}${p.diet2 ? ' / ' + escapeHtml(p.diet2) : ''}</span>`);
+    const diets = [p.diet1, p.diet2, p.diet3].filter(Boolean).map(d => escapeHtml(d));
+    if (diets.length) tags.push(`<span class="tag tag-diet">🥦 ${diets.join(' / ')}</span>`);
+    if (p.name3) tags.push(`<span class="tag tag-extra">👤 ${I18n.t('app.participants.with_extra', 'Met meereiziger')}</span>`);
 
     const courses = getActiveCourses();
     const unavailable = courses.filter(c => {
       const av = p.availability[c];
       if (!av) return false;
-      return !av.person1 || (p.name2 && !av.person2);
+      return !av.person1 || (p.name2 && !av.person2) || (p.name3 && !av.person3);
     });
     if (unavailable.length) tags.push(`<span class="tag tag-unavailable">⚠ ${I18n.t('app.participants.unavailable', 'Niet')}: ${unavailable.map(c => getCourseLabel(c)).join(', ')}</span>`);
 
@@ -359,7 +409,7 @@ function renderForcedCombos() {
     return;
   }
 
-  const names = state.participants.map(p => p.name2 ? [p.name1, p.name2] : [p.name1]).flat();
+  const names = state.participants.flatMap(p => [p.name1, p.name2, p.name3].filter(Boolean));
   const activeCourses = getActiveCourses();
   const hostCourses = activeCourses.filter(c => c === 'voorgerecht' || c === 'hoofdgerecht' || c === 'nagerecht');
 
@@ -514,7 +564,7 @@ function assignHosts(participants, hostCourses, warnings) {
     // Total person-slots attending this course
     const totalSlots = participants
       .filter(p => p.availability[course]?.person1)
-      .reduce((sum, p) => sum + (p.name2 && p.availability[course]?.person2 ? 2 : 1), 0);
+      .reduce((sum, p) => sum + personSeatsAt(p, course), 0);
 
     // maxTableSize = max GUESTS (not counting host).
     // Each table seats: 1 host-slot + maxGuests guest-slots → maxGuests+1 slots total.
@@ -547,7 +597,7 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
     id: `${course}-${i}`,
     course,
     hostId: host.id,
-    hostName: host.name2 ? `${host.name1} & ${host.name2}` : host.name1,
+    hostName: displayName(host),
     address: host.address,
     guestIds: [],
     guestNames: []
@@ -559,14 +609,14 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
   const maxGuests = state.config.maxTableSize; // max GUESTS per table (host not counted)
   const minGuests = state.config.minTableSize;
 
-  // Count occupied guest-seats at a table (couples count as 2, host excluded)
+  // Count occupied guest-seats at a table (koppels = 2, met meereiziger = 3, host excluded)
   const guestSeats = (t) => t.guestIds.reduce((sum, gid) => {
     const g = pMap.get(gid);
-    return sum + (g?.name2 && g.availability[course]?.person2 ? 2 : 1);
+    return sum + (g ? personSeatsAt(g, course) : 1);
   }, 0);
 
-  // Seats a participant occupies
-  const personSeats = (p) => (p.name2 && p.availability[course]?.person2) ? 2 : 1;
+  // Seats a participant occupies (1, 2 or 3)
+  const personSeats = (p) => personSeatsAt(p, course);
 
   // Sort guests by total unique tablemates seen so far (fewest = most variety to gain)
   const sortedGuests = [...guests].sort((a, b) =>
@@ -601,11 +651,11 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
           const overlapBest = countOverlap(guest.id, best, tableMateHistory);
 
           const avoidPenalty = (tbl) => (guest.avoid || []).some(name => {
-            const p = participants.find(x => x.name1 === name || x.name2 === name);
+            const p = participants.find(x => x.name1 === name || x.name2 === name || x.name3 === name);
             return p && (tbl.hostId === p.id || tbl.guestIds.includes(p.id));
           }) ? 100 : 0;
           const preferBonus = (tbl) => (guest.preferWith || []).some(name => {
-            const p = participants.find(x => x.name1 === name || x.name2 === name);
+            const p = participants.find(x => x.name1 === name || x.name2 === name || x.name3 === name);
             return p && (tbl.hostId === p.id || tbl.guestIds.includes(p.id));
           }) ? -5 : 0;
 
@@ -617,7 +667,7 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
     }
 
     targetTable.guestIds.push(guest.id);
-    targetTable.guestNames.push(guest.name2 ? `${guest.name1} & ${guest.name2}` : guest.name1);
+    targetTable.guestNames.push(displayName(guest));
   });
 
   // Warn on underfilled tables
@@ -632,14 +682,10 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
 }
 
 function countSeats(table, participants) {
-  // Counts ALL persons including host (used for display)
-  let n = 0;
-  const host = participants.find(p => p.id === table.hostId);
-  n += host?.name2 ? 2 : 1;
-  table.guestIds.forEach(gid => {
-    const g = participants.find(p => p.id === gid);
-    n += g?.name2 ? 2 : 1;
-  });
+  // Counts ALL persons including host (used for display); 1, 2 or 3 per entry
+  const countEntry = (p) => p ? (1 + (p.name2 ? 1 : 0) + (p.name3 ? 1 : 0)) : 0;
+  let n = countEntry(participants.find(p => p.id === table.hostId));
+  table.guestIds.forEach(gid => { n += countEntry(participants.find(p => p.id === gid)); });
   return n;
 }
 
@@ -654,8 +700,8 @@ function buildForcedGroups(combos, participants) {
   // Geeft array van { ids: [p1, p2], courses: [...] } terug.
   // courses = [] betekent "alle gangen" (backward-compat).
   return combos.map(fc => {
-    const p1 = participants.find(p => p.name1 === fc.person1 || p.name2 === fc.person1);
-    const p2 = participants.find(p => p.name1 === fc.person2 || p.name2 === fc.person2);
+    const p1 = participants.find(p => p.name1 === fc.person1 || p.name2 === fc.person1 || p.name3 === fc.person1);
+    const p2 = participants.find(p => p.name1 === fc.person2 || p.name2 === fc.person2 || p.name3 === fc.person2);
     if (p1 && p2) return { ids: [p1.id, p2.id], courses: Array.isArray(fc.courses) ? fc.courses : [] };
     return null;
   }).filter(Boolean);
@@ -685,7 +731,7 @@ function createSocialCourse(course, participants) {
     const host = participants.find(p => p.id === hostConfig.participantId);
     if (host) {
       hostId = host.id;
-      hostName = host.name2 ? `${host.name1} & ${host.name2}` : host.name1;
+      hostName = displayName(host);
       address = host.address;
     }
   } else if (hostConfig?.customName) {
@@ -701,7 +747,7 @@ function createSocialCourse(course, participants) {
     address,
     isSocial: true,
     guestIds: participants.map(p => p.id),
-    guestNames: participants.map(p => p.name2 ? `${p.name1} & ${p.name2}` : p.name1)
+    guestNames: participants.map(p => displayName(p))
   }];
 }
 
@@ -1117,7 +1163,7 @@ function getPersonRoute(participant) {
       const allIds = [table.hostId, ...table.guestIds].filter(id => id !== participant.id);
       companions = allIds.map(id => {
         const p = participants.find(x => x.id === id);
-        return p ? (p.name2 ? `${p.name1} & ${p.name2}` : p.name1) : '';
+        return displayName(p);
       }).filter(Boolean);
     }
 
@@ -1141,7 +1187,7 @@ function renderPerPerson() {
   const participants = state.participants;
 
   el.innerHTML = participants.map(p => {
-    const fullName = p.name2 ? `${escapeHtml(p.name1)} &amp; ${escapeHtml(p.name2)}` : escapeHtml(p.name1);
+    const fullName = displayNameSafe(p);
     const route = getPersonRoute(p);
 
     return `
@@ -1195,8 +1241,8 @@ function renderPerLocation() {
                 <thead><tr><th>${I18n.t('app.overview.name', 'Naam')}</th><th>${I18n.t('app.overview.dietary', 'Dieetwensen')}</th></tr></thead>
                 <tbody>${table.guestIds.map(gid => {
                   const g = participants.find(p => p.id === gid);
-                  const diet = [g?.diet1, g?.diet2].filter(Boolean).join(', ');
-                  return `<tr><td>${g?.name2 ? escapeHtml(g.name1) + ' &amp; ' + escapeHtml(g.name2) : escapeHtml(g?.name1)}</td><td>${escapeHtml(diet) || '–'}</td></tr>`;
+                  const diet = [g?.diet1, g?.diet2, g?.diet3].filter(Boolean).join(', ');
+                  return `<tr><td>${displayNameSafe(g)}</td><td>${escapeHtml(diet) || '–'}</td></tr>`;
                 }).join('')}</tbody>
               </table>
             </div>
@@ -1429,7 +1475,7 @@ function renderSocialLocationConfig() {
     const selectedId = current?.participantId || '';
 
     const participantOptions = state.participants.map(p =>
-      `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.name2 ? escapeHtml(p.name1) + ' &amp; ' + escapeHtml(p.name2) : escapeHtml(p.name1)} – ${escapeHtml(p.address.street)} ${escapeHtml(p.address.housenumber || '')}</option>`
+      `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${displayNameSafe(p)} – ${escapeHtml(p.address.street)} ${escapeHtml(p.address.housenumber || '')}</option>`
     ).join('');
 
     return `
@@ -1884,12 +1930,13 @@ function loadSampleData() {
   sampleParticipants.forEach(sp => {
     const courses = getActiveCourses();
     const availability = {};
-    courses.forEach(c => { availability[c] = { person1: true, person2: true }; });
+    courses.forEach(c => { availability[c] = { person1: true, person2: true, person3: true }; });
 
     state.participants.push({
       id: state.nextId++,
       name1: sp.name1,
       name2: sp.name2,
+      name3: sp.name3 || null,
       address: {
         street: sp.street,
         housenumber: sp.housenumber,
@@ -1901,6 +1948,7 @@ function loadSampleData() {
       hostPreference: sp.hostPref || null,
       diet1: sp.diet1 || null,
       diet2: sp.diet2 || null,
+      diet3: sp.diet3 || null,
       preferWith: [],
       avoid: []
     });

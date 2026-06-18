@@ -382,6 +382,10 @@
               <label data-i18n="app.modal.name_partner">Naam partner (optioneel)</label>
               <input type="text" id="p-name2" placeholder="Marie de Vries" data-i18n-placeholder="app.modal.name2_placeholder">
             </div>
+            <div class="form-group">
+              <label data-i18n="app.modal.name_extra">Meereiziger (optioneel)</label>
+              <input type="text" id="p-name3" placeholder="Bv. alleenstaande zonder eigen vervoer" data-i18n-placeholder="app.modal.name3_placeholder">
+            </div>
           </div>
 
           <h4 data-i18n="app.modal.address">Adres</h4>
@@ -412,7 +416,7 @@
           </div>
 
           <h4 data-i18n="app.modal.availability">Beschikbaarheid</h4>
-          <p class="hint" data-i18n="app.modal.availability_hint">Geef aan bij welke onderdelen persoon 1 en eventueel de partner aanwezig kunnen zijn.</p>
+          <p class="hint" data-i18n="app.modal.availability_hint">Geef aan bij welke onderdelen persoon 1, de partner en eventueel de meereiziger aanwezig kunnen zijn.</p>
           <div id="availability-grid" class="availability-grid"></div>
 
           <h4 data-i18n="app.modal.host_preference">Gastrol voorkeur</h4>
@@ -432,6 +436,10 @@
             <div class="form-group" id="diet2-group">
               <label data-i18n="app.modal.diet_partner">Partner – dieetwensen/allergieën</label>
               <input type="text" id="p-diet2" placeholder="bijv. lactose-intolerant" data-i18n-placeholder="app.modal.diet2_placeholder">
+            </div>
+            <div class="form-group" id="diet3-group">
+              <label data-i18n="app.modal.diet_extra">Meereiziger – dieetwensen/allergieën</label>
+              <input type="text" id="p-diet3" placeholder="bijv. glutenvrij" data-i18n-placeholder="app.modal.diet3_placeholder">
             </div>
           </div>
 
@@ -459,8 +467,8 @@
   <script defer data-domain="runningdinner.app" data-api="/api/event" src="/js/script.js"></script>
   <script src="/lang/i18n.js?v=de1"></script>
   <!-- Demo-mode controller (zelf-uit als URL-pad geen /demo is) -->
-  <script src="/demo-mode.js?v=8"></script>
-  <script src="app.js?v=fc2"></script>
+  <script src="/demo-mode.js?v=9"></script>
+  <script src="app.js?v=p3"></script>
   <script>
   // Auth check – only runs when accessed via the Node.js server (not file://)
   // In demo-mode wordt de auth-check overgeslagen: demo is publiek toegankelijk.
