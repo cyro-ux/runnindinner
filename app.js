@@ -1730,7 +1730,14 @@ function getTemplateHeaders() {
     I18n.t('app.excel.diet_person1', 'Dieetwensen persoon 1'),
     I18n.t('app.excel.diet_partner', 'Dieetwensen partner'),
     I18n.t('app.excel.prefer_with', 'Wil graag samen met'),
-    I18n.t('app.excel.avoid', 'Wil NIET samen met')
+    I18n.t('app.excel.avoid', 'Wil NIET samen met'),
+    I18n.t('app.excel.name_extra', 'Naam meereiziger'),
+    I18n.t('app.excel.avail_extra_voorborrel', 'Beschikb. meereiziger: voorborrel'),
+    I18n.t('app.excel.avail_extra_voorgerecht', 'Beschikb. meereiziger: voorgerecht'),
+    I18n.t('app.excel.avail_extra_hoofdgerecht', 'Beschikb. meereiziger: hoofdgerecht'),
+    I18n.t('app.excel.avail_extra_nagerecht', 'Beschikb. meereiziger: nagerecht'),
+    I18n.t('app.excel.avail_extra_naborrel', 'Beschikb. meereiziger: naborrel'),
+    I18n.t('app.excel.diet_extra', 'Dieetwensen meereiziger')
   ];
 }
 
@@ -1743,7 +1750,9 @@ function getTemplateExample() {
     yes, yes, yes, yes, yes,
     yes, yes, yes, no, no,
     '', I18n.t('app.excel.example_vegetarian', 'vegetarisch'),
-    '', ''
+    '', '',
+    // Optioneel: meereiziger zonder eigen vervoer (laat leeg als niet van toepassing)
+    '', '', '', '', '', '', ''
   ];
 }
 
@@ -1765,6 +1774,9 @@ function getInstructiesRows() {
     [I18n.t('app.excel.instr_diet2', 'Dieetwensen partner'), no, I18n.t('app.excel.instr_diet2_desc', 'Allergieën of dieetwensen van de partner'), I18n.t('app.excel.instr_free_text', 'Vrije tekst')],
     [I18n.t('app.excel.instr_prefer', 'Wil graag samen met'), no, I18n.t('app.excel.instr_prefer_desc', 'Namen van personen waarmee men graag aan tafel zit (komma-gescheiden)'), I18n.t('app.excel.instr_prefer_eg', 'bijv. Lisa Jansen, Thomas Smit')],
     [I18n.t('app.excel.instr_avoid', 'Wil NIET samen met'), no, I18n.t('app.excel.instr_avoid_desc', 'Namen van personen waarmee men NIET aan tafel wil (komma-gescheiden)'), I18n.t('app.excel.instr_avoid_eg', 'bijv. Kevin Peters')],
+    [I18n.t('app.excel.instr_name_extra', 'Naam meereiziger'), no, I18n.t('app.excel.instr_name_extra_desc', 'Optioneel: naam van een alleenstaande die zonder eigen vervoer met dit koppel meereist. Hij/zij zit altijd aan dezelfde tafel.'), ''],
+    [I18n.t('app.excel.instr_avail_extra', 'Beschikb. meereiziger: *'), no, I18n.t('app.excel.instr_avail_extra_desc', 'Is de meereiziger aanwezig bij dit onderdeel?'), I18n.t('app.excel.instr_yes_no', 'ja / nee  (leeg = ja)')],
+    [I18n.t('app.excel.instr_diet_extra', 'Dieetwensen meereiziger'), no, I18n.t('app.excel.instr_diet_extra_desc', 'Allergieën of dieetwensen van de meereiziger'), I18n.t('app.excel.instr_free_text', 'Vrije tekst')],
     [],
     [I18n.t('app.excel.instr_warning', 'LET OP: Verwijder de voorbeeldrij (rij 2 in het Deelnemers-tabblad) vóór het importeren!')],
   ];
@@ -1855,12 +1867,18 @@ async function importParticipantsFromFile(event) {
         const city    = String(row[5] || '').trim();
         const hostPref = String(row[6] || '').trim().toLowerCase();
 
-        // Availability columns 7–11 (P1), 12–16 (partner)
+        // Optionele meereiziger-kolommen aan het einde (backward compat: nieuwe
+        // templates hebben cols 21–27, oude templates niet → undefined → leeg)
+        const name3 = String(row[21] || '').trim() || null;
+        const diet3 = String(row[27] || '').trim() || null;
+
+        // Availability columns 7–11 (P1), 12–16 (partner), 22–26 (meereiziger)
         const availability = {};
         allCourses.forEach((c, i) => {
           availability[c] = {
             person1: avBool(row[7 + i] !== '' ? row[7 + i] : 'ja'),
-            person2: name2 ? avBool(row[12 + i] !== '' ? row[12 + i] : 'ja') : false
+            person2: name2 ? avBool(row[12 + i] !== '' ? row[12 + i] : 'ja') : false,
+            person3: name3 ? avBool(row[22 + i] !== '' ? row[22 + i] : 'ja') : false
           };
         });
 
@@ -1875,6 +1893,7 @@ async function importParticipantsFromFile(event) {
           id: state.nextId++,
           name1,
           name2,
+          name3,
           address: {
             street,
             housenumber,
@@ -1886,6 +1905,7 @@ async function importParticipantsFromFile(event) {
           hostPreference: validHostPrefs.includes(hostPref) ? hostPref : null,
           diet1,
           diet2,
+          diet3,
           preferWith,
           avoid
         });

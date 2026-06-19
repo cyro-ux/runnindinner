@@ -661,7 +661,20 @@
       "instr_avoid": "Möchte NICHT sitzen mit",
       "instr_avoid_desc": "Namen von Personen, mit denen die Person NICHT sitzen möchte (durch Komma getrennt)",
       "instr_avoid_eg": "z. B. Kevin Peters",
-      "instr_warning": "HINWEIS: Löschen Sie die Beispielzeile (Zeile 2 im Teilnehmer-Tabellenblatt) vor dem Import!"
+      "instr_warning": "HINWEIS: Löschen Sie die Beispielzeile (Zeile 2 im Teilnehmer-Tabellenblatt) vor dem Import!",
+      "name_extra": "Name Mitfahrer",
+      "avail_extra_voorborrel": "Verf. Mitfahrer: Aperitif",
+      "avail_extra_voorgerecht": "Verf. Mitfahrer: Vorspeise",
+      "avail_extra_hoofdgerecht": "Verf. Mitfahrer: Hauptgang",
+      "avail_extra_nagerecht": "Verf. Mitfahrer: Dessert",
+      "avail_extra_naborrel": "Verf. Mitfahrer: Absacker",
+      "diet_extra": "Ernährungsbedürfnisse Mitfahrer",
+      "instr_name_extra": "Name Mitfahrer",
+      "instr_name_extra_desc": "Optional: Name einer alleinreisenden Person ohne eigenes Verkehrsmittel, die mit diesem Paar mitreist. Sie sitzt immer am selben Tisch.",
+      "instr_avail_extra": "Verf. Mitfahrer: *",
+      "instr_avail_extra_desc": "Ist der Mitfahrer bei diesem Gang dabei?",
+      "instr_diet_extra": "Ernährungsbedürfnisse Mitfahrer",
+      "instr_diet_extra_desc": "Allergien oder Ernährungsbedürfnisse des Mitfahrers"
     },
     "dev": {
       "load_sample": "📋 Beispieldaten laden"

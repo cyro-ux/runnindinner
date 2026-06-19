@@ -661,7 +661,20 @@
       "instr_avoid": "NO le gustaría sentarse con",
       "instr_avoid_desc": "Nombres de las personas con las que NO quiere sentarse (separados por comas)",
       "instr_avoid_eg": "p. ej. Kevin Pérez",
-      "instr_warning": "NOTA: ¡Elimina la fila de ejemplo (fila 2 en la hoja de Participantes) antes de importar!"
+      "instr_warning": "NOTA: ¡Elimina la fila de ejemplo (fila 2 en la hoja de Participantes) antes de importar!",
+      "name_extra": "Nombre del acompañante",
+      "avail_extra_voorborrel": "Disp. acompañante: aperitivo previo",
+      "avail_extra_voorgerecht": "Disp. acompañante: entrante",
+      "avail_extra_hoofdgerecht": "Disp. acompañante: plato principal",
+      "avail_extra_nagerecht": "Disp. acompañante: postre",
+      "avail_extra_naborrel": "Disp. acompañante: copas finales",
+      "diet_extra": "Necesidades dietéticas del acompañante",
+      "instr_name_extra": "Nombre del acompañante",
+      "instr_name_extra_desc": "Opcional: nombre de una persona sola sin transporte propio que viaja con esta pareja. Siempre se sienta en la misma mesa.",
+      "instr_avail_extra": "Disp. acompañante: *",
+      "instr_avail_extra_desc": "¿Está el acompañante en este plato?",
+      "instr_diet_extra": "Necesidades dietéticas del acompañante",
+      "instr_diet_extra_desc": "Alergias o necesidades dietéticas del acompañante"
     },
     "dev": {
       "load_sample": "📋 Cargar datos de ejemplo"

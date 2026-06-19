@@ -661,7 +661,20 @@
       "instr_avoid": "Would NOT like to sit with",
       "instr_avoid_desc": "Names of people they do NOT want to sit with (comma separated)",
       "instr_avoid_eg": "e.g. Kevin Peters",
-      "instr_warning": "NOTE: Delete the example row (row 2 in the Participants sheet) before importing!"
+      "instr_warning": "NOTE: Delete the example row (row 2 in the Participants sheet) before importing!",
+      "name_extra": "Name extra passenger",
+      "avail_extra_voorborrel": "Avail. extra: pre-drinks",
+      "avail_extra_voorgerecht": "Avail. extra: starter",
+      "avail_extra_hoofdgerecht": "Avail. extra: main course",
+      "avail_extra_nagerecht": "Avail. extra: dessert",
+      "avail_extra_naborrel": "Avail. extra: after-party",
+      "diet_extra": "Dietary needs extra passenger",
+      "instr_name_extra": "Name extra passenger",
+      "instr_name_extra_desc": "Optional: name of a single guest without own transport who travels with this couple. They always sit at the same table.",
+      "instr_avail_extra": "Avail. extra: *",
+      "instr_avail_extra_desc": "Is the extra passenger attending this course?",
+      "instr_diet_extra": "Dietary needs extra passenger",
+      "instr_diet_extra_desc": "Allergies or dietary needs of the extra passenger"
     },
     "dev": {
       "load_sample": "📋 Load sample data"
