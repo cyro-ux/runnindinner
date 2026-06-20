@@ -359,7 +359,8 @@
       "host_label": "Host",
       "unavailable": "Not available",
       "edit_btn": "Edit",
-      "with_extra": "With extra passenger"
+      "with_extra": "With extra passenger",
+      "custom_capacity": "Capacity"
     },
     "forcedcombos": {
       "scope_all": "Together at all courses",
@@ -489,7 +490,11 @@
       "name3_placeholder": "E.g. a single guest without own transport",
       "diet_extra": "Extra passenger – diet/allergies",
       "diet3_placeholder": "e.g. gluten-free",
-      "extra_person": "Extra passenger"
+      "extra_person": "Extra passenger",
+      "custom_min_label": "Min. guests as host (optional)",
+      "custom_max_label": "Max. guests as host (optional)",
+      "custom_default": "Default",
+      "custom_capacity_hint": "Leave empty to use the general settings from step 1. Only fill in if this host has a different capacity (e.g. small dining room or large garden)."
     },
     "social": {
       "unknown_location": "Location unknown / fill in later",
@@ -674,7 +679,14 @@
       "instr_avail_extra": "Avail. extra: *",
       "instr_avail_extra_desc": "Is the extra passenger attending this course?",
       "instr_diet_extra": "Dietary needs extra passenger",
-      "instr_diet_extra_desc": "Allergies or dietary needs of the extra passenger"
+      "instr_diet_extra_desc": "Allergies or dietary needs of the extra passenger",
+      "custom_min": "Min. guests as host (optional)",
+      "custom_max": "Max. guests as host (optional)",
+      "instr_custom_min": "Min. guests as host",
+      "instr_custom_min_desc": "Lower bound for this host (leave empty to use the general setting from step 1).",
+      "instr_custom_max": "Max. guests as host",
+      "instr_custom_max_desc": "Upper bound for this host (leave empty to use the general setting). Useful for small or large spaces.",
+      "instr_custom_num_eg": "e.g. 2"
     },
     "dev": {
       "load_sample": "📋 Load sample data"

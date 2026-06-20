@@ -426,6 +426,17 @@
               <option value="" data-i18n="app.modal.no_preference">Geen voorkeur</option>
             </select>
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label data-i18n="app.modal.custom_min_label">Min. gasten als gastheer (optioneel)</label>
+              <input type="number" id="p-custom-min" min="0" max="20" placeholder="Standaard" data-i18n-placeholder="app.modal.custom_default">
+            </div>
+            <div class="form-group">
+              <label data-i18n="app.modal.custom_max_label">Max. gasten als gastheer (optioneel)</label>
+              <input type="number" id="p-custom-max" min="1" max="20" placeholder="Standaard" data-i18n-placeholder="app.modal.custom_default">
+            </div>
+          </div>
+          <p class="hint" data-i18n="app.modal.custom_capacity_hint">Laat leeg om de algemene instellingen uit stap 1 te gebruiken. Vul alleen in als deze gastheer/gastvrouw een afwijkende capaciteit heeft (bv. kleine eetkamer of grote tuin).</p>
 
           <h4 data-i18n="app.modal.diet_title">Dieetwensen & Allergieën</h4>
           <div class="form-row">
@@ -467,8 +478,8 @@
   <script defer data-domain="runningdinner.app" data-api="/api/event" src="/js/script.js"></script>
   <script src="/lang/i18n.js?v=de1"></script>
   <!-- Demo-mode controller (zelf-uit als URL-pad geen /demo is) -->
-  <script src="/demo-mode.js?v=9"></script>
-  <script src="app.js?v=p3x"></script>
+  <script src="/demo-mode.js?v=10"></script>
+  <script src="app.js?v=cap1"></script>
   <script>
   // Auth check – only runs when accessed via the Node.js server (not file://)
   // In demo-mode wordt de auth-check overgeslagen: demo is publiek toegankelijk.

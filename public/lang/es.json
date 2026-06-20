@@ -359,7 +359,8 @@
       "host_label": "Anfitrión",
       "unavailable": "No disponible",
       "edit_btn": "Editar",
-      "with_extra": "Con acompañante"
+      "with_extra": "Con acompañante",
+      "custom_capacity": "Capacidad"
     },
     "forcedcombos": {
       "scope_all": "Juntos en todos los platos",
@@ -489,7 +490,11 @@
       "name3_placeholder": "P. ej. una persona sola sin transporte propio",
       "diet_extra": "Acompañante – dieta/alergias",
       "diet3_placeholder": "p. ej. sin gluten",
-      "extra_person": "Acompañante"
+      "extra_person": "Acompañante",
+      "custom_min_label": "Min. invitados como anfitrión (opcional)",
+      "custom_max_label": "Max. invitados como anfitrión (opcional)",
+      "custom_default": "Predeterminado",
+      "custom_capacity_hint": "Déjalo vacío para usar la configuración general del paso 1. Rellénalo solo si este anfitrión tiene una capacidad diferente (p. ej. comedor pequeño o jardín grande)."
     },
     "social": {
       "unknown_location": "Ubicación desconocida / rellenar más tarde",
@@ -674,7 +679,14 @@
       "instr_avail_extra": "Disp. acompañante: *",
       "instr_avail_extra_desc": "¿Está el acompañante en este plato?",
       "instr_diet_extra": "Necesidades dietéticas del acompañante",
-      "instr_diet_extra_desc": "Alergias o necesidades dietéticas del acompañante"
+      "instr_diet_extra_desc": "Alergias o necesidades dietéticas del acompañante",
+      "custom_min": "Min. invitados como anfitrión (opcional)",
+      "custom_max": "Max. invitados como anfitrión (opcional)",
+      "instr_custom_min": "Min. invitados como anfitrión",
+      "instr_custom_min_desc": "Mínimo personalizado para este anfitrión (déjalo vacío para usar la configuración general).",
+      "instr_custom_max": "Max. invitados como anfitrión",
+      "instr_custom_max_desc": "Máximo personalizado para este anfitrión (déjalo vacío para usar la configuración general). Útil para espacios pequeños o grandes.",
+      "instr_custom_num_eg": "p. ej. 2"
     },
     "dev": {
       "load_sample": "📋 Cargar datos de ejemplo"

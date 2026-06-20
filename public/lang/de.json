@@ -359,7 +359,8 @@
       "host_label": "Gastgeber",
       "unavailable": "Nicht verfügbar",
       "edit_btn": "Bearbeiten",
-      "with_extra": "Mit Mitfahrer"
+      "with_extra": "Mit Mitfahrer",
+      "custom_capacity": "Kapazität"
     },
     "forcedcombos": {
       "scope_all": "Bei allen Gängen zusammen",
@@ -489,7 +490,11 @@
       "name3_placeholder": "z. B. eine alleinreisende Person ohne eigenes Verkehrsmittel",
       "diet_extra": "Mitfahrer – Diät/Allergien",
       "diet3_placeholder": "z. B. glutenfrei",
-      "extra_person": "Mitfahrer"
+      "extra_person": "Mitfahrer",
+      "custom_min_label": "Min. Gäste als Gastgeber (optional)",
+      "custom_max_label": "Max. Gäste als Gastgeber (optional)",
+      "custom_default": "Standard",
+      "custom_capacity_hint": "Leer lassen, um die allgemeinen Einstellungen aus Schritt 1 zu verwenden. Nur ausfüllen, wenn dieser Gastgeber eine abweichende Kapazität hat (z. B. kleines Esszimmer oder großer Garten)."
     },
     "social": {
       "unknown_location": "Standort unbekannt / später ausfüllen",
@@ -674,7 +679,14 @@
       "instr_avail_extra": "Verf. Mitfahrer: *",
       "instr_avail_extra_desc": "Ist der Mitfahrer bei diesem Gang dabei?",
       "instr_diet_extra": "Ernährungsbedürfnisse Mitfahrer",
-      "instr_diet_extra_desc": "Allergien oder Ernährungsbedürfnisse des Mitfahrers"
+      "instr_diet_extra_desc": "Allergien oder Ernährungsbedürfnisse des Mitfahrers",
+      "custom_min": "Min. Gäste als Gastgeber (optional)",
+      "custom_max": "Max. Gäste als Gastgeber (optional)",
+      "instr_custom_min": "Min. Gäste als Gastgeber",
+      "instr_custom_min_desc": "Abweichendes Minimum für diesen Gastgeber (leer = allgemeine Einstellung aus Schritt 1).",
+      "instr_custom_max": "Max. Gäste als Gastgeber",
+      "instr_custom_max_desc": "Abweichendes Maximum für diesen Gastgeber (leer = allgemeine Einstellung). Hilfreich bei kleinen oder großen Räumen.",
+      "instr_custom_num_eg": "z. B. 2"
     },
     "dev": {
       "load_sample": "📋 Beispieldaten laden"

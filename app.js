@@ -70,6 +70,18 @@ function personSeatsAt(p, course) {
   return n;
 }
 
+// Per-host capaciteit (override of globaal). Een host kan zelf aangeven dat
+// zijn/haar tafel meer of minder gasten dan de standaard kan herbergen — bv.
+// kleine eetkamer = 2 gasten max, ruime tuin = 10 gasten max.
+function hostMaxGuests(host) {
+  const v = host?.customMaxGuests;
+  return (Number.isFinite(v) && v > 0) ? v : state.config.maxTableSize;
+}
+function hostMinGuests(host) {
+  const v = host?.customMinGuests;
+  return (Number.isFinite(v) && v > 0) ? v : state.config.minTableSize;
+}
+
 function getCourseLabel(key) {
   const labels = {
     voorborrel: I18n.t('app.courses.voorborrel', 'Voorborrel'),
@@ -250,6 +262,10 @@ function openAddParticipant(id) {
     document.getElementById('p-postcode').value = participant.address.postcode;
     document.getElementById('p-city').value = participant.address.city;
     document.getElementById('p-host-preference').value = participant.hostPreference || '';
+    const minEl = document.getElementById('p-custom-min');
+    if (minEl) minEl.value = Number.isFinite(participant.customMinGuests) ? participant.customMinGuests : '';
+    const maxEl = document.getElementById('p-custom-max');
+    if (maxEl) maxEl.value = Number.isFinite(participant.customMaxGuests) ? participant.customMaxGuests : '';
     document.getElementById('p-diet1').value = participant.diet1 || '';
     document.getElementById('p-diet2').value = participant.diet2 || '';
     const diet3El = document.getElementById('p-diet3');
@@ -304,6 +320,13 @@ function saveParticipant(event) {
   const postcode = document.getElementById('p-postcode').value.trim();
   const city = document.getElementById('p-city').value.trim();
 
+  const _parseCapacity = (el) => {
+    const raw = (el?.value || '').trim();
+    if (!raw) return null;
+    const n = parseInt(raw, 10);
+    return (Number.isFinite(n) && n > 0) ? n : null;
+  };
+
   const data = {
     name1: document.getElementById('p-name1').value.trim(),
     name2: document.getElementById('p-name2').value.trim() || null,
@@ -317,6 +340,8 @@ function saveParticipant(event) {
     },
     availability,
     hostPreference: document.getElementById('p-host-preference').value || null,
+    customMinGuests: _parseCapacity(document.getElementById('p-custom-min')),
+    customMaxGuests: _parseCapacity(document.getElementById('p-custom-max')),
     diet1: document.getElementById('p-diet1').value.trim() || null,
     diet2: document.getElementById('p-diet2').value.trim() || null,
     diet3: (document.getElementById('p-diet3')?.value || '').trim() || null,
@@ -363,6 +388,11 @@ function renderParticipantsList() {
     const diets = [p.diet1, p.diet2, p.diet3].filter(Boolean).map(d => escapeHtml(d));
     if (diets.length) tags.push(`<span class="tag tag-diet">🥦 ${diets.join(' / ')}</span>`);
     if (p.name3) tags.push(`<span class="tag tag-extra">👤 ${I18n.t('app.participants.with_extra', 'Met meereiziger')}</span>`);
+    if (Number.isFinite(p.customMinGuests) || Number.isFinite(p.customMaxGuests)) {
+      const min = Number.isFinite(p.customMinGuests) ? p.customMinGuests : '–';
+      const max = Number.isFinite(p.customMaxGuests) ? p.customMaxGuests : '–';
+      tags.push(`<span class="tag tag-capacity">📐 ${I18n.t('app.participants.custom_capacity', 'Capaciteit')}: ${min}–${max}</span>`);
+    }
 
     const courses = getActiveCourses();
     const unavailable = courses.filter(c => {
@@ -606,8 +636,10 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
   const hostIds = new Set(hosts.map(h => h.id));
   const guests = participants.filter(p => !hostIds.has(p.id) && p.availability[course]?.person1);
 
-  const maxGuests = state.config.maxTableSize; // max GUESTS per table (host not counted)
-  const minGuests = state.config.minTableSize;
+  // Per-tafel max/min: een host kan zelf customMaxGuests/customMinGuests zetten
+  // (bv. kleine eetkamer = max 2). Fallback op state.config-default.
+  const tableMax = (t) => hostMaxGuests(pMap.get(t.hostId));
+  const tableMin = (t) => hostMinGuests(pMap.get(t.hostId));
 
   // Count occupied guest-seats at a table (koppels = 2, met meereiziger = 3, host excluded)
   const guestSeats = (t) => t.guestIds.reduce((sum, gid) => {
@@ -633,8 +665,8 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
       targetTable = forcedTable;
     } else {
       const seats = personSeats(guest);
-      // Only consider tables that still have room
-      const candidates = tables.filter(t => guestSeats(t) + seats <= maxGuests);
+      // Only consider tables that still have room (max per-host)
+      const candidates = tables.filter(t => guestSeats(t) + seats <= tableMax(t));
 
       if (candidates.length === 0) {
         warnings.push(I18n.t('app.warning.table_full', 'Tafel vol bij') + ` ${getCourseLabel(course)}. ` + I18n.t('app.warning.increase_max', 'Vergroot het maximum aantal gasten per tafel of voeg een extra gastheer toe.'));
@@ -670,11 +702,12 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
     targetTable.guestNames.push(displayName(guest));
   });
 
-  // Warn on underfilled tables
+  // Warn on underfilled tables (per-host min)
   tables.forEach(t => {
     const count = guestSeats(t);
-    if (count < minGuests) {
-      warnings.push(I18n.t('app.warning.table_underfilled_prefix', 'Tafel van') + ` ${t.hostName} ` + I18n.t('app.warning.table_underfilled_at', 'bij') + ` ${getCourseLabel(course)} ` + I18n.t('app.warning.table_underfilled_suffix', 'heeft slechts') + ` ${count} ` + I18n.t('app.warning.guests', 'gast(en)') + ` (${I18n.t('app.warning.guideline_min', 'richtlijn minimum')}: ${minGuests}).`);
+    const minForThis = tableMin(t);
+    if (count < minForThis) {
+      warnings.push(I18n.t('app.warning.table_underfilled_prefix', 'Tafel van') + ` ${t.hostName} ` + I18n.t('app.warning.table_underfilled_at', 'bij') + ` ${getCourseLabel(course)} ` + I18n.t('app.warning.table_underfilled_suffix', 'heeft slechts') + ` ${count} ` + I18n.t('app.warning.guests', 'gast(en)') + ` (${I18n.t('app.warning.guideline_min', 'richtlijn minimum')}: ${minForThis}).`);
     }
   });
 
@@ -1737,7 +1770,9 @@ function getTemplateHeaders() {
     I18n.t('app.excel.avail_extra_hoofdgerecht', 'Beschikb. meereiziger: hoofdgerecht'),
     I18n.t('app.excel.avail_extra_nagerecht', 'Beschikb. meereiziger: nagerecht'),
     I18n.t('app.excel.avail_extra_naborrel', 'Beschikb. meereiziger: naborrel'),
-    I18n.t('app.excel.diet_extra', 'Dieetwensen meereiziger')
+    I18n.t('app.excel.diet_extra', 'Dieetwensen meereiziger'),
+    I18n.t('app.excel.custom_min', 'Min. gasten als gastheer (optioneel)'),
+    I18n.t('app.excel.custom_max', 'Max. gasten als gastheer (optioneel)')
   ];
 }
 
@@ -1752,7 +1787,9 @@ function getTemplateExample() {
     '', I18n.t('app.excel.example_vegetarian', 'vegetarisch'),
     '', '',
     // Optioneel: meereiziger zonder eigen vervoer (laat leeg als niet van toepassing)
-    '', '', '', '', '', '', ''
+    '', '', '', '', '', '', '',
+    // Optioneel: afwijkende gastheer-capaciteit (laat leeg = algemene instelling)
+    '', ''
   ];
 }
 
@@ -1777,6 +1814,8 @@ function getInstructiesRows() {
     [I18n.t('app.excel.instr_name_extra', 'Naam meereiziger'), no, I18n.t('app.excel.instr_name_extra_desc', 'Optioneel: naam van een alleenstaande die zonder eigen vervoer met dit koppel meereist. Hij/zij zit altijd aan dezelfde tafel.'), ''],
     [I18n.t('app.excel.instr_avail_extra', 'Beschikb. meereiziger: *'), no, I18n.t('app.excel.instr_avail_extra_desc', 'Is de meereiziger aanwezig bij dit onderdeel?'), I18n.t('app.excel.instr_yes_no', 'ja / nee  (leeg = ja)')],
     [I18n.t('app.excel.instr_diet_extra', 'Dieetwensen meereiziger'), no, I18n.t('app.excel.instr_diet_extra_desc', 'Allergieën of dieetwensen van de meereiziger'), I18n.t('app.excel.instr_free_text', 'Vrije tekst')],
+    [I18n.t('app.excel.instr_custom_min', 'Min. gasten als gastheer'), no, I18n.t('app.excel.instr_custom_min_desc', 'Afwijkend minimum aantal gasten bij deze gastheer/vrouw (leeg = algemene instelling uit stap 1).'), I18n.t('app.excel.instr_custom_num_eg', 'bijv. 2')],
+    [I18n.t('app.excel.instr_custom_max', 'Max. gasten als gastheer'), no, I18n.t('app.excel.instr_custom_max_desc', 'Afwijkend maximum aantal gasten bij deze gastheer/vrouw (leeg = algemene instelling). Handig bij kleine of juist grote ruimte.'), I18n.t('app.excel.instr_custom_num_eg', 'bijv. 2')],
     [],
     [I18n.t('app.excel.instr_warning', 'LET OP: Verwijder de voorbeeldrij (rij 2 in het Deelnemers-tabblad) vóór het importeren!')],
   ];
@@ -1872,6 +1911,16 @@ async function importParticipantsFromFile(event) {
         const name3 = String(row[21] || '').trim() || null;
         const diet3 = String(row[27] || '').trim() || null;
 
+        // Optionele afwijkende gastheer-capaciteit (cols 28–29)
+        const _parseNum = v => {
+          const s = String(v || '').trim();
+          if (!s) return null;
+          const n = parseInt(s, 10);
+          return (Number.isFinite(n) && n > 0) ? n : null;
+        };
+        const customMinGuests = _parseNum(row[28]);
+        const customMaxGuests = _parseNum(row[29]);
+
         // Availability columns 7–11 (P1), 12–16 (partner), 22–26 (meereiziger)
         const availability = {};
         allCourses.forEach((c, i) => {
@@ -1903,6 +1952,8 @@ async function importParticipantsFromFile(event) {
           },
           availability,
           hostPreference: validHostPrefs.includes(hostPref) ? hostPref : null,
+          customMinGuests,
+          customMaxGuests,
           diet1,
           diet2,
           diet3,
@@ -1966,6 +2017,8 @@ function loadSampleData() {
       },
       availability,
       hostPreference: sp.hostPref || null,
+      customMinGuests: Number.isFinite(sp.customMinGuests) ? sp.customMinGuests : null,
+      customMaxGuests: Number.isFinite(sp.customMaxGuests) ? sp.customMaxGuests : null,
       diet1: sp.diet1 || null,
       diet2: sp.diet2 || null,
       diet3: sp.diet3 || null,
