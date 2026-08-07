@@ -526,7 +526,8 @@
       "saved": "¡guardado!",
       "snapshot_prefix": "Instantánea",
       "generate_first": "Genera primero una planificación en el paso 3.",
-      "xlsx_not_loaded": "La biblioteca de Excel aún no está cargada. Comprueba tu conexión a internet e inténtalo de nuevo."
+      "xlsx_not_loaded": "La biblioteca de Excel aún no está cargada. Comprueba tu conexión a internet e inténtalo de nuevo.",
+      "min_above_max": "El número mínimo de invitados no puede ser mayor que el máximo."
     },
     "confirm": {
       "delete_participant": "¿Eliminar participante?",
@@ -537,7 +538,9 @@
       "load_group_suffix": "¿cargar? Los participantes actuales serán reemplazados.",
       "delete_all_prefix": "Todos los",
       "delete_all_suffix": "¿eliminar participantes? Esta acción no se puede deshacer.",
-      "load_snapshot_suffix": "¿cargar? El estado actual será sobrescrito."
+      "load_snapshot_suffix": "¿cargar? El estado actual será sobrescrito.",
+      "table_over_capacity": "Esta mesa superará el número máximo de invitados",
+      "continue_anyway": "¿Mover de todos modos?"
     },
     "warning": {
       "not_enough_hosts": "No hay suficientes anfitriones disponibles para",

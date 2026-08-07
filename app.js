@@ -70,6 +70,22 @@ function personSeatsAt(p, course) {
   return n;
 }
 
+// Initialen voor de avatar. Robuust tegen lege namen (voorheen gaf een lege
+// name1 letterlijk "UNDEFINED" in de UI) en neemt de meereiziger mee.
+function initialsOf(p) {
+  const letters = [p?.name1, p?.name2, p?.name3]
+    .filter(n => typeof n === 'string' && n.trim())
+    .map(n => n.trim()[0].toUpperCase());
+  return letters.join('') || '?';
+}
+
+// Alle dieetwensen/allergieën van een entry als één string. Eén bron van
+// waarheid — voorkomt dat ergens een persoon (bv. de meereiziger) vergeten
+// wordt en een allergie niet bij de gastheer terechtkomt.
+function dietsOf(p) {
+  return [p?.diet1, p?.diet2, p?.diet3].filter(Boolean).join(', ');
+}
+
 // Per-host capaciteit (override of globaal). Een host kan zelf aangeven dat
 // zijn/haar tafel meer of minder gasten dan de standaard kan herbergen — bv.
 // kleine eetkamer = 2 gasten max, ruime tuin = 10 gasten max.
@@ -327,6 +343,14 @@ function saveParticipant(event) {
     return (Number.isFinite(n) && n > 0) ? n : null;
   };
 
+  const customMin = _parseCapacity(document.getElementById('p-custom-min'));
+  const customMax = _parseCapacity(document.getElementById('p-custom-max'));
+  if (customMin !== null && customMax !== null && customMin > customMax) {
+    alert(I18n.t('app.alert.min_above_max',
+      'Het minimum aantal gasten kan niet hoger zijn dan het maximum.'));
+    return;
+  }
+
   const data = {
     name1: document.getElementById('p-name1').value.trim(),
     name2: document.getElementById('p-name2').value.trim() || null,
@@ -340,8 +364,8 @@ function saveParticipant(event) {
     },
     availability,
     hostPreference: document.getElementById('p-host-preference').value || null,
-    customMinGuests: _parseCapacity(document.getElementById('p-custom-min')),
-    customMaxGuests: _parseCapacity(document.getElementById('p-custom-max')),
+    customMinGuests: customMin,
+    customMaxGuests: customMax,
     diet1: document.getElementById('p-diet1').value.trim() || null,
     diet2: document.getElementById('p-diet2').value.trim() || null,
     diet3: (document.getElementById('p-diet3')?.value || '').trim() || null,
@@ -381,12 +405,12 @@ function renderParticipantsList() {
   }
 
   list.innerHTML = state.participants.map(p => {
-    const initials = escapeHtml((p.name1[0] + (p.name2 ? p.name2[0] : '')).toUpperCase());
+    const initials = escapeHtml(initialsOf(p));
     const fullName = displayNameSafe(p);
     const tags = [];
     if (p.hostPreference) tags.push(`<span class="tag tag-host">${COURSE_ICONS[p.hostPreference]} ${I18n.t('app.participants.host_label', 'Host')}: ${getCourseLabel(p.hostPreference)}</span>`);
-    const diets = [p.diet1, p.diet2, p.diet3].filter(Boolean).map(d => escapeHtml(d));
-    if (diets.length) tags.push(`<span class="tag tag-diet">🥦 ${diets.join(' / ')}</span>`);
+    const diets = dietsOf(p);
+    if (diets) tags.push(`<span class="tag tag-diet">🥦 ${escapeHtml(diets)}</span>`);
     if (p.name3) tags.push(`<span class="tag tag-extra">👤 ${I18n.t('app.participants.with_extra', 'Met meereiziger')}</span>`);
     if (Number.isFinite(p.customMinGuests) || Number.isFinite(p.customMaxGuests)) {
       const min = Number.isFinite(p.customMinGuests) ? p.customMinGuests : '–';
@@ -598,19 +622,26 @@ function assignHosts(participants, hostCourses, warnings) {
 
     // maxTableSize = max GUESTS (not counting host).
     // Each table seats: 1 host-slot + maxGuests guest-slots → maxGuests+1 slots total.
-    // So numTables ≈ ceil(totalSlots / (maxGuests + 1)).
+    // So baseTables ≈ ceil(totalSlots / (maxGuests + 1)).
     const maxGuests = state.config.maxTableSize;
-    const numTables = Math.max(1, Math.ceil(totalSlots / (maxGuests + 1)));
+    const baseTables = Math.max(1, Math.ceil(totalSlots / (maxGuests + 1)));
 
+    // Hosts kiezen tot er genoeg WERKELIJKE capaciteit is. De baseline-schatting
+    // gaat uit van de globale max, maar een host kan een eigen (kleinere of
+    // grotere) customMaxGuests hebben. Zonder deze check zouden bij meerdere
+    // krappe hosts te weinig tafels ontstaan en zou fillTables gasten alsnog op
+    // een volle tafel moeten dumpen.
     const pool = [...preferred, ...others];
     const hosts = [];
-    for (let i = 0; i < numTables && pool.length > 0; i++) {
+    let capacity = 0; // host-stoelen + gasten-capaciteit van de gekozen hosts
+    while (pool.length > 0 && (hosts.length < baseTables || capacity < totalSlots)) {
       const host = pool.shift();
       hosts.push(host);
       alreadyHost.add(host.id);
+      capacity += personSeatsAt(host, course) + hostMaxGuests(host);
     }
 
-    if (hosts.length < numTables) {
+    if (capacity < totalSlots) {
       warnings.push(I18n.t('app.warning.not_enough_hosts', 'Te weinig beschikbare gastheren voor') + ` ${getCourseLabel(course)}. ` + I18n.t('app.warning.consider_more_participants', 'Overweeg meer deelnemers toe te voegen.'));
     }
 
@@ -715,10 +746,17 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
 }
 
 function countSeats(table, participants) {
-  // Counts ALL persons including host (used for display); 1, 2 or 3 per entry
-  const countEntry = (p) => p ? (1 + (p.name2 ? 1 : 0) + (p.name3 ? 1 : 0)) : 0;
-  let n = countEntry(participants.find(p => p.id === table.hostId));
-  table.guestIds.forEach(gid => { n += countEntry(participants.find(p => p.id === gid)); });
+  // Aantal personen aan tafel incl. host (voor weergave). Gebruikt dezelfde
+  // beschikbaarheids-logica als het algoritme, zodat het getoonde aantal
+  // stoelen klopt met waar fillTables mee gerekend heeft.
+  const pMap = new Map(participants.map(p => [p.id, p]));
+  const seatsOf = (p) => {
+    if (!p) return 0;
+    return table.course ? personSeatsAt(p, table.course)
+                        : 1 + (p.name2 ? 1 : 0) + (p.name3 ? 1 : 0);
+  };
+  let n = seatsOf(pMap.get(table.hostId));
+  table.guestIds.forEach(gid => { n += seatsOf(pMap.get(gid)); });
   return n;
 }
 
@@ -856,7 +894,7 @@ function renderDraggableTableCard(table, i, participants, course) {
   }
 
   const host = participants.find(p => p.id === table.hostId);
-  const hostDiet = [host?.diet1, host?.diet2].filter(Boolean).join(', ');
+  const hostDiet = dietsOf(host);
   const seats = countSeats(table, participants);
   const addr = table.address
     ? `${escapeHtml(table.address.street)} ${escapeHtml(table.address.housenumber || '')}, ${escapeHtml(table.address.postcode)} ${escapeHtml(table.address.city)}`
@@ -879,7 +917,7 @@ function renderDraggableTableCard(table, i, participants, course) {
         </div>
         ${table.guestIds.map((gid, gi) => {
           const g = participants.find(p => p.id === gid);
-          const diet = [g?.diet1, g?.diet2].filter(Boolean).join(', ');
+          const diet = dietsOf(g);
           return `
             <div class="table-guest guest-chip"
                  draggable="true"
@@ -940,6 +978,25 @@ function onDrop(event, targetTableId, targetCourse) {
 
   const idx = fromTable.guestIds.indexOf(personId);
   if (idx === -1) return; // was a host, skip
+
+  // Capaciteitscheck: handmatig slepen mag de (per-host) max niet stilzwijgend
+  // overschrijden. De organisator mag het bewust doen, maar wel geïnformeerd.
+  if (!toTable.isSocial) {
+    const pMap = new Map(state.participants.map(p => [p.id, p]));
+    const occupied = toTable.guestIds.reduce((sum, gid) => {
+      const g = pMap.get(gid);
+      return sum + (g ? personSeatsAt(g, course) : 0);
+    }, 0);
+    const moving = personSeatsAt(pMap.get(personId), course);
+    const max = hostMaxGuests(pMap.get(toTable.hostId));
+    if (occupied + moving > max) {
+      const msg = I18n.t('app.confirm.table_over_capacity',
+        'Deze tafel zit dan boven het maximum aantal gasten') +
+        ` (${occupied + moving}/${max}). ` +
+        I18n.t('app.confirm.continue_anyway', 'Toch verplaatsen?');
+      if (!confirm(msg)) return;
+    }
+  }
 
   const personName = fromTable.guestNames[idx];
   fromTable.guestIds.splice(idx, 1);
@@ -1274,7 +1331,7 @@ function renderPerLocation() {
                 <thead><tr><th>${I18n.t('app.overview.name', 'Naam')}</th><th>${I18n.t('app.overview.dietary', 'Dieetwensen')}</th></tr></thead>
                 <tbody>${table.guestIds.map(gid => {
                   const g = participants.find(p => p.id === gid);
-                  const diet = [g?.diet1, g?.diet2, g?.diet3].filter(Boolean).join(', ');
+                  const diet = dietsOf(g);
                   return `<tr><td>${displayNameSafe(g)}</td><td>${escapeHtml(diet) || '–'}</td></tr>`;
                 }).join('')}</tbody>
               </table>
@@ -1300,11 +1357,11 @@ function renderPerLocation() {
                 <tr style="background:#fff8f8">
                   <td><strong>${escapeHtml(table.hostName)}</strong></td>
                   <td><span class="host-badge" style="font-size:0.75rem;background:var(--primary);color:white;padding:2px 6px;border-radius:8px">${I18n.t('app.overview.host', 'Gastheer/vrouw')}</span></td>
-                  <td>${escapeHtml([host.diet1, host.diet2].filter(Boolean).join(', ')) || '–'}</td>
+                  <td>${escapeHtml(dietsOf(host)) || '–'}</td>
                 </tr>
                 ${table.guestIds.map((gid, gi) => {
                   const g = participants.find(p => p.id === gid);
-                  const diet = [g?.diet1, g?.diet2].filter(Boolean).join(', ');
+                  const diet = dietsOf(g);
                   return `<tr><td>${escapeHtml(table.guestNames[gi])}</td><td>${I18n.t('app.overview.guest', 'Gast')}</td><td>${escapeHtml(diet) || '–'}</td></tr>`;
                 }).join('')}
               </tbody>

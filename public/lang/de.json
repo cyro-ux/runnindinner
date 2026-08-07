@@ -526,7 +526,8 @@
       "saved": "gespeichert!",
       "snapshot_prefix": "Snapshot",
       "generate_first": "Generieren Sie zuerst in Schritt 3 eine Planung.",
-      "xlsx_not_loaded": "Excel-Bibliothek noch nicht geladen. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+      "xlsx_not_loaded": "Excel-Bibliothek noch nicht geladen. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+      "min_above_max": "Die Mindestanzahl an Gästen darf nicht höher sein als das Maximum."
     },
     "confirm": {
       "delete_participant": "Teilnehmer löschen?",
@@ -537,7 +538,9 @@
       "load_group_suffix": "laden? Die aktuellen Teilnehmer werden ersetzt.",
       "delete_all_prefix": "Alle",
       "delete_all_suffix": "Teilnehmer löschen? Dies kann nicht rückgängig gemacht werden.",
-      "load_snapshot_suffix": "laden? Der aktuelle Zustand wird überschrieben."
+      "load_snapshot_suffix": "laden? Der aktuelle Zustand wird überschrieben.",
+      "table_over_capacity": "Dieser Tisch überschreitet dann die maximale Gästezahl",
+      "continue_anyway": "Trotzdem verschieben?"
     },
     "warning": {
       "not_enough_hosts": "Nicht genügend verfügbare Gastgeber für",

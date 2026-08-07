@@ -526,7 +526,8 @@
       "saved": "saved!",
       "snapshot_prefix": "Snapshot",
       "generate_first": "Generate a planning in step 3 first.",
-      "xlsx_not_loaded": "Excel library not yet loaded. Check your internet connection and try again."
+      "xlsx_not_loaded": "Excel library not yet loaded. Check your internet connection and try again.",
+      "min_above_max": "The minimum number of guests cannot be higher than the maximum."
     },
     "confirm": {
       "delete_participant": "Delete participant?",
@@ -537,7 +538,9 @@
       "load_group_suffix": "load? The current participants will be replaced.",
       "delete_all_prefix": "All",
       "delete_all_suffix": "participants delete? This cannot be undone.",
-      "load_snapshot_suffix": "load? The current state will be overwritten."
+      "load_snapshot_suffix": "load? The current state will be overwritten.",
+      "table_over_capacity": "This table will exceed the maximum number of guests",
+      "continue_anyway": "Move anyway?"
     },
     "warning": {
       "not_enough_hosts": "Not enough available hosts for",
