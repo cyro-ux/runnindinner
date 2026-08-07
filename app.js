@@ -738,7 +738,9 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
     const count = guestSeats(t);
     const minForThis = tableMin(t);
     if (count < minForThis) {
-      warnings.push(I18n.t('app.warning.table_underfilled_prefix', 'Tafel van') + ` ${t.hostName} ` + I18n.t('app.warning.table_underfilled_at', 'bij') + ` ${getCourseLabel(course)} ` + I18n.t('app.warning.table_underfilled_suffix', 'heeft slechts') + ` ${count} ` + I18n.t('app.warning.guests', 'gast(en)') + ` (${I18n.t('app.warning.guideline_min', 'richtlijn minimum')}: ${minForThis}).`);
+      // hostName is door de gebruiker aangeleverd (handmatig of via Excel-import)
+      // en waarschuwingen worden als HTML gerenderd → hier escapen.
+      warnings.push(I18n.t('app.warning.table_underfilled_prefix', 'Tafel van') + ` ${escapeHtml(t.hostName)} ` + I18n.t('app.warning.table_underfilled_at', 'bij') + ` ${getCourseLabel(course)} ` + I18n.t('app.warning.table_underfilled_suffix', 'heeft slechts') + ` ${count} ` + I18n.t('app.warning.guests', 'gast(en)') + ` (${I18n.t('app.warning.guideline_min', 'richtlijn minimum')}: ${minForThis}).`);
     }
   });
 
@@ -845,8 +847,11 @@ function renderPlanningResult() {
   // Warnings
   const warnEl = document.getElementById('planning-warnings');
   if (warnings.length) {
+    // Dedupe: "tafel vol" wordt per onplaatsbare gast gepusht en zou anders
+    // meerdere identieke regels opleveren.
+    const unique = [...new Set(warnings)];
     warnEl.style.display = 'block';
-    warnEl.innerHTML = `<h4>⚠️ ${I18n.t('app.planning.attention_points', 'Aandachtspunten')}</h4><ul>${warnings.map(w => `<li>${w}</li>`).join('')}</ul>`;
+    warnEl.innerHTML = `<h4>⚠️ ${I18n.t('app.planning.attention_points', 'Aandachtspunten')}</h4><ul>${unique.map(w => `<li>${w}</li>`).join('')}</ul>`;
   } else {
     warnEl.style.display = 'none';
   }
