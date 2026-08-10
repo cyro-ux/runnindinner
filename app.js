@@ -61,13 +61,30 @@ function displayNameSafe(p) {
   if (p.name3) s += ' &amp; ' + escapeHtml(p.name3);
   return s;
 }
-// Returns het aantal bezette stoelen voor een entry bij een specifieke course
-// (1, 2 of 3) op basis van wie aanwezig is en wie deze gang skipt.
+// Wie van een entry is bij deze gang aanwezig? Elk van de (max 3) personen
+// heeft een eigen beschikbaarheid: persoon 1 kan het voorgerecht overslaan
+// terwijl de partner er wel is, en omgekeerd. Ontbrekende availability
+// (oude data) betekent "aanwezig".
+function attendeesAt(p, course) {
+  if (!p) return [];
+  const av = p.availability?.[course];
+  const present = [];
+  if (av?.person1 !== false) present.push(p.name1);
+  if (p.name2 && av?.person2 !== false) present.push(p.name2);
+  if (p.name3 && av?.person3 !== false) present.push(p.name3);
+  return present.filter(Boolean);
+}
+
+// Aantal bezette stoelen bij een gang: 0 (niemand komt), 1, 2 of 3.
 function personSeatsAt(p, course) {
-  let n = 1;
-  if (p.name2 && p.availability?.[course]?.person2 !== false) n++;
-  if (p.name3 && p.availability?.[course]?.person3 !== false) n++;
-  return n;
+  return attendeesAt(p, course).length;
+}
+
+// Naam zoals getoond bij een specifieke gang — alleen wie er daadwerkelijk is.
+// Cruciaal voor de gastheer: die moet weten of er één of twee mensen komen.
+function displayNameAt(p, course) {
+  const names = attendeesAt(p, course);
+  return names.length ? names.join(' & ') : displayName(p);
 }
 
 // Initialen voor de avatar. Robuust tegen lege namen (voorheen gaf een lege
@@ -607,17 +624,16 @@ function assignHosts(participants, hostCourses, warnings) {
   const alreadyHost = new Set(); // each participant can only host once
 
   hostCourses.forEach(course => {
-    const available = participants.filter(p => {
-      const av = p.availability[course];
-      return av && av.person1 && !alreadyHost.has(p.id);
-    });
+    // Gastheer kan iedereen zijn van wie tenminste één persoon thuis is.
+    const available = participants.filter(
+      p => personSeatsAt(p, course) > 0 && !alreadyHost.has(p.id));
 
     const preferred = available.filter(p => p.hostPreference === course);
     const others    = available.filter(p => p.hostPreference !== course);
 
-    // Total person-slots attending this course
+    // Totaal aantal personen dat deze gang meedoet (per persoon geteld, dus
+    // een koppel waarvan er één afhaakt telt hier voor 1).
     const totalSlots = participants
-      .filter(p => p.availability[course]?.person1)
       .reduce((sum, p) => sum + personSeatsAt(p, course), 0);
 
     // maxTableSize = max GUESTS (not counting host).
@@ -658,14 +674,16 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
     id: `${course}-${i}`,
     course,
     hostId: host.id,
-    hostName: displayName(host),
+    hostName: displayNameAt(host, course),
     address: host.address,
     guestIds: [],
     guestNames: []
   }));
 
   const hostIds = new Set(hosts.map(h => h.id));
-  const guests = participants.filter(p => !hostIds.has(p.id) && p.availability[course]?.person1);
+  // Alleen entries waarvan iemand deze gang meedoet. Een koppel waarvan
+  // persoon 1 afhaakt maar de partner wél komt, hoort er dus gewoon bij.
+  const guests = participants.filter(p => !hostIds.has(p.id) && personSeatsAt(p, course) > 0);
 
   // Per-tafel max/min: een host kan zelf customMaxGuests/customMinGuests zetten
   // (bv. kleine eetkamer = max 2). Fallback op state.config-default.
@@ -730,7 +748,7 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
     }
 
     targetTable.guestIds.push(guest.id);
-    targetTable.guestNames.push(displayName(guest));
+    targetTable.guestNames.push(displayNameAt(guest, course));
   });
 
   // Warn on underfilled tables (per-host min)
@@ -804,13 +822,17 @@ function createSocialCourse(course, participants) {
     const host = participants.find(p => p.id === hostConfig.participantId);
     if (host) {
       hostId = host.id;
-      hostName = displayName(host);
+      hostName = displayNameAt(host, course);
       address = host.address;
     }
   } else if (hostConfig?.customName) {
     hostName = hostConfig.customName;
     address = hostConfig.customAddress;
   }
+
+  // Ook bij een borrel telt beschikbaarheid: wie deze aanvinkt overslaat,
+  // hoort niet op de lijst van de gastheer te staan.
+  const attending = participants.filter(p => personSeatsAt(p, course) > 0);
 
   return [{
     id: course + '-0',
@@ -819,8 +841,8 @@ function createSocialCourse(course, participants) {
     hostName,
     address,
     isSocial: true,
-    guestIds: participants.map(p => p.id),
-    guestNames: participants.map(p => displayName(p))
+    guestIds: attending.map(p => p.id),
+    guestNames: attending.map(p => displayNameAt(p, course))
   }];
 }
 
@@ -1258,7 +1280,7 @@ function getPersonRoute(participant) {
       const allIds = [table.hostId, ...table.guestIds].filter(id => id !== participant.id);
       companions = allIds.map(id => {
         const p = participants.find(x => x.id === id);
-        return displayName(p);
+        return displayNameAt(p, course);
       }).filter(Boolean);
     }
 
@@ -1334,10 +1356,10 @@ function renderPerLocation() {
             <div class="location-body">
               <table class="guests-table">
                 <thead><tr><th>${I18n.t('app.overview.name', 'Naam')}</th><th>${I18n.t('app.overview.dietary', 'Dieetwensen')}</th></tr></thead>
-                <tbody>${table.guestIds.map(gid => {
+                <tbody>${table.guestIds.map((gid, gi) => {
                   const g = participants.find(p => p.id === gid);
                   const diet = dietsOf(g);
-                  return `<tr><td>${displayNameSafe(g)}</td><td>${escapeHtml(diet) || '–'}</td></tr>`;
+                  return `<tr><td>${escapeHtml(table.guestNames[gi] || displayName(g))}</td><td>${escapeHtml(diet) || '–'}</td></tr>`;
                 }).join('')}</tbody>
               </table>
             </div>
