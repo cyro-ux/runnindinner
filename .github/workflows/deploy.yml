@@ -18,8 +18,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci
+      # Geen npm ci / cache: package-lock.json is bewust gitignored (de VPS
+      # draait npm install --production). Lockfile committen is een aparte,
+      # bewuste beslissing — niet als bijvangst van dit test-gate.
+      - run: npm install
       - run: npm test
 
   deploy-acceptance:
