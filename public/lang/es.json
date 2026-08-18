@@ -710,6 +710,26 @@
       "col_distance": "Distancia",
       "col_duration": "Tiempo",
       "legend": "🟢 dentro del 70% · 🟡 cerca del umbral · 🔴 supera umbral"
+    },
+    "share": {
+      "mode_paper": "Sobres de papel",
+      "mode_paper_desc": "Imprime tarjetas y colócalas cerradas en la mesa.",
+      "mode_digital": "Digital por WhatsApp",
+      "mode_digital_desc": "Enlace personal por participante: la siguiente dirección aparece automáticamente tras cada plato.",
+      "digital_hint": "Cada participante recibe un enlace personal con su ruta; la siguiente dirección solo se revela cuando termina el plato anterior: la sorpresa se mantiene. El envío va por tu propio WhatsApp (gratis) y los enlaces caducan 30 días después del evento.",
+      "publish_btn": "🔗 Crear enlaces",
+      "republish_btn": "Rehacer (tras cambios)",
+      "publishing": "Creando enlaces…",
+      "links_ready": "enlaces personales listos",
+      "expires_note": "Caducan automáticamente el",
+      "copy_btn": "Copiar enlace",
+      "copied": "Copiado",
+      "copy_manual": "Copia el enlace manualmente:",
+      "delete_btn": "🗑️ Revocar enlaces",
+      "delete_confirm": "¿Revocar todos los enlaces? Los participantes ya no podrán abrir su ruta.",
+      "deleted": "Enlaces revocados.",
+      "error": "No se pudieron crear los enlaces",
+      "login_required": "Inicia sesión para crear enlaces."
     }
   },
   "legal": {

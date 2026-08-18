@@ -710,6 +710,26 @@
       "col_distance": "Distance",
       "col_duration": "Time",
       "legend": "🟢 within 70% of threshold · 🟡 near threshold · 🔴 exceeds threshold"
+    },
+    "share": {
+      "mode_paper": "Paper envelopes",
+      "mode_paper_desc": "Print cards and place them sealed on the table.",
+      "mode_digital": "Digital via WhatsApp",
+      "mode_digital_desc": "Personal link per participant - the next address appears automatically after each course.",
+      "digital_hint": "Each participant gets a personal link with their own route; the next address is revealed only once the previous course has ended - the surprise stays. Sending goes through your own WhatsApp (free), links expire automatically 30 days after the event.",
+      "publish_btn": "🔗 Create share links",
+      "republish_btn": "Recreate (after changes)",
+      "publishing": "Creating share links…",
+      "links_ready": "personal links ready",
+      "expires_note": "Expire automatically on",
+      "copy_btn": "Copy link",
+      "copied": "Copied",
+      "copy_manual": "Copy the link manually:",
+      "delete_btn": "🗑️ Revoke links",
+      "delete_confirm": "Revoke all share links? Participants will no longer be able to open their route.",
+      "deleted": "Share links revoked.",
+      "error": "Creating share links failed",
+      "login_required": "Log in to create share links."
     }
   },
   "legal": {

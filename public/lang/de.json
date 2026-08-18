@@ -710,6 +710,26 @@
       "col_distance": "Entfernung",
       "col_duration": "Zeit",
       "legend": "🟢 innerhalb 70 % · 🟡 nahe Schwelle · 🔴 überschreitet Schwelle"
+    },
+    "share": {
+      "mode_paper": "Papier-Umschläge",
+      "mode_paper_desc": "Karten drucken und verschlossen auf den Tisch legen.",
+      "mode_digital": "Digital per WhatsApp",
+      "mode_digital_desc": "Persönlicher Link pro Teilnehmer - die nächste Adresse erscheint automatisch nach jedem Gang.",
+      "digital_hint": "Jeder Teilnehmer erhält einen persönlichen Link mit der eigenen Route; die nächste Adresse wird erst enthüllt, wenn der vorherige Gang beendet ist - die Überraschung bleibt. Der Versand läuft über dein eigenes WhatsApp (gratis), Links verfallen automatisch 30 Tage nach dem Event.",
+      "publish_btn": "🔗 Links erstellen",
+      "republish_btn": "Neu erstellen (nach Änderung)",
+      "publishing": "Links werden erstellt…",
+      "links_ready": "persönliche Links bereit",
+      "expires_note": "Verfallen automatisch am",
+      "copy_btn": "Link kopieren",
+      "copied": "Kopiert",
+      "copy_manual": "Kopiere den Link manuell:",
+      "delete_btn": "🗑️ Links zurückziehen",
+      "delete_confirm": "Alle Links zurückziehen? Teilnehmer können ihre Route dann nicht mehr öffnen.",
+      "deleted": "Links zurückgezogen.",
+      "error": "Links erstellen fehlgeschlagen",
+      "login_required": "Melde dich an, um Links zu erstellen."
     }
   },
   "legal": {

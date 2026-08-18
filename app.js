@@ -150,7 +150,7 @@ function goToStep(n) {
 
   if (n === 2) renderParticipantsList();
   if (n === 3) renderSocialLocationConfig();
-  if (n === 4) { renderOverview(); maybeShowRatingPrompt(); }
+  if (n === 4) { renderOverview(); maybeShowRatingPrompt(); loadSharedPlanning(); }
 }
 
 document.querySelectorAll('.step-btn').forEach(btn => {
@@ -1528,6 +1528,148 @@ function printSingleEnvelopes() {
       .env-course-section { page-break-after: always; }
       .env-card-new { border: 2px dashed #ccc !important; }
     }`);
+}
+
+// ---- Digitaal delen (alternatief voor papieren enveloppen) ----
+// De organisator publiceert de planning naar de server; elke deelnemer krijgt
+// een persoonlijke /r/:token-link waarop het volgende adres pas verschijnt
+// zodra de vorige gang is afgelopen. Versturen via wa.me (gratis, organisator
+// klikt zelf per deelnemer). Zie lib/shared-planning.js + server.js.
+
+function setShareMode(mode) {
+  document.getElementById('share-mode-paper')?.classList.toggle('active', mode === 'paper');
+  document.getElementById('share-mode-digital')?.classList.toggle('active', mode === 'digital');
+  const paper = document.getElementById('share-paper-panel');
+  const digital = document.getElementById('share-digital-panel');
+  if (paper)   paper.style.display   = mode === 'paper'   ? 'block' : 'none';
+  if (digital) digital.style.display = mode === 'digital' ? 'block' : 'none';
+}
+
+function _shareStatus(msg, isErr) {
+  const el = document.getElementById('share-status');
+  if (!el) return;
+  el.style.display = msg ? 'block' : 'none';
+  el.textContent = msg || '';
+  el.style.color = isErr ? '#c62828' : '';
+}
+
+function buildPublishPayload() {
+  const courses = getActiveCourses().map(c => {
+    const tinfo = state.config.times[c];
+    return { course: c, time: tinfo.start, endTime: addMinutes(tinfo.start, tinfo.duration) };
+  });
+  const participants = [];
+  state.participants.forEach(p => {
+    const route = getPersonRoute(p).map(r => ({
+      course:   r.course,
+      isHost:   r.isHost,
+      isSocial: r.isSocial,
+      address:  r.address ? `${r.address.street} ${r.address.housenumber || ''}, ${r.address.postcode} ${r.address.city}`.replace(/\s+/g, ' ').trim() : null,
+      // Server toont zelf een "jij bent gastheer"-badge; hostName alleen voor gasten
+      hostName: r.isHost ? null : (r.hostName || null),
+      companions: r.companions || [],
+    }));
+    if (route.length) participants.push({ name: displayName(p), route });
+  });
+  return {
+    eventName: state.config.eventName || 'Running Dinner',
+    eventDate: state.config.eventDate,
+    locale: I18n.getLang(),
+    courses,
+    participants,
+  };
+}
+
+async function publishDigitalPlanning() {
+  if (window.RDA_DEMO?.isActive?.()) { window.RDA_DEMO.showPaywall('paywall_digital'); return; }
+  if (!state.planning) { alert(I18n.t('app.alert.generate_first', 'Genereer eerst een planning in stap 3.')); return; }
+
+  const btn = document.getElementById('btn-publish-links');
+  btn.disabled = true;
+  _shareStatus(I18n.t('app.share.publishing', 'Deellinks maken…'));
+  try {
+    const res = await fetch('/api/plannings/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildPublishPayload()),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) throw new Error(I18n.t('app.share.login_required', 'Log in om deellinks te maken.'));
+    if (!res.ok) throw new Error(data.error || 'publish failed');
+    _shareStatus('');
+    renderShareLinks(data.links, data.expiresAt);
+    if (window.plausible) plausible('Digital-Share-Publish', { props: { participants: data.links.length } });
+  } catch (err) {
+    _shareStatus(I18n.t('app.share.error', 'Deellinks maken mislukt') + ': ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderShareLinks(links, expiresAt) {
+  const list = document.getElementById('share-links-list');
+  if (!list) return;
+  if (!links || !links.length) { list.innerHTML = ''; return; }
+
+  const expiryDate = expiresAt
+    ? new Date(expiresAt).toLocaleDateString(I18n.getLang() === 'nl' ? 'nl-NL' : I18n.getLang())
+    : null;
+
+  list.innerHTML = `
+    <div class="share-links-head">
+      <strong>${links.length} ${I18n.t('app.share.links_ready', 'persoonlijke links klaar')}</strong>
+      ${expiryDate ? `<span class="hint">${I18n.t('app.share.expires_note', 'Verlopen automatisch op')} ${escapeHtml(expiryDate)}</span>` : ''}
+    </div>
+    ${links.map(l => `
+      <div class="share-link-row">
+        <span class="share-link-name">${escapeHtml(l.name)}</span>
+        <a class="btn-whatsapp btn-small" href="${escapeHtml(l.waUrl)}" target="_blank" rel="noopener">\u{1F4AC} WhatsApp</a>
+        <button type="button" class="btn-secondary btn-small" data-url="${escapeHtml(l.url)}" onclick="copyShareLink(this)">\u{1F4CB} ${I18n.t('app.share.copy_btn', 'Kopieer link')}</button>
+      </div>`).join('')}`;
+
+  const pubBtn = document.getElementById('btn-publish-links');
+  if (pubBtn) pubBtn.textContent = '\u{1F501} ' + I18n.t('app.share.republish_btn', 'Opnieuw maken (na wijziging)');
+  const delBtn = document.getElementById('btn-delete-links');
+  if (delBtn) delBtn.style.display = 'inline-block';
+}
+
+async function copyShareLink(btn) {
+  try {
+    await navigator.clipboard.writeText(btn.dataset.url);
+    const orig = btn.textContent;
+    btn.textContent = '\u2713 ' + I18n.t('app.share.copied', 'Gekopieerd');
+    setTimeout(() => { btn.textContent = orig; }, 1600);
+  } catch {
+    prompt(I18n.t('app.share.copy_manual', 'Kopieer de link handmatig:'), btn.dataset.url);
+  }
+}
+
+async function deleteSharedPlanning() {
+  if (!confirm(I18n.t('app.share.delete_confirm', 'Alle deellinks intrekken? Deelnemers kunnen hun route dan niet meer openen.'))) return;
+  try {
+    const res = await fetch('/api/plannings/mine', { method: 'DELETE' });
+    if (!res.ok) throw new Error('delete failed');
+    document.getElementById('share-links-list').innerHTML = '';
+    document.getElementById('btn-delete-links').style.display = 'none';
+    const pubBtn = document.getElementById('btn-publish-links');
+    if (pubBtn) pubBtn.textContent = '\u{1F517} ' + I18n.t('app.share.publish_btn', 'Maak deellinks');
+    _shareStatus(I18n.t('app.share.deleted', 'Deellinks ingetrokken.'));
+  } catch (err) {
+    _shareStatus(I18n.t('app.share.error', 'Deellinks maken mislukt') + ': ' + err.message, true);
+  }
+}
+
+// Bij binnenkomst op stap 4: bestaande publicatie terughalen (stil bij
+// demo, file:// of niet-ingelogd — dan blijft het paneel gewoon leeg).
+async function loadSharedPlanning() {
+  if (window.RDA_DEMO?.isActive?.()) return;
+  if (location.protocol === 'file:') return;
+  try {
+    const res = await fetch('/api/plannings/mine');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.planning?.links?.length) renderShareLinks(data.planning.links, data.planning.expiresAt);
+  } catch { /* stil — delen is optioneel */ }
 }
 
 // ---- Utilities ----

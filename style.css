@@ -1395,3 +1395,57 @@ header h1 {
   .demo-modal-card  { padding: 28px 24px 22px; }
   .demo-modal-title { font-size: 1.2rem; }
 }
+
+/* ============================================================
+   Digitaal delen (envelop-alternatief, stap 4)
+   ============================================================ */
+.share-mode-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.share-mode-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .9rem;
+  transition: border-color .15s, background .15s;
+}
+.share-mode-card:hover { border-color: #E85D3A; }
+.share-mode-card.active {
+  border-color: #E85D3A;
+  background: rgba(232, 93, 58, .06);
+}
+.share-mode-icon { font-size: 1.4rem; }
+.share-mode-desc { font-size: .8rem; color: var(--muted, #64748B); }
+
+.share-links-head {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  margin: 14px 0 8px;
+}
+.share-link-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bg);
+}
+.share-link-row:last-child { border-bottom: none; }
+.share-link-name { flex: 1; font-weight: 600; font-size: .92rem; }
+.btn-whatsapp {
+  background: #25D366; color: #fff;
+  border: none; border-radius: var(--radius-sm, 8px);
+  padding: 6px 12px; font-weight: 700; font-size: .82rem;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-whatsapp:hover { filter: brightness(1.05); }
+@media (max-width: 640px) {
+  .share-mode-picker { grid-template-columns: 1fr; }
+  .share-link-row { flex-wrap: wrap; }
+}

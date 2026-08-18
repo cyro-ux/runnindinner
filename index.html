@@ -292,12 +292,40 @@
       </div>
 
       <div id="tab-envelope" class="tab-content">
-        <div class="print-controls">
-          <p class="hint" data-i18n-html="app.overview.envelope_hint">✉️ <strong>Envelop-kaartjes</strong> — per tafel, per gang. Leg de kaartjes <strong>gesloten</strong> op tafel. Gasten openen de envelop aan het einde van het gerecht en zien dan hun volgende bestemming.</p>
-          <button class="btn-secondary" onclick="printSection('envelope')" data-i18n="app.overview.print_all_cards">🖨️ Print alle kaartjes</button>
-          <button class="btn-secondary" onclick="printSingleEnvelopes()" data-i18n="app.overview.print_per_course">🖨️ Print per gang (aparte pagina's)</button>
+        <!-- Keuze: papieren enveloppen of digitaal delen. Zelfde verrassings-
+             mechaniek; digitaal onthult het volgende adres automatisch na
+             afloop van de vorige gang (server-side, /r/:token). -->
+        <div class="share-mode-picker">
+          <button type="button" id="share-mode-paper" class="share-mode-card active" onclick="setShareMode('paper')">
+            <span class="share-mode-icon">📮</span>
+            <strong data-i18n="app.share.mode_paper">Papieren enveloppen</strong>
+            <span class="share-mode-desc" data-i18n="app.share.mode_paper_desc">Print kaartjes en leg ze gesloten op tafel.</span>
+          </button>
+          <button type="button" id="share-mode-digital" class="share-mode-card" onclick="setShareMode('digital')">
+            <span class="share-mode-icon">📱</span>
+            <strong data-i18n="app.share.mode_digital">Digitaal via WhatsApp</strong>
+            <span class="share-mode-desc" data-i18n="app.share.mode_digital_desc">Persoonlijke link per deelnemer — het volgende adres verschijnt vanzelf na elke gang.</span>
+          </button>
         </div>
-        <div id="envelope-content"></div>
+
+        <div id="share-paper-panel">
+          <div class="print-controls">
+            <p class="hint" data-i18n-html="app.overview.envelope_hint">✉️ <strong>Envelop-kaartjes</strong> — per tafel, per gang. Leg de kaartjes <strong>gesloten</strong> op tafel. Gasten openen de envelop aan het einde van het gerecht en zien dan hun volgende bestemming.</p>
+            <button class="btn-secondary" onclick="printSection('envelope')" data-i18n="app.overview.print_all_cards">🖨️ Print alle kaartjes</button>
+            <button class="btn-secondary" onclick="printSingleEnvelopes()" data-i18n="app.overview.print_per_course">🖨️ Print per gang (aparte pagina's)</button>
+          </div>
+          <div id="envelope-content"></div>
+        </div>
+
+        <div id="share-digital-panel" style="display:none">
+          <p class="hint" data-i18n="app.share.digital_hint">Elke deelnemer krijgt een persoonlijke link. Daarop staat de eigen route; het volgende adres wordt pas onthuld zodra de vorige gang is afgelopen — de verrassing blijft. Versturen gaat via je eigen WhatsApp (gratis), de links verlopen automatisch 30 dagen na het event.</p>
+          <div class="group-actions">
+            <button class="btn-primary" id="btn-publish-links" onclick="publishDigitalPlanning()" data-i18n="app.share.publish_btn">🔗 Maak deellinks</button>
+            <button class="btn-danger btn-small" id="btn-delete-links" onclick="deleteSharedPlanning()" style="display:none" data-i18n="app.share.delete_btn">🗑️ Links intrekken</button>
+          </div>
+          <p class="hint" id="share-status" style="display:none"></p>
+          <div id="share-links-list"></div>
+        </div>
       </div>
 
       <div class="snapshot-bar card">
@@ -478,8 +506,8 @@
   <script defer data-domain="runningdinner.app" data-api="/api/event" src="/js/script.js"></script>
   <script src="/lang/i18n.js?v=de1"></script>
   <!-- Demo-mode controller (zelf-uit als URL-pad geen /demo is) -->
-  <script src="/demo-mode.js?v=10"></script>
-  <script src="app.js?v=avail1"></script>
+  <script src="/demo-mode.js?v=11"></script>
+  <script src="app.js?v=share1"></script>
   <script>
   // Auth check – only runs when accessed via the Node.js server (not file://)
   // In demo-mode wordt de auth-check overgeslagen: demo is publiek toegankelijk.

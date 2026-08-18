@@ -91,6 +91,7 @@
       paywall_export: 'Exporteren is in de demo geblokkeerd.',
       paywall_excel: 'Excel-import en -template zijn in de demo geblokkeerd.',
       paywall_edit: 'Deelnemers bewerken/toevoegen is in de demo geblokkeerd.',
+      paywall_digital: 'Digitaal delen is in de demo geblokkeerd.',
     },
     en: {
       banner_text: 'You\'re using the demo with sample participants.',
@@ -104,6 +105,7 @@
       paywall_export: 'Exporting is blocked in the demo.',
       paywall_excel: 'Excel import and templates are blocked in the demo.',
       paywall_edit: 'Editing/adding participants is blocked in the demo.',
+      paywall_digital: 'Digital sharing is blocked in the demo.',
     },
     es: {
       banner_text: 'Estás usando la demo con participantes ficticios.',
@@ -117,6 +119,7 @@
       paywall_export: 'La exportación está bloqueada en la demo.',
       paywall_excel: 'La importación y plantillas de Excel están bloqueadas en la demo.',
       paywall_edit: 'Editar/añadir participantes está bloqueado en la demo.',
+      paywall_digital: 'Compartir digitalmente está bloqueado en la demo.',
     },
     de: {
       banner_text: 'Du nutzt die Demo mit fiktiven Teilnehmern.',
@@ -130,6 +133,7 @@
       paywall_export: 'Exportieren ist in der Demo deaktiviert.',
       paywall_excel: 'Excel-Import und Vorlagen sind in der Demo deaktiviert.',
       paywall_edit: 'Teilnehmer bearbeiten/hinzufügen ist in der Demo deaktiviert.',
+      paywall_digital: 'Digitales Teilen ist in der Demo deaktiviert.',
     },
   };
 
