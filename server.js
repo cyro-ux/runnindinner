@@ -509,7 +509,7 @@ function formatEur(cents) {
 }
 
 // Email locale helpers
-const EMAIL_LOCALES = { nl: 'nl-NL', en: 'en-GB', es: 'es-ES' };
+const EMAIL_LOCALES = { nl: 'nl-NL', en: 'en-GB', es: 'es-ES', de: 'de-DE' };
 
 // Labels for invoice/payment emails by language
 const INVOICE_LABELS = {
@@ -552,12 +552,25 @@ const INVOICE_LABELS = {
     waiver_heading: 'Confirmación de activación inmediata y renuncia al derecho de desistimiento',
     waiver_body: (ts) => `Al completar tu suscripción, el <strong>${ts}</strong> marcaste que otorgas consentimiento expreso para la activación inmediata de tu cuenta y con ello renuncias al derecho de desistimiento conforme al artículo 6:230p letra e del Código Civil neerlandés. Este correo sirve como confirmación en un soporte duradero, conforme al artículo 6:230v(7) BW. Más información en <a href="https://runningdinner.app/herroepingsrecht.html">runningdinner.app/herroepingsrecht.html</a>.`,
   },
+  de: {
+    hi: 'Hallo,',
+    thanks: (date) => `Vielen Dank für deine Zahlung! Dein Abonnement ist aktiv bis zum <strong>${date}</strong>.`,
+    invoice_number: 'Rechnungsnummer',
+    description: 'Beschreibung',
+    sub_label: '1 Jahr Abonnement',
+    amount: 'Betrag',
+    date: 'Datum',
+    open_planner: 'Planer öffnen',
+    subject: (no) => `Rechnung ${no} - Running Dinner Planner`,
+    waiver_heading: 'Bestätigung der sofortigen Aktivierung & Verzicht auf das Widerrufsrecht',
+    waiver_body: (ts) => `Beim Abschluss deines Abonnements hast du am <strong>${ts}</strong> angekreuzt, dass du der sofortigen Aktivierung deines Kontos ausdrücklich zustimmst und damit auf dein Widerrufsrecht gemäß Artikel 6:230p Buchstabe e des niederländischen Bürgerlichen Gesetzbuchs (BW) verzichtest. Diese E-Mail dient als Bestätigung auf einem dauerhaften Datenträger gemäß Artikel 6:230v Absatz 7 BW. Weitere Informationen unter <a href="https://runningdinner.app/herroepingsrecht.html">runningdinner.app/herroepingsrecht.html</a>.`,
+  },
 };
 
 async function sendInvoiceMail(user, payment) {
   const lang = user.language || 'nl';
   const locale = EMAIL_LOCALES[lang] || EMAIL_LOCALES.nl;
-  // DE: val terug op EN (Engelse factuur-mail) i.p.v. NL. TODO: eigen INVOICE_LABELS.de.
+  // Onbekende taal: val terug op EN (breedst begrepen), daarna NL.
   const L = INVOICE_LABELS[lang] || INVOICE_LABELS.en || INVOICE_LABELS.nl;
   const untilDate = new Date(user.license_until).toLocaleDateString(locale);
 
@@ -791,7 +804,7 @@ const T = {
     all_fields_required: 'Alle velden zijn verplicht',
     message_sent:        'Je bericht is verzonden!',
     message_send_failed: 'Bericht kon niet worden verzonden. Probeer het later opnieuw.',
-    invalid_lang:        'Ongeldige taal. Kies "nl" of "en".',
+    invalid_lang:        'Ongeldige taal. Kies "nl", "en", "es" of "de".',
     too_many_requests:   'Te veel verzoeken. Probeer het later opnieuw.',
     no_mandate_needs:    'Geen machtiging gevonden. Doe eerst een betaling met automatische verlenging ingeschakeld.',
     auto_renew_on:       'Automatische verlenging ingeschakeld',
@@ -840,7 +853,7 @@ const T = {
     all_fields_required: 'All fields are required',
     message_sent:        'Your message has been sent!',
     message_send_failed: 'Message could not be sent. Please try again later.',
-    invalid_lang:        'Invalid language. Choose "nl", "en" or "es".',
+    invalid_lang:        'Invalid language. Choose "nl", "en", "es" or "de".',
     too_many_requests:   'Too many requests. Please try again later.',
     no_mandate_needs:    'No mandate found. Please make a payment with auto-renewal enabled first.',
     auto_renew_on:       'Auto-renewal enabled',
@@ -889,16 +902,64 @@ const T = {
     all_fields_required: 'Todos los campos son obligatorios',
     message_sent:        '¡Tu mensaje ha sido enviado!',
     message_send_failed: 'No se pudo enviar el mensaje. Inténtalo más tarde.',
-    invalid_lang:        'Idioma no válido. Elige "nl", "en" o "es".',
+    invalid_lang:        'Idioma no válido. Elige "nl", "en", "es" o "de".',
     too_many_requests:   'Demasiadas solicitudes. Inténtalo más tarde.',
     no_mandate_needs:    'No se encontró autorización. Primero realiza un pago con renovación automática activada.',
     auto_renew_on:       'Renovación automática activada',
     auto_renew_off:      'Renovación automática desactivada',
+  },
+  de: {
+    not_logged_in:       'Nicht angemeldet',
+    session_expired:     'Sitzung abgelaufen',
+    no_access:           'Zugriff verweigert',
+    no_active_sub:       'Kein aktives Abonnement',
+    email_pw_required:   'E-Mail und Passwort sind erforderlich',
+    pw_min_8:            'Das Passwort muss mindestens 8 Zeichen lang sein',
+    email_in_use:        'E-Mail-Adresse wird bereits verwendet',
+    bad_credentials:     'Unbekannte E-Mail-Adresse oder falsches Passwort',
+    account_created:     'Konto erstellt. Du kannst dich jetzt anmelden.',
+    user_not_found:      'Benutzer nicht gefunden',
+    fill_both_fields:    'Bitte fülle beide Felder aus',
+    new_pw_min_8:        'Das neue Passwort muss mindestens 8 Zeichen lang sein',
+    current_pw_wrong:    'Aktuelles Passwort ist falsch',
+    pw_changed:          'Passwort geändert',
+    give_enabled:        'Gib { enabled: true/false } an',
+    no_mandate_found:    'Kein Mandat gefunden',
+    mandate_revoked:     'Mandat widerrufen und automatische Verlängerung deaktiviert',
+    reset_email_sent:    'Wenn diese E-Mail-Adresse bekannt ist, erhältst du einen Link.',
+    token_pw_required:   'Token und Passwort sind erforderlich',
+    invalid_reset_link:  'Ungültiger oder abgelaufener Link',
+    pw_changed_login:    'Passwort geändert. Du kannst dich jetzt anmelden.',
+    payment_failed:      'Zahlung konnte nicht gestartet werden',
+    waiver_required:     'Bitte setze das Häkchen, um der sofortigen Aktivierung zuzustimmen und auf dein Widerrufsrecht zu verzichten.',
+    invoice_not_found:   'Rechnung nicht gefunden',
+    key_dataurl_req:     'key und dataUrl sind erforderlich',
+    email_required:      'E-Mail-Adresse ist erforderlich',
+    pw_required_invite:  'Passwort erforderlich (oder Einladungslink wählen)',
+    cannot_edit_admin:   'Ein anderer Administrator kann nicht bearbeitet werden',
+    user_updated:        'Benutzer aktualisiert',
+    invite_sent:         'Einladung gesendet an {email}',
+    email_send_failed:   'E-Mail konnte nicht gesendet werden',
+    min_price:           'Mindestpreis €1,00',
+    invalid_duration:    'Ungültige Laufzeit',
+    invalid_env:         'Ungültige Umgebung',
+    deploy_registered:   'Deployment nach {env} registriert.',
+    invalid_number:      'Ungültige Nummer',
+    score_1_5:           'Die Bewertung muss 1-5 sein',
+    rating_updated:      'Bewertung aktualisiert',
+    thanks_rating:       'Vielen Dank für deine Bewertung!',
+    all_fields_required: 'Alle Felder sind erforderlich',
+    message_sent:        'Deine Nachricht wurde gesendet!',
+    message_send_failed: 'Nachricht konnte nicht gesendet werden. Bitte versuche es später erneut.',
+    invalid_lang:        'Ungültige Sprache. Wähle "nl", "en", "es" oder "de".',
+    too_many_requests:   'Zu viele Anfragen. Bitte versuche es später erneut.',
+    no_mandate_needs:    'Kein Mandat gefunden. Führe zuerst eine Zahlung mit aktivierter automatischer Verlängerung durch.',
+    auto_renew_on:       'Automatische Verlängerung aktiviert',
+    auto_renew_off:      'Automatische Verlängerung deaktiviert',
   }
 };
 function t(req, key, replacements) {
-  // DE heeft (nog) geen eigen strings — val terug op EN i.p.v. NL, beter voor
-  // Duitstalige gebruikers. TODO: eigen T.de sectie toevoegen wanneer tijd is.
+  // Onbekende taal: val terug op EN (breedst begrepen), daarna NL.
   let msg = (T[req?.lang || 'nl'] || T.en || T.nl)[key] || T.en?.[key] || T.nl[key] || key;
   if (replacements) {
     for (const [k, v] of Object.entries(replacements)) {
@@ -1319,6 +1380,13 @@ app.post('/api/mollie/webhook', async (req, res) => {
 
     // Handle failed recurring payments
     if (payment.status === 'failed' && payment.sequenceType === 'recurring') {
+      // Idempotency: Mollie herhaalt webhook-calls. Zonder deze check zou een
+      // dubbele levering van dezelfde mislukte incasso (a) een tweede
+      // 'failed'-rij inserten, (b) failCount kunstmatig opdrijven richting de
+      // uitschakel-drempel en (c) de klant dubbele mails sturen.
+      const alreadyRecorded = db.prepare('SELECT id FROM payments WHERE mollie_payment_id = ?').get(payment.id);
+      if (alreadyRecorded) return res.send('ok');
+
       console.log(`[mollie] recurring payment failed for user ${userId}`);
       const failCount = db.prepare(
         "SELECT COUNT(*) as c FROM payments WHERE user_id = ? AND status = 'failed' AND payment_type = 'recurring' AND created_at > ?"

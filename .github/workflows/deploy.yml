@@ -7,9 +7,25 @@ on:
       - main
 
 jobs:
+  # Test-gate: draait de volledige suite vóór elke deploy. Op ubuntu-latest
+  # bouwt better-sqlite3 gewoon (in tegenstelling tot de lokale Windows-dev-
+  # machine), dus dit is dé plek waar server-afhankelijke tests kunnen draaien.
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
   deploy-acceptance:
     if: github.ref == 'refs/heads/develop'
     name: Deploy to Acceptance
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to acc.runningdiner.nl
@@ -50,6 +66,7 @@ jobs:
   deploy-production:
     if: github.ref == 'refs/heads/main'
     name: Deploy to Production
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to runningdiner.nl

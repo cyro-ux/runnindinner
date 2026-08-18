@@ -549,10 +549,12 @@ function toggleForcedComboCourse(id, course, isChecked) {
  * For each hosting course, assigns a host and fills their table with guests
  * maximizing unique tablemate encounters across all courses.
  */
-function generatePlanning() {
+function generatePlanning(participantOrder) {
   const courses = getActiveCourses();
   const hostCourses = ['voorgerecht', 'hoofdgerecht', 'nagerecht']; // only these have home hosts
-  const participants = state.participants;
+  // Optionele alternatieve volgorde (voor "opnieuw genereren") — de zichtbare
+  // deelnemerslijst in state blijft daarbij ongemoeid.
+  const participants = participantOrder || state.participants;
 
   if (participants.length < 3) {
     alert(I18n.t('app.alert.min_participants', 'Voeg minimaal 3 deelnemers toe om een planning te maken.'));
@@ -611,12 +613,15 @@ function generatePlanning() {
 }
 
 function regeneratePlanning() {
-  // Shuffle participants to get different result
-  for (let i = state.participants.length - 1; i > 0; i--) {
+  // Shuffle een KOPIE voor een ander resultaat; voorheen werd state.participants
+  // zelf geschud, waardoor de volgorde in de deelnemerslijst zichtbaar
+  // versprong bij elke hergeneratie.
+  const shuffled = [...state.participants];
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [state.participants[i], state.participants[j]] = [state.participants[j], state.participants[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  generatePlanning();
+  generatePlanning(shuffled);
 }
 
 function assignHosts(participants, hostCourses, warnings) {
