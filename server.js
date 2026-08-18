@@ -198,6 +198,32 @@ db.exec(`
   );
 `);
 
+// Gedeelde (digitale) planningen — de digitale envelopkaartjes.
+// Adressen van derden staan hier tijdelijk; expires_at (event + 30 dagen)
+// wordt door de scheduler opgeruimd. Zie lib/shared-planning.js.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS shared_plannings (
+    id            TEXT PRIMARY KEY,
+    user_id       TEXT NOT NULL,
+    event_name    TEXT NOT NULL,
+    event_date    TEXT,
+    locale        TEXT NOT NULL DEFAULT 'nl',
+    courses_json  TEXT NOT NULL,
+    created_at    INTEGER NOT NULL,
+    expires_at    INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS shared_plannings_user_idx    ON shared_plannings(user_id);
+  CREATE INDEX IF NOT EXISTS shared_plannings_expires_idx ON shared_plannings(expires_at);
+
+  CREATE TABLE IF NOT EXISTS shared_planning_participants (
+    token        TEXT PRIMARY KEY,
+    planning_id  TEXT NOT NULL,
+    name         TEXT NOT NULL,
+    route_json   TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS spp_planning_idx ON shared_planning_participants(planning_id);
+`);
+
 // Migrate existing DB: add columns if missing (SQLite has limited ALTER TABLE)
 const userCols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
 if (!userCols.includes('user_type'))       db.exec("ALTER TABLE users ADD COLUMN user_type TEXT NOT NULL DEFAULT 'paid'");
@@ -3357,6 +3383,230 @@ app.get('/api/app/access', requireAuth, (req, res) => {
   });
 });
 
+// ── Gedeelde planningen (digitale envelopkaartjes) ───────────────────────
+// De organisator publiceert de planning; elke deelnemer krijgt een token-link
+// (/r/:token) waarop het volgende adres pas verschijnt zodra de vorige gang is
+// afgelopen. Pure onthul-logica in lib/shared-planning.js (unit-getest).
+const sharedPlanning = require('./lib/shared-planning');
+
+// Zelfde toegangsregels als /api/app/access: admin, actieve licentie of grace.
+function userHasAccess(userId) {
+  const u = db.prepare('SELECT license_until, role, auto_renew FROM users WHERE id = ?').get(userId);
+  if (!u) return false;
+  const now = Date.now();
+  const grace = 7 * 86400000;
+  return u.role === 'admin'
+    || (u.license_until && u.license_until > now)
+    || (u.auto_renew && u.license_until && u.license_until + grace > now);
+}
+
+function sharedPlanningLinks(locale, participants) {
+  const { shareParticipantSchedule } = require('./lib/whatsapp-share');
+  return participants.map(p => {
+    const url = `${BASE_URL}/r/${p.token}`;
+    return {
+      name: p.name,
+      url,
+      waUrl: shareParticipantSchedule({
+        participantName: p.name.split(' ')[0],
+        personalUrl: url,
+        locale,
+      }),
+    };
+  });
+}
+
+// POST /api/plannings/publish — vervangt een eerdere publicatie van deze user
+// (max 1 actieve gedeelde planning per account houdt beheer en AVG simpel).
+app.post('/api/plannings/publish', requireAuth, (req, res) => {
+  if (!userHasAccess(req.user.id)) return res.status(403).json({ error: t(req, 'no_active_sub') });
+
+  let payload;
+  try { payload = sharedPlanning.validatePublishPayload(req.body); }
+  catch (err) { return res.status(400).json({ error: err.message }); }
+
+  const planningId = uuidv4();
+  const now = Date.now();
+  const expiresAt = sharedPlanning.computeExpiry(payload.eventDate);
+
+  const publish = db.transaction(() => {
+    // Geen ON DELETE CASCADE-afhankelijkheid: expliciet beide tabellen opruimen.
+    const old = db.prepare('SELECT id FROM shared_plannings WHERE user_id = ?').all(req.user.id);
+    for (const o of old) db.prepare('DELETE FROM shared_planning_participants WHERE planning_id = ?').run(o.id);
+    db.prepare('DELETE FROM shared_plannings WHERE user_id = ?').run(req.user.id);
+
+    db.prepare(`
+      INSERT INTO shared_plannings (id, user_id, event_name, event_date, locale, courses_json, created_at, expires_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(planningId, req.user.id, payload.eventName, payload.eventDate, payload.locale,
+           JSON.stringify(payload.courses), now, expiresAt);
+
+    const ins = db.prepare('INSERT INTO shared_planning_participants (token, planning_id, name, route_json) VALUES (?, ?, ?, ?)');
+    return payload.participants.map(pt => {
+      const token = uuidv4();
+      ins.run(token, planningId, pt.name, JSON.stringify(pt.route));
+      return { token, name: pt.name };
+    });
+  });
+
+  const rows = publish();
+  res.json({ ok: true, planningId, expiresAt, links: sharedPlanningLinks(payload.locale, rows) });
+});
+
+// GET /api/plannings/mine — actieve publicatie terughalen (na refresh van stap 4)
+app.get('/api/plannings/mine', requireAuth, (req, res) => {
+  const planning = db.prepare('SELECT * FROM shared_plannings WHERE user_id = ? ORDER BY created_at DESC LIMIT 1').get(req.user.id);
+  if (!planning) return res.json({ ok: true, planning: null });
+  const participants = db.prepare('SELECT token, name FROM shared_planning_participants WHERE planning_id = ?').all(planning.id);
+  res.json({
+    ok: true,
+    planning: {
+      id: planning.id,
+      eventName: planning.event_name,
+      eventDate: planning.event_date,
+      expiresAt: planning.expires_at,
+      links: sharedPlanningLinks(planning.locale, participants),
+    },
+  });
+});
+
+// DELETE /api/plannings/mine — organisator trekt alle deellinks in
+app.delete('/api/plannings/mine', requireAuth, (req, res) => {
+  const del = db.transaction(() => {
+    const old = db.prepare('SELECT id FROM shared_plannings WHERE user_id = ?').all(req.user.id);
+    for (const o of old) db.prepare('DELETE FROM shared_planning_participants WHERE planning_id = ?').run(o.id);
+    db.prepare('DELETE FROM shared_plannings WHERE user_id = ?').run(req.user.id);
+    return old.length;
+  });
+  res.json({ ok: true, removed: del() });
+});
+
+// Teksten voor de publieke onthul-pagina, in de taal van de publicatie.
+const REVEAL_T = {
+  nl: { hello: 'Hoi', intro: 'Dit is jouw persoonlijke route. Elk volgend adres verschijnt zodra de vorige gang is afgelopen — net als bij de envelopjes.', youhost: 'Jij bent gastheer/vrouw!', address: 'Adres', host: 'Bij', mates: 'Tafelgenoten', locked: 'Wordt onthuld om', together: 'Iedereen komt hier samen', notfound: 'Route niet gevonden of niet meer beschikbaar.', autorefresh: 'Deze pagina ververst zichzelf op het onthulmoment.' },
+  en: { hello: 'Hi', intro: 'This is your personal route. Each next address appears once the previous course has ended — just like the envelopes.', youhost: 'You are the host!', address: 'Address', host: 'At', mates: 'Tablemates', locked: 'Revealed at', together: 'Everyone gathers here', notfound: 'Route not found or no longer available.', autorefresh: 'This page refreshes itself at the reveal moment.' },
+  es: { hello: 'Hola', intro: 'Esta es tu ruta personal. Cada nueva dirección aparece cuando termina el plato anterior — igual que con los sobres.', youhost: '¡Tú eres el anfitrión!', address: 'Dirección', host: 'En casa de', mates: 'Compañeros de mesa', locked: 'Se revela a las', together: 'Todos se reúnen aquí', notfound: 'Ruta no encontrada o ya no disponible.', autorefresh: 'Esta página se actualiza sola en el momento de la revelación.' },
+  de: { hello: 'Hallo', intro: 'Das ist deine persönliche Route. Jede nächste Adresse erscheint, sobald der vorherige Gang beendet ist — genau wie bei den Umschlägen.', youhost: 'Du bist Gastgeber!', address: 'Adresse', host: 'Bei', mates: 'Tischnachbarn', locked: 'Wird enthüllt um', together: 'Alle kommen hier zusammen', notfound: 'Route nicht gefunden oder nicht mehr verfügbar.', autorefresh: 'Diese Seite aktualisiert sich zum Enthüllungszeitpunkt selbst.' },
+};
+
+function renderRevealPage(locale, title, inner, nextRevealMs) {
+  const R = REVEAL_T[locale] || REVEAL_T.nl;
+  const reloadScript = nextRevealMs
+    ? `<script>setTimeout(function(){location.reload()}, Math.max(1000, ${nextRevealMs} - Date.now()) + 500);</script>`
+    : '';
+  return `<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>${escHtml(title)}</title>
+<link rel="icon" type="image/svg+xml" href="/images/runningdinner-logo.svg">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Plus Jakarta Sans',system-ui,sans-serif; background:#FFFBF7; color:#1E293B; padding:20px 16px 60px; }
+  .wrap { max-width:520px; margin:0 auto; }
+  .logo { display:block; margin:8px auto 24px; max-width:180px; }
+  h1 { font-size:1.35rem; letter-spacing:-.01em; margin-bottom:4px; }
+  .sub { color:#64748B; font-size:.9rem; margin-bottom:22px; line-height:1.55; }
+  .card { background:#fff; border:1px solid #E2E8F0; border-radius:16px; padding:18px 20px; margin-bottom:14px; box-shadow:0 2px 10px rgba(0,0,0,.04); }
+  .card.locked { background:#F8FAFC; border-style:dashed; }
+  .course-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .course-head .icon { font-size:1.5rem; }
+  .course-head .name { font-weight:800; font-size:1.05rem; }
+  .course-head .time { margin-left:auto; color:#E85D3A; font-weight:700; font-size:.92rem; white-space:nowrap; }
+  .detail { font-size:.92rem; line-height:1.6; color:#334155; }
+  .detail b { color:#1E293B; }
+  .lockmsg { display:flex; align-items:center; gap:8px; color:#94A3B8; font-size:.92rem; }
+  .hostbadge { display:inline-block; background:#E85D3A; color:#fff; font-size:.72rem; font-weight:800; letter-spacing:.04em; padding:3px 10px; border-radius:100px; margin-bottom:8px; }
+  .foot { text-align:center; color:#94A3B8; font-size:.78rem; margin-top:26px; }
+  .foot a { color:#E85D3A; text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/"><img class="logo" src="/images/runningdinner-logo-email.png" alt="runningdinner.app"></a>
+  ${inner}
+  <p class="foot">${nextRevealMs ? escHtml(R.autorefresh) + '<br>' : ''}<a href="/">runningdinner.app</a></p>
+</div>
+${reloadScript}
+</body>
+</html>`;
+}
+
+// GET /r/:token — publieke, persoonlijke onthul-pagina van één deelnemer.
+// Tokens zijn uuidv4 (122 bits entropie): niet te raden, geen rate-limit nodig.
+app.get('/r/:token', (req, res) => {
+  const row = db.prepare(`
+    SELECT spp.name, spp.route_json, sp.event_name, sp.event_date, sp.locale, sp.courses_json, sp.expires_at
+    FROM shared_planning_participants spp
+    JOIN shared_plannings sp ON sp.id = spp.planning_id
+    WHERE spp.token = ?
+  `).get(req.params.token);
+
+  const locale = row?.locale || req.lang || 'nl';
+  const R = REVEAL_T[locale] || REVEAL_T.nl;
+
+  if (!row || row.expires_at < Date.now()) {
+    return res.status(row ? 410 : 404).type('html')
+      .send(renderRevealPage(locale, 'runningdinner.app', `<h1>🤷</h1><p class="sub">${escHtml(R.notfound)}</p>`, null));
+  }
+
+  const courses = JSON.parse(row.courses_json);
+  const route   = JSON.parse(row.route_json);
+  const schedule = sharedPlanning.buildRevealSchedule(courses, row.event_date);
+  const revealMap = new Map(schedule.map(x => [x.course, x.revealAt]));
+  const timeMap   = new Map(courses.map(c => [c.course, c]));
+  const labels    = sharedPlanning.COURSE_LABELS[locale] || sharedPlanning.COURSE_LABELS.nl;
+  const now = new Date();
+
+  let nextRevealMs = null;
+  const fmtTime = (d) => new Intl.DateTimeFormat(locale === 'nl' ? 'nl-NL' : locale, {
+    timeZone: 'Europe/Amsterdam', hour: '2-digit', minute: '2-digit',
+  }).format(d);
+
+  const cards = route.map(item => {
+    const c = timeMap.get(item.course);
+    const revealAt = revealMap.has(item.course) ? revealMap.get(item.course) : null;
+    const revealed = sharedPlanning.isRevealed(revealAt, now);
+    const label = labels[item.course] || item.course;
+    const icon  = sharedPlanning.COURSE_ICONS[item.course] || '🍽️';
+    const timeStr = c ? `${c.time} – ${c.endTime}` : '';
+
+    if (!revealed) {
+      if (revealAt && (nextRevealMs === null || revealAt.getTime() < nextRevealMs)) nextRevealMs = revealAt.getTime();
+      return `<div class="card locked">
+        <div class="course-head"><span class="icon">${icon}</span><span class="name">${escHtml(label)}</span><span class="time">${escHtml(timeStr)}</span></div>
+        <div class="lockmsg">🔒 ${escHtml(R.locked)} ${escHtml(fmtTime(revealAt))}</div>
+      </div>`;
+    }
+
+    let detail = '';
+    if (item.isHost) {
+      detail += `<span class="hostbadge">${escHtml(R.youhost)}</span>`;
+    }
+    if (item.isSocial) {
+      detail += `<div class="detail">${escHtml(R.together)}${item.address ? ` — <b>${escHtml(item.address)}</b>` : ''}</div>`;
+    } else {
+      if (!item.isHost && item.hostName) detail += `<div class="detail">${escHtml(R.host)}: <b>${escHtml(item.hostName)}</b></div>`;
+      if (item.address) detail += `<div class="detail">${escHtml(R.address)}: <b>${escHtml(item.address)}</b></div>`;
+      if (item.companions && item.companions.length) detail += `<div class="detail">${escHtml(R.mates)}: ${escHtml(item.companions.join(', '))}</div>`;
+    }
+
+    return `<div class="card">
+      <div class="course-head"><span class="icon">${icon}</span><span class="name">${escHtml(label)}</span><span class="time">${escHtml(timeStr)}</span></div>
+      ${detail}
+    </div>`;
+  }).join('');
+
+  const inner = `
+  <h1>${escHtml(R.hello)} ${escHtml(row.name)} 👋</h1>
+  <p class="sub"><b>${escHtml(row.event_name)}</b> · ${escHtml(row.event_date)}<br>${escHtml(R.intro)}</p>
+  ${cards}`;
+
+  res.type('html').send(renderRevealPage(locale, `${row.event_name} — runningdinner.app`, inner, nextRevealMs));
+});
+
 // ── Language preference API ──────────────────────────────────────────────────
 app.put('/api/user/language', requireAuth, (req, res) => {
   const { language } = req.body || {};
@@ -4319,6 +4569,16 @@ if (ENV === 'production') {
   setInterval(async () => {
     try { await checkRenewalReminders(); } catch (e) { console.error('[scheduler] reminder error:', e.message); }
     try { await processAutoRenewals(); } catch (e) { console.error('[scheduler] renewal error:', e.message); }
+    // Verlopen gedeelde planningen opruimen (AVG: adressen van derden
+    // horen niet langer dan event + 30 dagen op de server te staan).
+    try {
+      const expired = db.prepare('SELECT id FROM shared_plannings WHERE expires_at < ?').all(Date.now());
+      for (const e of expired) {
+        db.prepare('DELETE FROM shared_planning_participants WHERE planning_id = ?').run(e.id);
+        db.prepare('DELETE FROM shared_plannings WHERE id = ?').run(e.id);
+      }
+      if (expired.length) console.log(`[scheduler] ${expired.length} verlopen gedeelde planning(en) opgeruimd`);
+    } catch (e) { console.error('[scheduler] shared-planning cleanup error:', e.message); }
     // Zoho reconciliation once per 24h (every 24 ticks)
     zohoTicker++;
     if (zohoTicker % 24 === 0) {
