@@ -1891,10 +1891,10 @@ app.delete('/api/user/account', requireAuth, async (req, res) => {
     }
   }
 
-  // Delete cascade (foreign keys on ratings, sessions, payments)
-  // We KEEP payments for accounting/Zoho retention but anonymize the user link.
-  const anonEmail = `deleted-${uuidv4()}@deleted.local`;
-  db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+  // Delete cascade (ratings; payments blijven bewaard). Sessies zijn
+  // in-memory (activeSessions) — er is géén sessions-tabel; de eerdere
+  // DELETE daarop liet deze handler crashen zodat AVG-zelfverwijdering
+  // in de praktijk nooit werkte (eeuwige spinner).
   db.prepare('DELETE FROM ratings WHERE user_id = ?').run(user.id);
   // Anonymize payments instead of deleting (tax law retention)
   db.prepare('UPDATE payments SET user_id = ?, zoho_sync_error = ? WHERE user_id = ?')
@@ -4344,7 +4344,6 @@ if (ENV === 'production') {
         "SELECT id FROM users WHERE email LIKE 'smoke-%@example.test' AND created_at < ?"
       ).all(Date.now() - 24 * 3600 * 1000);
       for (const u of stale) {
-        db.prepare('DELETE FROM sessions WHERE user_id = ?').run(u.id);
         db.prepare('DELETE FROM ratings WHERE user_id = ?').run(u.id);
         db.prepare('DELETE FROM users WHERE id = ?').run(u.id);
       }
