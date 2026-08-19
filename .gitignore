@@ -35,4 +35,3 @@ npm-debug.log*
 .claude/scheduled_tasks.lock
 
 # npm lockfiles (re-generated on install)
-package-lock.json

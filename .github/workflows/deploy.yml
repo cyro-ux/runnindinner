@@ -18,10 +18,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # Geen npm ci / cache: package-lock.json is bewust gitignored (de VPS
-      # draait npm install --production). Lockfile committen is een aparte,
-      # bewuste beslissing — niet als bijvangst van dit test-gate.
-      - run: npm install
+      # package-lock.json is sinds 19-08-2026 gecommit: npm ci geeft
+      # reproduceerbare installs op CI en VPS (en schrijft de lockfile
+      # nooit, dus git pull op de VPS blijft conflictvrij).
+      - run: npm ci
       - run: npm test
 
   deploy-acceptance:
@@ -50,7 +50,7 @@ jobs:
             git config --global --add safe.directory /var/www/running-dinner/acc
             cd /var/www/running-dinner/acc
             git pull origin develop
-            npm install --production
+            npm ci --omit=dev
             # Backup database before reload
             mkdir -p /backup
             sqlite3 data/app.db ".backup '/backup/acc-pre-deploy-$(date +%Y%m%d-%H%M%S).db'" 2>/dev/null || true
@@ -100,7 +100,7 @@ jobs:
             mkdir -p /backup
             sqlite3 data/app.db ".backup '/backup/prod-pre-deploy-$(date +%Y%m%d-%H%M%S).db'"
             git pull origin main
-            npm install --production
+            npm ci --omit=dev
             pm2 reload running-dinner-prod --update-env
             # Health check: retry up to 10× met 1s pauze (PM2 reload duurt
             # soms langer dan een vaste 2s sleep; deze aanpak is robuuster)
