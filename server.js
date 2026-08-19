@@ -776,11 +776,25 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
 // Serve static files
-// The running dinner planner app lives at the repo root (index.html, app.js, style.css)
-app.use('/app', express.static(path.join(__dirname)));
-app.use('/en/app', express.static(path.join(__dirname)));  // English version serves same static files
-app.use('/es/app', express.static(path.join(__dirname)));  // Spanish version serves same static files
-app.use('/de/app', express.static(path.join(__dirname)));  // German version serves same static files
+// De planner leeft op de repo-root, maar express.static op __dirname zelf
+// zou óók server.js, lib/ en data/app.db(-wal) — de live database! —
+// serveren. Daarom een strikte allowlist van wat de planner-pagina echt
+// relatief opvraagt; al het overige valt door naar de 404.
+const PLANNER_FILES = new Set(['', 'index.html', 'app.js', 'style.css']);
+function plannerStatic() {
+  const serve = express.static(path.join(__dirname));
+  return (req, res, next) => {
+    let rel;
+    try { rel = decodeURIComponent(req.path).replace(/^\/+/, ''); }
+    catch { return next(); }
+    if (!PLANNER_FILES.has(rel)) return next();
+    serve(req, res, next);
+  };
+}
+app.use('/app', plannerStatic());
+app.use('/en/app', plannerStatic());  // English version serves same static files
+app.use('/es/app', plannerStatic());  // Spanish version serves same static files
+app.use('/de/app', plannerStatic());  // German version serves same static files
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 app.use('/en', express.static(path.join(__dirname, 'public'))); // English public files (CSS, images, lang/)
 app.use('/es', express.static(path.join(__dirname, 'public'))); // Spanish public files (CSS, images, lang/)
@@ -4421,13 +4435,14 @@ SEGMENT_SLUGS.forEach(slug => {
 // Serveert dezelfde index.html, maar /demo-mode.js detecteert het URL-pad en
 // schakelt sample-data + paywall-modus aan. Geen auth, geen DB, geen schade.
 //
-// Belangrijk: zelfde patroon als /app gebruiken (express.static op __dirname),
-// zodat /demo automatisch 301-redirect naar /demo/ doet en relatieve URLs
-// (style.css, app.js, /lang/*) correct resolven.
-app.use('/demo',     express.static(path.join(__dirname)));
-app.use('/en/demo',  express.static(path.join(__dirname)));
-app.use('/es/demo',  express.static(path.join(__dirname)));
-app.use('/de/demo',  express.static(path.join(__dirname)));
+// Belangrijk: zelfde patroon als /app gebruiken (plannerStatic — allowlist
+// over express.static op __dirname), zodat /demo automatisch 301-redirect
+// naar /demo/ doet en relatieve URLs (style.css, app.js, /lang/*) correct
+// resolven, zonder de rest van de repo te exposen.
+app.use('/demo',     plannerStatic());
+app.use('/en/demo',  plannerStatic());
+app.use('/es/demo',  plannerStatic());
+app.use('/de/demo',  plannerStatic());
 
 // ── SPA fallbacks ─────────────────────────────────────────────────────────────
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
