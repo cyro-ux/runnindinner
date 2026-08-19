@@ -57,13 +57,19 @@ jobs:
             pm2 reload running-dinner-acc --update-env
             # Health check — use a new-code marker endpoint if present
             sleep 2
+            ok=0
             for i in 1 2 3 4 5 6 7 8 9 10; do
               if curl -sf http://localhost:3001/api/mollie/price > /dev/null; then
-                echo "Health check OK (na $i s)"; exit 0
+                echo "Health check OK (na $i s)"; ok=1; break
               fi
               sleep 1
             done
-            echo "Health check FAILED na 10s"; exit 1
+            if [ "$ok" != "1" ]; then echo "Health check FAILED na 10s"; exit 1; fi
+            # Smoke-gate: volledige registratie/betaal-flow tegen de zojuist
+            # gedeployde acc. Draait op de VPS zelf (localhost) omdat de
+            # publieke acc-URL achter nginx basic auth zit. Faalt de smoke,
+            # dan faalt deze job — merge naar main dus pas na groen.
+            BASE_URL=http://localhost:3001 node --test tests/smoke.test.js
 
   deploy-production:
     if: github.ref == 'refs/heads/main'
