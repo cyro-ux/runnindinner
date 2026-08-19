@@ -98,12 +98,10 @@
   <link rel="stylesheet" href="home.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Non-blocking font load: browser downloads async, applies once ready.
-       Combined with font-display:swap in the URL, this removes ~100-300ms
-       of render-blocking time for new visitors while keeping the fallback
-       for no-JS bots. -->
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"></noscript>
+  <!-- Gewone stylesheet-link i.p.v. de preload+onload-truc: het onload-
+       attribuut is een event-handler en sneuvelt onder script-src-attr 'none'.
+       Met de preconnect hierboven is de render-impact minimaal. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
 </head>
 <body>
 

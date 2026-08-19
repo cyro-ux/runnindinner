@@ -263,7 +263,7 @@
         <span class="demo-banner-icon">🍽️</span>
         <span class="demo-banner-text">${escapeHtml(T.banner_text)}</span>
         <a href="${SUBSCRIBE_URL}" class="demo-banner-cta" data-rda-carryover>${escapeHtml(T.banner_cta)}</a>
-        <button type="button" class="demo-banner-reset" title="${escapeHtml(T.reset)}" onclick="window.location.reload()">↻</button>
+        <button type="button" class="demo-banner-reset" title="${escapeHtml(T.reset)}" data-demo-action="reload">↻</button>
       </div>`;
     document.body.insertBefore(banner, document.body.firstChild);
   }
@@ -273,7 +273,7 @@
     modal.id = 'demo-paywall-modal';
     modal.style.display = 'none';
     modal.innerHTML = `
-      <div class="demo-modal-overlay" onclick="RDA_DEMO.closePaywall()"></div>
+      <div class="demo-modal-overlay" data-demo-action="closePaywall"></div>
       <div class="demo-modal-card">
         <div class="demo-modal-icon">🔒</div>
         <h2 class="demo-modal-title">${escapeHtml(T.modal_title)}</h2>
@@ -281,7 +281,7 @@
         <p class="demo-modal-body">${escapeHtml(T.modal_body)}</p>
         <div class="demo-modal-actions">
           <a href="${SUBSCRIBE_URL}" class="demo-modal-btn-primary" data-rda-carryover>${escapeHtml(T.modal_cta_subscribe)}</a>
-          <button type="button" class="demo-modal-btn-secondary" onclick="RDA_DEMO.closePaywall()">${escapeHtml(T.modal_cta_close)}</button>
+          <button type="button" class="demo-modal-btn-secondary" data-demo-action="closePaywall">${escapeHtml(T.modal_cta_close)}</button>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -437,6 +437,14 @@
   // ============================================================
   // Init — banner direct, modal direct, hooks na DOM ready
   // ============================================================
+  // Gedelegeerde clicks voor demo-UI (geen inline handlers i.v.m. CSP)
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-demo-action]');
+    if (!el) return;
+    if (el.dataset.demoAction === 'reload') window.location.reload();
+    if (el.dataset.demoAction === 'closePaywall') closePaywall();
+  });
+
   function init() {
     injectBanner();
     injectModal();

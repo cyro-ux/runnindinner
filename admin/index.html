@@ -957,6 +957,23 @@ function showPage(name) {
 }
 document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
 
+// Gedelegeerde acties voor dynamisch gegenereerde knoppen (geen inline
+// on*-attributen; nodig voor CSP script-src-attr 'none').
+const ADMIN_ACTIONS = {
+  openEditUser:    (d) => openEditUser(d.id),
+  sendInvite:      (d) => sendInvite(d.id, d.email),
+  deleteUser:      (d) => deleteUser(d.id, d.email),
+  retryZoho:       (d) => retryZoho(d.id),
+  toggleBlogDraft: (d) => toggleBlogDraft(d.filename, d.draft === 'true'),
+  moderateReview:  (d) => moderateReview(d.id, d.status),
+  deleteReview:    (d) => deleteReview(d.id),
+  deleteVoucher:   (d) => deleteVoucher(d.id, d.code),
+};
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if (el) ADMIN_ACTIONS[el.dataset.action]?.(el.dataset);
+});
+
 // ── Logout ─────────────────────────────────────────────────────────────────
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await fetch('/api/auth/logout', { method: 'POST' });
@@ -1111,9 +1128,9 @@ async function loadUsers() {
         <td style="text-align:center">${u.payment_count||0}</td>
         <td><span class="badge ${active?'active':'expired'}">${active?'Actief':'Verlopen'}</span>${u.auto_renew ? ' <span class="badge active" style="font-size:10px">Auto</span>' : ''}</td>
         <td>${u.role!=='admin' ? `<div class="action-btns">
-          <button class="btn-sm btn-edit" onclick="openEditUser('${u.id}')" title="Bewerken">✎</button>
-          <button class="btn-sm btn-invite" onclick="sendInvite('${u.id}','${escH(u.email)}')" title="Uitnodigingslink sturen">📧</button>
-          <button class="btn-sm btn-del" onclick="deleteUser('${u.id}','${escH(u.email)}')" title="Verwijderen">✕</button>
+          <button class="btn-sm btn-edit" data-action="openEditUser" data-id="${u.id}" title="Bewerken">✎</button>
+          <button class="btn-sm btn-invite" data-action="sendInvite" data-id="${u.id}" data-email="${escH(u.email)}" title="Uitnodigingslink sturen">📧</button>
+          <button class="btn-sm btn-del" data-action="deleteUser" data-id="${u.id}" data-email="${escH(u.email)}" title="Verwijderen">✕</button>
         </div>` : ''}</td>
       </tr>`;
     }).join('');
@@ -1653,7 +1670,7 @@ async function loadAccounting() {
     tbody.innerHTML = rows.map(t => {
       const st = t.zoho_sync_status || 'pending';
       const action = (st === 'failed' || st === 'pending')
-        ? `<button class="btn-sm btn-edit" onclick="retryZoho('${t.id}')">↻ Retry</button>`
+        ? `<button class="btn-sm btn-edit" data-action="retryZoho" data-id="${t.id}">↻ Retry</button>`
         : (t.zoho_invoice_id
             ? `<span style="font-size:.72rem;color:var(--muted)">${escH(t.zoho_invoice_id)}</span>`
             : '–');
@@ -1716,7 +1733,7 @@ async function loadBlog() {
         <td>${escH(p.locale)}</td>
         <td>${escH(p.date || '–')}</td>
         <td>${statusBadge}</td>
-        <td><button class="btn-sm btn-edit" onclick="toggleBlogDraft('${escH(p.filename)}', ${!p.draft})">${toggleLabel}</button></td>
+        <td><button class="btn-sm btn-edit" data-action="toggleBlogDraft" data-filename="${escH(p.filename)}" data-draft="${!p.draft}">${toggleLabel}</button></td>
       </tr>`;
     }).join('');
   } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Laden mislukt</td></tr>'; }
@@ -1775,11 +1792,11 @@ async function loadReviews() {
     tbody.innerHTML = reviews.map(r => {
       const stars = '★'.repeat(r.score) + '☆'.repeat(5 - r.score);
       const actions = [];
-      if (r.status !== 'approved') actions.push(`<button class="btn-sm" style="background:#dcfce7;color:#166534" onclick="moderateReview('${r.id}','approved')">✓ Goedkeuren</button>`);
-      if (r.status !== 'rejected') actions.push(`<button class="btn-sm" style="background:#fef2f2;color:#dc2626" onclick="moderateReview('${r.id}','rejected')">✕ Afwijzen</button>`);
-      if (r.status !== 'hidden')   actions.push(`<button class="btn-sm btn-secondary" onclick="moderateReview('${r.id}','hidden')">🚫 Verberg</button>`);
-      if (r.status !== 'pending')  actions.push(`<button class="btn-sm btn-secondary" onclick="moderateReview('${r.id}','pending')">↩ Reset</button>`);
-      actions.push(`<button class="btn-sm btn-secondary" style="color:#dc2626" onclick="deleteReview('${r.id}')">🗑</button>`);
+      if (r.status !== 'approved') actions.push(`<button class="btn-sm" style="background:#dcfce7;color:#166534" data-action="moderateReview" data-id="${r.id}" data-status="approved">✓ Goedkeuren</button>`);
+      if (r.status !== 'rejected') actions.push(`<button class="btn-sm" style="background:#fef2f2;color:#dc2626" data-action="moderateReview" data-id="${r.id}" data-status="rejected">✕ Afwijzen</button>`);
+      if (r.status !== 'hidden')   actions.push(`<button class="btn-sm btn-secondary" data-action="moderateReview" data-id="${r.id}" data-status="hidden">🚫 Verberg</button>`);
+      if (r.status !== 'pending')  actions.push(`<button class="btn-sm btn-secondary" data-action="moderateReview" data-id="${r.id}" data-status="pending">↩ Reset</button>`);
+      actions.push(`<button class="btn-sm btn-secondary" style="color:#dc2626" data-action="deleteReview" data-id="${r.id}">🗑</button>`);
       return `<tr>
         <td style="font-size:.78rem;color:var(--muted);white-space:nowrap">${fmtDT(r.created_at)}</td>
         <td style="color:#f59e0b;white-space:nowrap">${stars}</td>
@@ -1948,7 +1965,7 @@ async function loadVouchers() {
         <td style="text-align:right"><strong>${v.redeemed_count}</strong></td>
         <td>${max}</td>
         <td>${expiry}</td>
-        <td><button class="btn-sm btn-del" onclick="deleteVoucher('${v.id}', '${escH(v.code)}')">🗑️ Verwijder</button></td>
+        <td><button class="btn-sm btn-del" data-action="deleteVoucher" data-id="${v.id}" data-code="${escH(v.code)}">🗑️ Verwijder</button></td>
       </tr>`;
     }).join('');
   } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Laden mislukt</td></tr>'; }

@@ -452,8 +452,8 @@ function renderParticipantsList() {
           <div class="participant-meta">${tags.join('')}</div>
         </div>
         <div class="participant-actions">
-          <button class="btn-secondary btn-small" onclick="openAddParticipant(${p.id})">✏️ ${I18n.t('app.participants.edit_btn', 'Bewerken')}</button>
-          <button class="btn-danger btn-small" onclick="deleteParticipant(${p.id})">🗑️</button>
+          <button class="btn-secondary btn-small" data-action="openAddParticipant" data-arg="${p.id}">✏️ ${I18n.t('app.participants.edit_btn', 'Bewerken')}</button>
+          <button class="btn-danger btn-small" data-action="deleteParticipant" data-arg="${p.id}">🗑️</button>
         </div>
       </div>`;
   }).join('');
@@ -493,7 +493,7 @@ function renderForcedCombos() {
       const checked = selectedCourses.includes(c);
       const icon = COURSE_ICONS[c] || '';
       return `<label class="forced-combo-course ${checked ? 'is-active' : ''}">
-        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleForcedComboCourse(${fc.id}, '${c}', this.checked)">
+        <input type="checkbox" ${checked ? 'checked' : ''} data-change="toggleForcedComboCourse" data-id="${fc.id}" data-course="${c}">
         <span>${icon} ${escapeHtml(getCourseLabel(c))}</span>
       </label>`;
     }).join('');
@@ -505,16 +505,16 @@ function renderForcedCombos() {
     return `
       <div class="forced-combo-item">
         <div class="forced-combo-row">
-          <select onchange="updateForcedCombo(${fc.id}, 'person1', this.value)">
+          <select data-change="updateForcedCombo" data-id="${fc.id}" data-field="person1">
             <option value="">${I18n.t('app.participants.select_person1', 'Selecteer persoon 1...')}</option>
             ${names.map(n => `<option value="${escapeHtml(n)}" ${fc.person1 === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
           </select>
           <span>${I18n.t('app.participants.always_together', 'altijd samen met')}</span>
-          <select onchange="updateForcedCombo(${fc.id}, 'person2', this.value)">
+          <select data-change="updateForcedCombo" data-id="${fc.id}" data-field="person2">
             <option value="">${I18n.t('app.participants.select_person2', 'Selecteer persoon 2...')}</option>
             ${names.map(n => `<option value="${escapeHtml(n)}" ${fc.person2 === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
           </select>
-          <button class="btn-danger btn-small" onclick="removeForcedCombo(${fc.id})">✕</button>
+          <button class="btn-danger btn-small" data-action="removeForcedCombo" data-arg="${fc.id}">✕</button>
         </div>
         <div class="forced-combo-scope">
           <span class="forced-combo-scope-label">${escapeHtml(scopeHint)}:</span>
@@ -934,9 +934,7 @@ function renderDraggableTableCard(table, i, participants, course) {
 
   return `
     <div class="table-card dnd-table" id="dnd-${table.id}"
-         ondragover="onDragOver(event)"
-         ondragleave="onDragLeave(event)"
-         ondrop="onDrop(event,'${table.id}','${course}')">
+         data-drop-table="${table.id}" data-drop-course="${course}">
       <div class="table-card-header">
         ${I18n.t('app.planning.table', 'Tafel')} ${i + 1} – ${escapeHtml(table.address?.city || '')}
         <span>🪑 ${seats}</span>
@@ -953,8 +951,7 @@ function renderDraggableTableCard(table, i, participants, course) {
           return `
             <div class="table-guest guest-chip"
                  draggable="true"
-                 ondragstart="onDragStart(event,${gid},'${table.id}','${course}')"
-                 ondragend="onDragEnd(event)">
+                 data-drag-guest="${gid}" data-drag-table="${table.id}" data-drag-course="${course}">
               <span class="drag-handle" title="${I18n.t('app.planning.drag_to_move', 'Sleep om te verplaatsen')}">⠿</span>
               👤 ${escapeHtml(table.guestNames[gi])}
               ${diet ? `<span class="diet-icon" title="${escapeHtml(diet)}">🥦</span>` : ''}
@@ -977,21 +974,23 @@ function onDragEnd(event) {
   event.target.classList.remove('dragging');
 }
 
-function onDragOver(event) {
+// `el` is de drop-container; bij gedelegeerde events wijst currentTarget naar
+// document, dus het element komt expliciet mee vanuit de dispatcher.
+function onDragOver(event, el) {
   event.preventDefault();
   event.dataTransfer.dropEffect = 'move';
-  event.currentTarget.classList.add('drag-over');
+  el.classList.add('drag-over');
 }
 
-function onDragLeave(event) {
-  if (!event.currentTarget.contains(event.relatedTarget)) {
-    event.currentTarget.classList.remove('drag-over');
+function onDragLeave(event, el) {
+  if (!el.contains(event.relatedTarget)) {
+    el.classList.remove('drag-over');
   }
 }
 
-function onDrop(event, targetTableId, targetCourse) {
+function onDrop(event, targetTableId, targetCourse, el) {
   event.preventDefault();
-  event.currentTarget.classList.remove('drag-over');
+  el.classList.remove('drag-over');
   if (!_dragData) return;
 
   const { personId, fromTableId, course } = _dragData;
@@ -1089,7 +1088,7 @@ function renderChangeLog() {
     <div class="change-log">
       <div class="change-log-header">
         <span>${state.manualChanges.length} ${I18n.t('app.planning.changes', 'wijziging(en)')}</span>
-        <button class="btn-danger btn-small" onclick="undoAllChanges()">↩ ${I18n.t('app.planning.undo_all', 'Alle ongedaan maken')}</button>
+        <button class="btn-danger btn-small" data-action="undoAllChanges">↩ ${I18n.t('app.planning.undo_all', 'Alle ongedaan maken')}</button>
       </div>
       ${state.manualChanges.map((c, i) => `
         <div class="change-item">
@@ -1101,7 +1100,7 @@ function renderChangeLog() {
               <span class="change-course">${COURSE_ICONS[c.course]} ${getCourseLabel(c.course)}</span>
             </div>
           </div>
-          <button class="btn-secondary btn-small" onclick="undoChange(${c.id})">↩ ${I18n.t('app.planning.undo', 'Ongedaan')}</button>
+          <button class="btn-secondary btn-small" data-action="undoChange" data-arg="${c.id}">↩ ${I18n.t('app.planning.undo', 'Ongedaan')}</button>
         </div>`).join('')}
     </div>`;
 }
@@ -1249,7 +1248,7 @@ function renderDistanceResults(enriched) {
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
+  document.querySelector(`.tab-btn[data-arg="${name}"]`).classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
 }
 
@@ -1624,7 +1623,7 @@ function renderShareLinks(links, expiresAt) {
       <div class="share-link-row">
         <span class="share-link-name">${escapeHtml(l.name)}</span>
         <a class="btn-whatsapp btn-small" href="${escapeHtml(l.waUrl)}" target="_blank" rel="noopener">\u{1F4AC} WhatsApp</a>
-        <button type="button" class="btn-secondary btn-small" data-url="${escapeHtml(l.url)}" onclick="copyShareLink(this)">\u{1F4CB} ${I18n.t('app.share.copy_btn', 'Kopieer link')}</button>
+        <button type="button" class="btn-secondary btn-small" data-url="${escapeHtml(l.url)}" data-action="copyShareLink">\u{1F4CB} ${I18n.t('app.share.copy_btn', 'Kopieer link')}</button>
       </div>`).join('')}`;
 
   const pubBtn = document.getElementById('btn-publish-links');
@@ -1746,25 +1745,25 @@ function renderSocialLocationConfig() {
       <div class="social-location-row">
         <div class="social-location-label">${COURSE_ICONS[course]} ${getCourseLabel(course)}</div>
         <div class="social-location-fields">
-          <select onchange="onSocialHostTypeChange('${course}', this.value)">
+          <select data-change="socialHostType" data-course="${course}">
             <option value="">– ${I18n.t('app.social.unknown_location', 'Locatie onbekend / later invullen')} –</option>
             <option value="participant" ${!isCustom && selectedId ? 'selected' : ''}>${I18n.t('app.social.participant_host', 'Deelnemer als gastheer')}</option>
             <option value="custom" ${isCustom ? 'selected' : ''}>${I18n.t('app.social.custom_address', 'Aangepast adres')}</option>
           </select>
           <select id="social-participant-${course}" style="display:${!isCustom && selectedId ? 'block' : 'none'}"
-            onchange="onSocialParticipantChange('${course}', this.value)">
+            data-change="socialParticipant" data-course="${course}">
             <option value="">${I18n.t('app.social.select_participant', 'Selecteer deelnemer…')}</option>
             ${participantOptions}
           </select>
           <div class="social-location-addr ${isCustom ? 'visible' : ''}" id="social-custom-${course}">
             <input type="text" placeholder="${I18n.t('app.social.name_desc', 'Naam / omschrijving')}" value="${current?.customName || ''}"
-              oninput="onSocialCustomChange('${course}', 'customName', this.value)">
+              data-input="socialCustom" data-course="${course}" data-field="customName">
             <input type="text" placeholder="${I18n.t('app.social.street_nr', 'Straat + nr')}" value="${current?.customAddress?.street || ''}"
-              oninput="onSocialCustomChange('${course}', 'street', this.value)">
+              data-input="socialCustom" data-course="${course}" data-field="street">
             <input type="text" placeholder="${I18n.t('app.social.postcode', 'Postcode')}" value="${current?.customAddress?.postcode || ''}"
-              oninput="onSocialCustomChange('${course}', 'postcode', this.value)" style="max-width:90px">
+              data-input="socialCustom" data-course="${course}" data-field="postcode" style="max-width:90px">
             <input type="text" placeholder="${I18n.t('app.social.city', 'Woonplaats')}" value="${current?.customAddress?.city || ''}"
-              oninput="onSocialCustomChange('${course}', 'city', this.value)">
+              data-input="socialCustom" data-course="${course}" data-field="city">
           </div>
         </div>
       </div>`;
@@ -1822,14 +1821,14 @@ function showSaveGroupModal() {
   document.getElementById('list-modal-body').innerHTML = `
     <div class="list-modal-save-row">
       <input type="text" id="save-group-name" placeholder="${I18n.t('app.groups.save_placeholder', "Naam voor deze groep (bijv. 'Editie 2026')")}" value="">
-      <button class="btn-primary" onclick="confirmSaveGroup()">${I18n.t('app.modal.save', 'Opslaan')}</button>
+      <button class="btn-primary" data-action="confirmSaveGroup">${I18n.t('app.modal.save', 'Opslaan')}</button>
     </div>
     <p class="hint">${I18n.t('app.groups.existing_groups', 'Bestaande groepen (klik om naam over te nemen)')}:</p>
     ${Object.keys(groups).length ? Object.entries(groups).map(([name, g]) => `
-      <div class="list-modal-item" data-group-name="${escapeHtml(name)}" onclick="document.getElementById('save-group-name').value=this.dataset.groupName">
+      <div class="list-modal-item" data-group-name="${escapeHtml(name)}" data-action="fillGroupName">
         <div class="list-modal-item-name">${escapeHtml(name)}</div>
         <div class="list-modal-item-meta">${g.participants?.length || 0} ${I18n.t('app.stats.participants', 'deelnemers')} · ${escapeHtml(g.savedAt || '')}</div>
-        <button class="btn-danger btn-small" onclick="event.stopPropagation();deleteGroup(this.closest('[data-group-name]').dataset.groupName)">🗑️</button>
+        <button class="btn-danger btn-small" data-action="deleteGroup">🗑️</button>
       </div>`).join('') : `<p class="list-modal-empty">${I18n.t('app.groups.no_groups', 'Geen opgeslagen groepen.')}</p>`}`;
   document.getElementById('list-modal').style.display = 'flex';
   setTimeout(() => document.getElementById('save-group-name').focus(), 50);
@@ -1863,8 +1862,8 @@ function showLoadGroupModal() {
             <div class="list-modal-item-name">${escapeHtml(name)}</div>
             <div class="list-modal-item-meta">${g.participants?.length || 0} ${I18n.t('app.stats.participants', 'deelnemers')} · ${I18n.t('app.groups.saved_at', 'opgeslagen')} ${escapeHtml(g.savedAt || '')}</div>
           </div>
-          <button class="btn-primary btn-small" onclick="confirmLoadGroup(this.closest('[data-group-name]').dataset.groupName)">${I18n.t('app.groups.load_btn', 'Laden')}</button>
-          <button class="btn-danger btn-small" onclick="deleteGroup(this.closest('[data-group-name]').dataset.groupName);showLoadGroupModal()">🗑️</button>
+          <button class="btn-primary btn-small" data-action="loadGroup">${I18n.t('app.groups.load_btn', 'Laden')}</button>
+          <button class="btn-danger btn-small" data-action="deleteGroupAndRefresh">🗑️</button>
         </div>`).join('')
     : `<p class="list-modal-empty">${I18n.t('app.groups.no_groups_hint', 'Geen opgeslagen groepen. Sla eerst een groep op via "Groep opslaan".')}</p>`;
   document.getElementById('list-modal').style.display = 'flex';
@@ -1920,8 +1919,8 @@ function showLoadSnapshotModal() {
             <div class="list-modal-item-name">${escapeHtml(name)}</div>
             <div class="list-modal-item-meta">${s.participants?.length || 0} ${I18n.t('app.stats.participants', 'deelnemers')} · ${escapeHtml(s.savedAt || '')}</div>
           </div>
-          <button class="btn-primary btn-small" onclick="confirmLoadSnapshot(this.closest('[data-snapshot-name]').dataset.snapshotName)">${I18n.t('app.groups.load_btn', 'Laden')}</button>
-          <button class="btn-danger btn-small" onclick="deleteSnapshot(this.closest('[data-snapshot-name]').dataset.snapshotName)">🗑️</button>
+          <button class="btn-primary btn-small" data-action="loadSnapshot">${I18n.t('app.groups.load_btn', 'Laden')}</button>
+          <button class="btn-danger btn-small" data-action="deleteSnapshot">🗑️</button>
         </div>`).join('')
     : `<p class="list-modal-empty">${I18n.t('app.snapshots.no_snapshots', 'Geen opgeslagen momentopnames.')}</p>`;
   document.getElementById('list-modal').style.display = 'flex';
@@ -2290,7 +2289,7 @@ function showRatingModal() {
         </div>
         <div id="rating-stars" style="display:flex;justify-content:center;gap:8px;margin:20px 0;font-size:2.2rem;cursor:pointer">
           ${[1,2,3,4,5].map(n =>
-            `<span class="rating-star" data-score="${n}" style="color:${n <= currentScore ? '#f59e0b' : '#d1d5db'};transition:color .15s" onmouseenter="hoverStars(${n})" onmouseleave="resetStars()" onclick="selectStar(${n})">${n <= currentScore ? '★' : '☆'}</span>`
+            `<span class="rating-star" data-score="${n}" style="color:${n <= currentScore ? '#f59e0b' : '#d1d5db'};transition:color .15s" data-star="${n}" data-action="selectStar" data-arg="${n}">${n <= currentScore ? '★' : '☆'}</span>`
           ).join('')}
         </div>
         <input type="hidden" id="rating-score" value="${currentScore}">
@@ -2311,8 +2310,8 @@ function showRatingModal() {
           <p style="font-size:.75rem;color:var(--text-light);margin:4px 0 0">${I18n.t('app.rating.moderation_notice', 'Reviews met een opmerking worden gemodereerd voordat ze zichtbaar zijn op de homepage.')}</p>
         </div>
         <div style="display:flex;gap:10px;justify-content:flex-end">
-          <button class="btn-secondary" onclick="closeRatingModal()">${I18n.t('app.rating.later', 'Later')}</button>
-          <button class="btn-primary" id="rating-submit-btn" onclick="submitRating()">${I18n.t('app.rating.submit', 'Verstuur beoordeling')}</button>
+          <button class="btn-secondary" data-action="closeRatingModal">${I18n.t('app.rating.later', 'Later')}</button>
+          <button class="btn-primary" id="rating-submit-btn" data-action="submitRating">${I18n.t('app.rating.submit', 'Verstuur beoordeling')}</button>
         </div>
         <p id="rating-status" style="font-size:.85rem;margin-top:10px;text-align:center"></p>`;
       modal.style.display = 'flex';
@@ -2424,6 +2423,131 @@ document.addEventListener('keydown', e => {
       closeListModal();
     }
   }
+});
+
+// ---- Event delegation (geen inline on*-attributen) ----
+// Alle UI-events lopen via data-attributen en één set gedelegeerde listeners.
+// Daardoor kan de CSP-directive script-src-attr op 'none' — een injectie via
+// een attribuut (bv. uit geïmporteerde Excel-data) kan dan nooit meer draaien.
+const UI_ACTIONS = {
+  goToStep:               (arg) => goToStep(parseInt(arg, 10)),
+  switchTab:              (arg) => switchTab(arg),
+  setShareMode:           (arg) => setShareMode(arg),
+  printSection:           (arg) => printSection(arg),
+  printSingleEnvelopes:   () => printSingleEnvelopes(),
+  closeParticipantModal:  () => closeParticipantModal(),
+  closeRatingModal:       () => closeRatingModal(),
+  closeListModal:         () => closeListModal(),
+  closeOnboarding:        () => closeOnboarding(),
+  onboardingNext:         () => onboardingNext(),
+  openAddParticipant:     (arg) => openAddParticipant(arg !== undefined && arg !== '' ? parseInt(arg, 10) : undefined),
+  deleteParticipant:      (arg) => deleteParticipant(parseInt(arg, 10)),
+  deleteAllParticipants:  () => deleteAllParticipants(),
+  addForcedCombo:         () => addForcedCombo(),
+  removeForcedCombo:      (arg) => removeForcedCombo(parseInt(arg, 10)),
+  generatePlanning:       () => generatePlanning(),
+  regeneratePlanning:     () => regeneratePlanning(),
+  checkDistances:         () => checkDistances(),
+  downloadTemplate:       () => downloadTemplate(),
+  importFile:             () => document.getElementById('import-file').click(),
+  lookupPostcode:         () => lookupPostcode(),
+  showSaveGroupModal:     () => showSaveGroupModal(),
+  showLoadGroupModal:     () => showLoadGroupModal(),
+  showLoadSnapshotModal:  () => showLoadSnapshotModal(),
+  savePlanningSnapshot:   () => savePlanningSnapshot(),
+  showRatingModal:        () => showRatingModal(),
+  submitRating:           () => submitRating(),
+  selectStar:             (arg) => selectStar(parseInt(arg, 10)),
+  publishDigitalPlanning: () => publishDigitalPlanning(),
+  deleteSharedPlanning:   () => deleteSharedPlanning(),
+  copyShareLink:          (_a, el) => copyShareLink(el),
+  undoChange:             (arg) => undoChange(parseInt(arg, 10)),
+  undoAllChanges:         () => undoAllChanges(),
+  confirmSaveGroup:       () => confirmSaveGroup(),
+  // Groep-/snapshot-rijen: de naam zit op de dichtstbijzijnde data-container.
+  fillGroupName: (_a, el) => {
+    const n = el.closest('[data-group-name]')?.dataset.groupName;
+    const inp = document.getElementById('save-group-name');
+    if (n && inp) inp.value = n;
+  },
+  loadGroup:   (_a, el) => { const n = el.closest('[data-group-name]')?.dataset.groupName; if (n) confirmLoadGroup(n); },
+  deleteGroup: (_a, el) => { const n = el.closest('[data-group-name]')?.dataset.groupName; if (n) deleteGroup(n); },
+  deleteGroupAndRefresh: (_a, el) => {
+    const n = el.closest('[data-group-name]')?.dataset.groupName;
+    if (n) { deleteGroup(n); showLoadGroupModal(); }
+  },
+  loadSnapshot:   (_a, el) => { const n = el.closest('[data-snapshot-name]')?.dataset.snapshotName; if (n) confirmLoadSnapshot(n); },
+  deleteSnapshot: (_a, el) => { const n = el.closest('[data-snapshot-name]')?.dataset.snapshotName; if (n) deleteSnapshot(n); },
+};
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const fn = UI_ACTIONS[el.dataset.action];
+  // closest() pakt het BINNENSTE element met data-action; een knop in een
+  // klikbare rij wint dus automatisch — geen stopPropagation meer nodig.
+  if (fn) fn(el.dataset.arg, el, e);
+});
+
+const UI_CHANGE = {
+  importParticipantsFromFile: (el, e) => importParticipantsFromFile(e),
+  updateForcedCombo:       (el) => updateForcedCombo(parseInt(el.dataset.id, 10), el.dataset.field, el.value),
+  toggleForcedComboCourse: (el) => toggleForcedComboCourse(parseInt(el.dataset.id, 10), el.dataset.course, el.checked),
+  socialHostType:          (el) => onSocialHostTypeChange(el.dataset.course, el.value),
+  socialParticipant:       (el) => onSocialParticipantChange(el.dataset.course, el.value),
+};
+document.addEventListener('change', (e) => {
+  const el = e.target.closest('[data-change]');
+  if (el) UI_CHANGE[el.dataset.change]?.(el, e);
+});
+
+const UI_INPUT = {
+  socialCustom: (el) => onSocialCustomChange(el.dataset.course, el.dataset.field, el.value),
+  stripSpaces:  (el) => { el.value = el.value.replace(/\s/g, ''); },
+};
+document.addEventListener('input', (e) => {
+  const el = e.target.closest('[data-input]');
+  if (el) UI_INPUT[el.dataset.input]?.(el, e);
+});
+
+document.addEventListener('submit', (e) => {
+  if (e.target?.dataset?.submit === 'saveParticipant') saveParticipant(e);
+});
+
+// blur bubbelt niet; focusout wel.
+document.addEventListener('focusout', (e) => {
+  if (e.target?.dataset?.blur === 'autoLookupPostcode') autoLookupPostcode();
+});
+
+// mouseenter/-leave bubbelen niet; mouseover/-out wel (met relatedTarget-check).
+document.addEventListener('mouseover', (e) => {
+  const st = e.target.closest('[data-star]');
+  if (st) hoverStars(parseInt(st.dataset.star, 10));
+});
+document.addEventListener('mouseout', (e) => {
+  const st = e.target.closest('[data-star]');
+  if (st && !st.contains(e.relatedTarget)) resetStars();
+});
+
+// Drag & drop van tafel-gasten (dragstart/-over/-leave/-end/drop bubbelen).
+document.addEventListener('dragstart', (e) => {
+  const g = e.target.closest?.('[data-drag-guest]');
+  if (g) onDragStart(e, parseInt(g.dataset.dragGuest, 10), g.dataset.dragTable, g.dataset.dragCourse);
+});
+document.addEventListener('dragend', (e) => {
+  if (e.target.closest?.('[data-drag-guest]')) onDragEnd(e);
+});
+document.addEventListener('dragover', (e) => {
+  const t = e.target.closest?.('[data-drop-table]');
+  if (t) onDragOver(e, t);
+});
+document.addEventListener('dragleave', (e) => {
+  const t = e.target.closest?.('[data-drop-table]');
+  if (t) onDragLeave(e, t);
+});
+document.addEventListener('drop', (e) => {
+  const t = e.target.closest?.('[data-drop-table]');
+  if (t) onDrop(e, t.dataset.dropTable, t.dataset.dropCourse, t);
 });
 
 // ---- Init ----

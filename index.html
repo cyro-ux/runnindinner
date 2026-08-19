@@ -168,7 +168,7 @@
       </div>
 
       <div class="btn-row">
-        <button class="btn-primary" onclick="goToStep(2)" data-i18n="app.nav.next_participants">Volgende: Deelnemers →</button>
+        <button class="btn-primary" data-action="goToStep" data-arg="2" data-i18n="app.nav.next_participants">Volgende: Deelnemers →</button>
       </div>
     </section>
 
@@ -178,7 +178,7 @@
       <div class="card">
         <div class="participants-header">
           <h3><span data-i18n="app.participants.title">Deelnemers</span> (<span id="participant-count">0</span>)</h3>
-          <button class="btn-primary" onclick="openAddParticipant()" data-i18n="app.participants.add_btn">+ Deelnemer toevoegen</button>
+          <button class="btn-primary" data-action="openAddParticipant" data-i18n="app.participants.add_btn">+ Deelnemer toevoegen</button>
         </div>
         <div id="participants-list" class="participants-list">
           <p class="empty-state" data-i18n="app.participants.empty_state">Nog geen deelnemers toegevoegd. Klik op "+ Deelnemer toevoegen" om te beginnen.</p>
@@ -189,16 +189,16 @@
         <h3 data-i18n="app.participants.forced_combos">Geforceerde combinaties</h3>
         <p class="hint" data-i18n="app.participants.forced_combos_hint">Specificeer deelnemers die altijd samen aan tafel moeten zitten.</p>
         <div id="forced-combos-list"></div>
-        <button class="btn-secondary" onclick="addForcedCombo()" data-i18n="app.participants.add_combo">+ Combinatie toevoegen</button>
+        <button class="btn-secondary" data-action="addForcedCombo" data-i18n="app.participants.add_combo">+ Combinatie toevoegen</button>
       </div>
 
       <div class="card">
         <h3 data-i18n="app.import.title">Importeren / Exporteren</h3>
         <p class="hint" data-i18n="app.import.hint">Download het Excel-sjabloon, vul de deelnemers in en importeer het bestand terug. Verwijder de voorbeeldrij vóór het importeren.</p>
         <div class="group-actions">
-          <button class="btn-secondary" onclick="downloadTemplate()" data-i18n="app.import.download_template">📋 Download Excel-sjabloon</button>
-          <button class="btn-secondary" onclick="document.getElementById('import-file').click()" data-i18n="app.import.import_excel">📥 Importeer Excel</button>
-          <input type="file" id="import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importParticipantsFromFile(event)">
+          <button class="btn-secondary" data-action="downloadTemplate" data-i18n="app.import.download_template">📋 Download Excel-sjabloon</button>
+          <button class="btn-secondary" data-action="importFile" data-i18n="app.import.import_excel">📥 Importeer Excel</button>
+          <input type="file" id="import-file" accept=".xlsx,.xls,.csv" style="display:none" data-change="importParticipantsFromFile">
         </div>
         <div id="import-status" class="import-status-msg"></div>
       </div>
@@ -207,15 +207,15 @@
         <h3 data-i18n="app.groups.title">Groepsbeheer</h3>
         <p class="hint" data-i18n="app.groups.hint">Sla de huidige deelnemerslijst op om volgend jaar opnieuw te gebruiken.</p>
         <div class="group-actions">
-          <button class="btn-secondary" onclick="showSaveGroupModal()" data-i18n="app.groups.save_group">💾 Groep opslaan</button>
-          <button class="btn-secondary" onclick="showLoadGroupModal()" data-i18n="app.groups.load_group">📂 Groep laden</button>
-          <button class="btn-danger" onclick="deleteAllParticipants()" data-i18n="app.groups.delete_all">🗑️ Alle deelnemers verwijderen</button>
+          <button class="btn-secondary" data-action="showSaveGroupModal" data-i18n="app.groups.save_group">💾 Groep opslaan</button>
+          <button class="btn-secondary" data-action="showLoadGroupModal" data-i18n="app.groups.load_group">📂 Groep laden</button>
+          <button class="btn-danger" data-action="deleteAllParticipants" data-i18n="app.groups.delete_all">🗑️ Alle deelnemers verwijderen</button>
         </div>
       </div>
 
       <div class="btn-row">
-        <button class="btn-secondary" onclick="goToStep(1)" data-i18n="app.nav.back">← Terug</button>
-        <button class="btn-primary" onclick="goToStep(3)" id="btn-to-planning" data-i18n="app.nav.next_planning">Volgende: Planning →</button>
+        <button class="btn-secondary" data-action="goToStep" data-arg="1" data-i18n="app.nav.back">← Terug</button>
+        <button class="btn-primary" data-action="goToStep" data-arg="3" id="btn-to-planning" data-i18n="app.nav.next_planning">Volgende: Planning →</button>
       </div>
     </section>
 
@@ -234,8 +234,8 @@
         <p data-i18n="app.planning.generate_desc">Klik op de knop hieronder om een optimale indeling te genereren. Het algoritme zorgt voor maximale spreiding van tafelgenoten.</p>
         <div id="planning-stats" class="planning-stats" style="display:none"></div>
         <div class="btn-row">
-          <button class="btn-primary" onclick="generatePlanning()" data-i18n="app.planning.generate_btn">⚡ Genereer Planning</button>
-          <button class="btn-secondary" onclick="regeneratePlanning()" id="btn-regenerate" style="display:none" data-i18n="app.planning.regenerate_btn">🔄 Opnieuw genereren</button>
+          <button class="btn-primary" data-action="generatePlanning" data-i18n="app.planning.generate_btn">⚡ Genereer Planning</button>
+          <button class="btn-secondary" data-action="regeneratePlanning" id="btn-regenerate" style="display:none" data-i18n="app.planning.regenerate_btn">🔄 Opnieuw genereren</button>
         </div>
         <div id="planning-warnings" class="warnings-box" style="display:none"></div>
       </div>
@@ -250,7 +250,7 @@
           <h3 data-i18n="app.distance.title">🗺️ Afstanden controleren</h3>
           <p class="hint" data-i18n="app.distance.hint">Controleer of alle routes tussen tafels haalbaar zijn met het gekozen vervoersmiddel. Werkt op basis van OpenStreetMap-data — kan even duren bij eerste keer.</p>
           <div class="btn-row">
-            <button class="btn-secondary" onclick="checkDistances()" id="btn-check-distances" data-i18n="app.distance.check_btn">🗺️ Afstanden checken</button>
+            <button class="btn-secondary" data-action="checkDistances" id="btn-check-distances" data-i18n="app.distance.check_btn">🗺️ Afstanden checken</button>
           </div>
           <div id="distance-results" style="display:none;margin-top:16px"></div>
         </div>
@@ -262,8 +262,8 @@
       </div>
 
       <div class="btn-row">
-        <button class="btn-secondary" onclick="goToStep(2)" data-i18n="app.nav.back">← Terug</button>
-        <button class="btn-primary" onclick="goToStep(4)" id="btn-to-overview" style="display:none" data-i18n="app.nav.next_overview">Volgende: Overzicht →</button>
+        <button class="btn-secondary" data-action="goToStep" data-arg="2" data-i18n="app.nav.back">← Terug</button>
+        <button class="btn-primary" data-action="goToStep" data-arg="4" id="btn-to-overview" style="display:none" data-i18n="app.nav.next_overview">Volgende: Overzicht →</button>
       </div>
     </section>
 
@@ -271,22 +271,22 @@
     <section id="step-4" class="step">
       <h2 data-i18n="app.steps.step4_title">Stap 4: Overzicht</h2>
       <div class="view-tabs">
-        <button class="tab-btn active" onclick="switchTab('per-person')" data-i18n="app.overview.tab_per_person">📋 Route per deelnemer</button>
-        <button class="tab-btn" onclick="switchTab('per-location')" data-i18n="app.overview.tab_per_location">📍 Per locatie</button>
-        <button class="tab-btn" onclick="switchTab('envelope')" data-i18n="app.overview.tab_envelope">✉️ Envelop-kaartjes</button>
+        <button class="tab-btn active" data-action="switchTab" data-arg="per-person" data-i18n="app.overview.tab_per_person">📋 Route per deelnemer</button>
+        <button class="tab-btn" data-action="switchTab" data-arg="per-location" data-i18n="app.overview.tab_per_location">📍 Per locatie</button>
+        <button class="tab-btn" data-action="switchTab" data-arg="envelope" data-i18n="app.overview.tab_envelope">✉️ Envelop-kaartjes</button>
       </div>
 
       <div id="tab-per-person" class="tab-content active">
         <div class="print-controls">
           <p class="hint organizer-note" data-i18n="app.overview.organizer_note">🔒 Organisatorsoverzicht — dit toont de volledige route per deelnemer voor de hele avond.</p>
-          <button class="btn-secondary" onclick="printSection('per-person')" data-i18n="app.overview.print_routes">🖨️ Print routes</button>
+          <button class="btn-secondary" data-action="printSection" data-arg="per-person" data-i18n="app.overview.print_routes">🖨️ Print routes</button>
         </div>
         <div id="per-person-content"></div>
       </div>
 
       <div id="tab-per-location" class="tab-content">
         <div class="print-controls">
-          <button class="btn-secondary" onclick="printSection('per-location')" data-i18n="app.overview.print_locations">🖨️ Print locatie-overzicht</button>
+          <button class="btn-secondary" data-action="printSection" data-arg="per-location" data-i18n="app.overview.print_locations">🖨️ Print locatie-overzicht</button>
         </div>
         <div id="per-location-content"></div>
       </div>
@@ -296,12 +296,12 @@
              mechaniek; digitaal onthult het volgende adres automatisch na
              afloop van de vorige gang (server-side, /r/:token). -->
         <div class="share-mode-picker">
-          <button type="button" id="share-mode-paper" class="share-mode-card active" onclick="setShareMode('paper')">
+          <button type="button" id="share-mode-paper" class="share-mode-card active" data-action="setShareMode" data-arg="paper">
             <span class="share-mode-icon">📮</span>
             <strong data-i18n="app.share.mode_paper">Papieren enveloppen</strong>
             <span class="share-mode-desc" data-i18n="app.share.mode_paper_desc">Print kaartjes en leg ze gesloten op tafel.</span>
           </button>
-          <button type="button" id="share-mode-digital" class="share-mode-card" onclick="setShareMode('digital')">
+          <button type="button" id="share-mode-digital" class="share-mode-card" data-action="setShareMode" data-arg="digital">
             <span class="share-mode-icon">📱</span>
             <strong data-i18n="app.share.mode_digital">Digitaal via WhatsApp</strong>
             <span class="share-mode-desc" data-i18n="app.share.mode_digital_desc">Persoonlijke link per deelnemer — het volgende adres verschijnt vanzelf na elke gang.</span>
@@ -311,8 +311,8 @@
         <div id="share-paper-panel">
           <div class="print-controls">
             <p class="hint" data-i18n-html="app.overview.envelope_hint">✉️ <strong>Envelop-kaartjes</strong> — per tafel, per gang. Leg de kaartjes <strong>gesloten</strong> op tafel. Gasten openen de envelop aan het einde van het gerecht en zien dan hun volgende bestemming.</p>
-            <button class="btn-secondary" onclick="printSection('envelope')" data-i18n="app.overview.print_all_cards">🖨️ Print alle kaartjes</button>
-            <button class="btn-secondary" onclick="printSingleEnvelopes()" data-i18n="app.overview.print_per_course">🖨️ Print per gang (aparte pagina's)</button>
+            <button class="btn-secondary" data-action="printSection" data-arg="envelope" data-i18n="app.overview.print_all_cards">🖨️ Print alle kaartjes</button>
+            <button class="btn-secondary" data-action="printSingleEnvelopes" data-i18n="app.overview.print_per_course">🖨️ Print per gang (aparte pagina's)</button>
           </div>
           <div id="envelope-content"></div>
         </div>
@@ -320,8 +320,8 @@
         <div id="share-digital-panel" style="display:none">
           <p class="hint" data-i18n="app.share.digital_hint">Elke deelnemer krijgt een persoonlijke link. Daarop staat de eigen route; het volgende adres wordt pas onthuld zodra de vorige gang is afgelopen — de verrassing blijft. Versturen gaat via je eigen WhatsApp (gratis), de links verlopen automatisch 30 dagen na het event.</p>
           <div class="group-actions">
-            <button class="btn-primary" id="btn-publish-links" onclick="publishDigitalPlanning()" data-i18n="app.share.publish_btn">🔗 Maak deellinks</button>
-            <button class="btn-danger btn-small" id="btn-delete-links" onclick="deleteSharedPlanning()" style="display:none" data-i18n="app.share.delete_btn">🗑️ Links intrekken</button>
+            <button class="btn-primary" id="btn-publish-links" data-action="publishDigitalPlanning" data-i18n="app.share.publish_btn">🔗 Maak deellinks</button>
+            <button class="btn-danger btn-small" id="btn-delete-links" data-action="deleteSharedPlanning" style="display:none" data-i18n="app.share.delete_btn">🗑️ Links intrekken</button>
           </div>
           <p class="hint" id="share-status" style="display:none"></p>
           <div id="share-links-list"></div>
@@ -332,19 +332,19 @@
         <h3 data-i18n="app.snapshots.title">Momentopnames</h3>
         <p class="hint" data-i18n="app.snapshots.hint">Sla de huidige planning op als momentopname om later te raadplegen.</p>
         <div class="group-actions">
-          <button class="btn-secondary" onclick="savePlanningSnapshot()" data-i18n="app.snapshots.save">💾 Momentopname opslaan</button>
-          <button class="btn-secondary" onclick="showLoadSnapshotModal()" data-i18n="app.snapshots.load">📂 Momentopname laden</button>
+          <button class="btn-secondary" data-action="savePlanningSnapshot" data-i18n="app.snapshots.save">💾 Momentopname opslaan</button>
+          <button class="btn-secondary" data-action="showLoadSnapshotModal" data-i18n="app.snapshots.load">📂 Momentopname laden</button>
         </div>
       </div>
 
       <div id="rating-card" class="card" style="background:linear-gradient(135deg,#fff7ed 0%,#fef3c7 100%);border:1px solid #fcd34d">
         <h3 style="margin:0 0 6px" data-i18n="app.rating.card_title">⭐ Hoe ging het?</h3>
         <p class="hint" style="margin:0 0 12px" data-i18n="app.rating.card_intro">Help andere organisatoren door je ervaring te delen — een ster alleen of een korte opmerking.</p>
-        <button class="btn-primary" onclick="showRatingModal()" data-i18n="app.rating.card_cta">Schrijf een review</button>
+        <button class="btn-primary" data-action="showRatingModal" data-i18n="app.rating.card_cta">Schrijf een review</button>
       </div>
 
       <div class="btn-row">
-        <button class="btn-secondary" onclick="goToStep(3)" data-i18n="app.nav.back_to_planning">← Terug naar planning</button>
+        <button class="btn-secondary" data-action="goToStep" data-arg="3" data-i18n="app.nav.back_to_planning">← Terug naar planning</button>
       </div>
     </section>
   </div>
@@ -352,23 +352,23 @@
   <!-- Onboarding tour — toont bij eerste bezoek, te dismissen via knop of 'skip'.
        Positie: fixed bottom-right, niet-blokkerend. State in localStorage. -->
   <div id="onboarding-tour" role="dialog" aria-live="polite" style="display:none;position:fixed;right:20px;bottom:20px;z-index:900;max-width:360px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.12);padding:18px 20px;font-family:inherit">
-    <button onclick="closeOnboarding()" aria-label="Sluit" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:1.3rem;color:#94A3B8;cursor:pointer;line-height:1">×</button>
+    <button data-action="closeOnboarding" aria-label="Sluit" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:1.3rem;color:#94A3B8;cursor:pointer;line-height:1">×</button>
     <div style="font-size:.72rem;font-weight:600;color:#E85D3A;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px" id="onb-step-counter">Stap 1 van 4</div>
     <h3 id="onb-title" style="font-size:1.05rem;margin:0 0 8px;color:#1E293B">Welkom!</h3>
     <p id="onb-body" style="font-size:.88rem;color:#475569;line-height:1.55;margin:0 0 14px">Laten we je eerste running dinner plannen — ik laat je de vier stappen zien.</p>
     <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center">
-      <button onclick="closeOnboarding()" style="background:none;border:none;color:#94A3B8;font-size:.82rem;cursor:pointer" data-i18n="app.onboarding.skip">Overslaan</button>
-      <button id="onb-next-btn" onclick="onboardingNext()" style="background:#E85D3A;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;box-shadow:0 4px 12px rgba(232,93,58,.25)" data-i18n="app.onboarding.next">Volgende →</button>
+      <button data-action="closeOnboarding" style="background:none;border:none;color:#94A3B8;font-size:.82rem;cursor:pointer" data-i18n="app.onboarding.skip">Overslaan</button>
+      <button id="onb-next-btn" data-action="onboardingNext" style="background:#E85D3A;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;box-shadow:0 4px 12px rgba(232,93,58,.25)" data-i18n="app.onboarding.next">Volgende →</button>
     </div>
   </div>
 
   <!-- Rating modal -->
   <div id="rating-modal" class="modal" style="display:none">
-    <div class="modal-backdrop" onclick="closeRatingModal()"></div>
+    <div class="modal-backdrop" data-action="closeRatingModal"></div>
     <div class="modal-content" style="max-width:440px">
       <div class="modal-header">
         <h3 data-i18n="app.rating.title">Beoordeling</h3>
-        <button class="modal-close" onclick="closeRatingModal()">×</button>
+        <button class="modal-close" data-action="closeRatingModal">×</button>
       </div>
       <div class="modal-body" id="rating-modal-body"></div>
     </div>
@@ -376,11 +376,11 @@
 
   <!-- Generic list modal (groups + snapshots) -->
   <div id="list-modal" class="modal" style="display:none">
-    <div class="modal-backdrop" onclick="closeListModal()"></div>
+    <div class="modal-backdrop" data-action="closeListModal"></div>
     <div class="modal-content" style="max-width:480px">
       <div class="modal-header">
         <h3 id="list-modal-title" data-i18n="app.modal.manage">Beheer</h3>
-        <button class="modal-close" onclick="closeListModal()">×</button>
+        <button class="modal-close" data-action="closeListModal">×</button>
       </div>
       <div class="modal-body">
         <div id="list-modal-body"></div>
@@ -390,14 +390,14 @@
 
   <!-- Modal: Add/Edit Participant -->
   <div id="participant-modal" class="modal" style="display:none">
-    <div class="modal-backdrop" onclick="closeParticipantModal()"></div>
+    <div class="modal-backdrop" data-action="closeParticipantModal"></div>
     <div class="modal-content">
       <div class="modal-header">
         <h3 id="modal-title" data-i18n="app.modal.add_participant">Deelnemer toevoegen</h3>
-        <button class="modal-close" onclick="closeParticipantModal()">×</button>
+        <button class="modal-close" data-action="closeParticipantModal">×</button>
       </div>
       <div class="modal-body">
-        <form id="participant-form" onsubmit="saveParticipant(event)">
+        <form id="participant-form" data-submit="saveParticipant">
           <input type="hidden" id="participant-id">
 
           <h4 data-i18n="app.modal.personal_details">Persoonsgegevens</h4>
@@ -421,14 +421,14 @@
             <div class="form-group" style="flex:1.2">
               <label data-i18n="app.modal.postcode">Postcode *</label>
               <input type="text" id="p-postcode" required placeholder="1234AB" maxlength="7"
-                oninput="this.value=this.value.replace(/\s/g,'')" onblur="autoLookupPostcode()">
+                data-input="stripSpaces" data-blur="autoLookupPostcode">
             </div>
             <div class="form-group" style="flex:1">
               <label data-i18n="app.modal.housenumber">Huisnummer *</label>
-              <input type="text" id="p-housenumber" required placeholder="12" onblur="autoLookupPostcode()">
+              <input type="text" id="p-housenumber" required placeholder="12" data-blur="autoLookupPostcode">
             </div>
             <div style="padding-bottom:2px;flex-shrink:0">
-              <button type="button" class="btn-secondary" id="btn-postcode-lookup" onclick="lookupPostcode()" data-i18n="app.modal.lookup_btn">🔍 Opzoeken</button>
+              <button type="button" class="btn-secondary" id="btn-postcode-lookup" data-action="lookupPostcode" data-i18n="app.modal.lookup_btn">🔍 Opzoeken</button>
             </div>
           </div>
           <div id="postcode-status" class="postcode-status"></div>
@@ -495,7 +495,7 @@
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="closeParticipantModal()" data-i18n="app.modal.cancel">Annuleren</button>
+            <button type="button" class="btn-secondary" data-action="closeParticipantModal" data-i18n="app.modal.cancel">Annuleren</button>
             <button type="submit" class="btn-primary" data-i18n="app.modal.save">Opslaan</button>
           </div>
         </form>
@@ -506,8 +506,8 @@
   <script defer data-domain="runningdinner.app" data-api="/api/event" src="/js/script.js"></script>
   <script src="/lang/i18n.js?v=de1"></script>
   <!-- Demo-mode controller (zelf-uit als URL-pad geen /demo is) -->
-  <script src="/demo-mode.js?v=11"></script>
-  <script src="app.js?v=share1"></script>
+  <script src="/demo-mode.js?v=12"></script>
+  <script src="app.js?v=csp1"></script>
   <script>
   // Auth check – only runs when accessed via the Node.js server (not file://)
   // In demo-mode wordt de auth-check overgeslagen: demo is publiek toegankelijk.
