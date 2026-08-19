@@ -1907,11 +1907,12 @@ app.delete('/api/user/account', requireAuth, async (req, res) => {
 
   // Notify via email (last contact)
   const lang = user.language || 'nl';
-  const subject = { nl: 'Je account is verwijderd', en: 'Your account has been deleted', es: 'Tu cuenta ha sido eliminada' }[lang] || 'Account deleted';
+  const subject = { nl: 'Je account is verwijderd', en: 'Your account has been deleted', es: 'Tu cuenta ha sido eliminada', de: 'Dein Konto wurde gelöscht' }[lang] || 'Account deleted';
   const body = {
     nl: '<p>Hallo,</p><p>Je Running Dinner Planner-account is permanent verwijderd. Facturen blijven bewaard zoals fiscaal verplicht.</p>',
     en: '<p>Hi,</p><p>Your Running Dinner Planner account has been permanently deleted. Invoices are retained as required by tax law.</p>',
     es: '<p>Hola,</p><p>Tu cuenta de Running Dinner Planner ha sido eliminada permanentemente. Las facturas se conservan según la ley fiscal.</p>',
+    de: '<p>Hallo,</p><p>Dein Running-Dinner-Planner-Konto wurde dauerhaft gelöscht. Rechnungen werden gemäß steuerlicher Aufbewahrungspflicht aufbewahrt.</p>',
   }[lang] || '<p>Your account has been deleted.</p>';
   sendMail(user.email, subject, wrapHtml(body, lang)).catch(console.error);
 
@@ -4336,6 +4337,19 @@ if (ENV === 'production') {
       }
       if (expired.length) console.log(`[scheduler] ${expired.length} verlopen gedeelde planning(en) opgeruimd`);
     } catch (e) { console.error('[scheduler] shared-planning cleanup error:', e.message); }
+    // Achtergebleven smoke-testaccounts opruimen (de smoke-test ruimt zichzelf
+    // op via het GDPR-endpoint, maar een afgebroken run kan er een achterlaten).
+    try {
+      const stale = db.prepare(
+        "SELECT id FROM users WHERE email LIKE 'smoke-%@example.test' AND created_at < ?"
+      ).all(Date.now() - 24 * 3600 * 1000);
+      for (const u of stale) {
+        db.prepare('DELETE FROM sessions WHERE user_id = ?').run(u.id);
+        db.prepare('DELETE FROM ratings WHERE user_id = ?').run(u.id);
+        db.prepare('DELETE FROM users WHERE id = ?').run(u.id);
+      }
+      if (stale.length) console.log(`[scheduler] ${stale.length} achtergebleven smoke-account(s) opgeruimd`);
+    } catch (e) { console.error('[scheduler] smoke cleanup error:', e.message); }
     // Zoho reconciliation once per 24h (every 24 ticks)
     zohoTicker++;
     if (zohoTicker % 24 === 0) {

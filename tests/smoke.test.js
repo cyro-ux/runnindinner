@@ -158,4 +158,18 @@ describe('runningdinner.app smoke tests', () => {
     assert.equal(r.body?.ok, true);
     assert.ok(Array.isArray(r.body?.testimonials));
   });
+
+  // Laatste test: GDPR-verwijdering — test de flow én ruimt het smoke-account
+  // direct op (geen handmatige bulk-delete in admin meer nodig; de scheduler
+  // vangt alleen nog afgebroken runs af).
+  test('GDPR: delete own account removes the smoke user', async () => {
+    const r = await req('DELETE', '/api/user/account', {
+      body: { password: TEST_PASSWORD, confirm: 'DELETE' },
+    });
+    assert.equal(r.status, 200, 'self-service delete should succeed');
+    const again = await req('POST', '/api/auth/login', {
+      body: { email: TEST_EMAIL, password: TEST_PASSWORD },
+    });
+    assert.equal(again.status, 401, 'deleted account must not log in');
+  });
 });
