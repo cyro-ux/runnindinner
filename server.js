@@ -720,7 +720,9 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://js.mollie.com"],
-      scriptSrcAttr: ["'unsafe-inline'"],  // allow onclick handlers in admin panel
+      // Geen inline on*-attributen meer — alles loopt via data-action-delegatie
+      // (bewaakt door lib/no-inline-handlers.test.js in de CI-gate).
+      scriptSrcAttr: ["'none'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:"],
