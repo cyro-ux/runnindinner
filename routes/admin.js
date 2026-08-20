@@ -7,6 +7,7 @@
 'use strict';
 
 const express = require('express');
+const os = require('os'); // servermetrics in /api/admin/stats
 
 module.exports = function adminRoutes(deps) {
   const {
