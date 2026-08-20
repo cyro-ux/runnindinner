@@ -778,7 +778,7 @@ app.use('/api/', apiLimiter);
 // zou óók server.js, lib/ en data/app.db(-wal) — de live database! —
 // serveren. Daarom een strikte allowlist van wat de planner-pagina echt
 // relatief opvraagt; al het overige valt door naar de 404.
-const PLANNER_FILES = new Set(['', 'index.html', 'style.css', ...require('./lib/planner-files')]);
+const PLANNER_FILES = new Set(['', 'index.html', 'style.css', 'js/page-boot.js', ...require('./lib/planner-files')]);
 function plannerStatic() {
   const serve = express.static(path.join(__dirname));
   return (req, res, next) => {

@@ -109,12 +109,6 @@
 
 <script defer data-domain="runningdinner.app" data-api="/api/event" src="/js/script.js"></script>
 <script src="/lang/i18n.js?v=de1"></script>
-<script>
-  I18n.onReady(() => {
-    const c = document.getElementById('auth-lang-toggle');
-    if (c) c.appendChild(I18n.createToggle());
-  });
-  if (window.plausible) plausible('Segment-Page-View', { props: { segment: 'service-clubs' } });
-</script>
+  <script src="/js/pages/service-clubs.js?v=1"></script>
 </body>
 </html>
