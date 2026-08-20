@@ -372,6 +372,9 @@ function init() {
       window.RDA_DEMO.applyToState(state);
       // Render direct de deelnemerslijst zodat gebruikers de data zien als ze naar stap 2 gaan
       if (typeof renderParticipantsList === 'function') renderParticipantsList();
+      // Ook de voorgeladen geforceerde combinatie tonen (render gebeurt
+      // verder alleen bij toevoegen/wijzigen, niet bij stap-navigatie)
+      if (typeof renderForcedCombos === 'function') renderForcedCombos();
     } catch (e) { console.warn('[demo] applyToState failed', e); }
   } else if (window.RDA_DEMO?.getCarryover) {
     // Niet-demo modus: check of er een carry-over is uit een eerdere demo-sessie
