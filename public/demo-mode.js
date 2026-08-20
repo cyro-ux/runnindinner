@@ -65,10 +65,14 @@
   const SAMPLE_PARTICIPANTS_NL = [
     { name1: 'Lieke',   name2: 'Mark',    name3: 'Sophie',  address: { street: 'Hanekerweg',       housenumber: '8',  postcode: '7381 AM', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegetarisch', diet3: 'Glutenvrij', hostPreference: 'voorgerecht',  preferWith: [], avoid: [] },
     { name1: 'Sanne',   name2: 'Joost',   address: { street: 'Klarenbeekseweg',  housenumber: '32', postcode: '7382 BB', city: 'Klarenbeek' }, diet1: 'Glutenvrij', diet2: null,      hostPreference: 'hoofdgerecht', preferWith: [], avoid: [] },
-    { name1: 'Peter',   name2: 'Anouk',   address: { street: 'Woudweg',          housenumber: '14', postcode: '7383 RC', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: null,           preferWith: [], avoid: [] },
+    // Anouk sluit later aan (werkt tot 19:00): laat per-persoon-beschikbaarheid
+    // per gang zien — gastheren zien alleen wie er die gang écht is.
+    { name1: 'Peter',   name2: 'Anouk',   address: { street: 'Woudweg',          housenumber: '14', postcode: '7383 RC', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: null,           skips: { person2: ['voorborrel', 'voorgerecht'] }, preferWith: [], avoid: [] },
     { name1: 'Daan',    name2: 'Eva',     address: { street: 'Hoofdweg',         housenumber: '12', postcode: '7381 AT', city: 'Klarenbeek' }, diet1: null, diet2: 'Vegan',          hostPreference: 'nagerecht',    preferWith: [], avoid: [] },
     { name1: 'Maaike',  name2: 'Bram',    address: { street: 'Hoofdweg',         housenumber: '47', postcode: '7381 AT', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: 'voorgerecht',  customMaxGuests: 2, preferWith: [], avoid: [] },
-    { name1: 'Tim',     name2: 'Judith',  address: { street: 'Klarenbeekseweg',  housenumber: '18', postcode: '7382 BB', city: 'Klarenbeek' }, diet1: 'Lactose-intolerant', diet2: null, hostPreference: 'hoofdgerecht', preferWith: [], avoid: [] },
+    // Tim & Judith hebben een grote eettafel: eigen minimum laat de
+    // per-host-capaciteit in beide richtingen zien (naast Maaike's max 2).
+    { name1: 'Tim',     name2: 'Judith',  address: { street: 'Klarenbeekseweg',  housenumber: '18', postcode: '7382 BB', city: 'Klarenbeek' }, diet1: 'Lactose-intolerant', diet2: null, hostPreference: 'hoofdgerecht', customMinGuests: 4, preferWith: [], avoid: [] },
     { name1: 'Roos',    name2: 'Niels',   address: { street: 'Molenweg',         housenumber: '9',  postcode: '7383 AB', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: null,           preferWith: [], avoid: [] },
     { name1: 'Esther',  name2: 'Joep',    address: { street: 'Bosweg',           housenumber: '18', postcode: '7382 BC', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: 'nagerecht',    preferWith: [], avoid: [] },
     { name1: 'Kim',     name2: 'Lars',    address: { street: 'Bosweg',           housenumber: '4',  postcode: '7382 BC', city: 'Klarenbeek' }, diet1: null, diet2: null,             hostPreference: 'voorgerecht',  preferWith: [], avoid: [] },
@@ -197,6 +201,10 @@
     state.participants = SAMPLE_PARTICIPANTS_NL.map((p, i) => {
       const availability = {};
       courses.forEach(c => { availability[c] = { person1: true, person2: true, person3: true }; });
+      // Per-persoon-uitzonderingen uit de sample-data (bv. Anouk sluit later aan)
+      for (const [person, skipped] of Object.entries(p.skips || {})) {
+        skipped.forEach(c => { if (availability[c]) availability[c][person] = false; });
+      }
       return {
         id: i + 1,
         name1: p.name1,
@@ -215,6 +223,13 @@
       };
     });
     state.nextId = state.participants.length + 1;
+
+    // Geforceerde combinatie als voorbeeld: Floor en Esther (vriendinnen)
+    // zitten bij het hoofdgerecht altijd aan dezelfde tafel — laat de
+    // per-gang-keuze bij geforceerde combinaties zien.
+    state.forcedCombos = [
+      { id: 1, person1: 'Floor', person2: 'Esther', courses: ['hoofdgerecht'] },
+    ];
 
     // Sync UI-velden voor stap 1 zodat configuratie zichtbaar is
     setTimeout(() => {
