@@ -717,7 +717,9 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.mollie.com"],
+      // Geen inline <script> meer — alles staat in externe bestanden
+      // (bewaakt door lib/no-inline-handlers.test.js in de CI-gate).
+      scriptSrc: ["'self'", "https://js.mollie.com"],
       // Geen inline on*-attributen meer — alles loopt via data-action-delegatie
       // (bewaakt door lib/no-inline-handlers.test.js in de CI-gate).
       scriptSrcAttr: ["'none'"],
