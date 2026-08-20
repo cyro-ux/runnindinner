@@ -794,10 +794,10 @@ function sendSegmentPage(slug, locale, res) {
 }
 
 SEGMENT_SLUGS.forEach(slug => {
-  app.get('/' + slug,          (req, res) => sendSegmentPage(slug, 'nl', res));
-  app.get('/en/' + slug,       (req, res) => sendSegmentPage(slug, 'en', res));
-  app.get('/es/' + slug,       (req, res) => sendSegmentPage(slug, 'es', res));
-  app.get('/de/' + slug,       (req, res) => sendSegmentPage(slug, 'de', res));
+  router.get('/' + slug,          (req, res) => sendSegmentPage(slug, 'nl', res));
+  router.get('/en/' + slug,       (req, res) => sendSegmentPage(slug, 'en', res));
+  router.get('/es/' + slug,       (req, res) => sendSegmentPage(slug, 'es', res));
+  router.get('/de/' + slug,       (req, res) => sendSegmentPage(slug, 'de', res));
 });
 
   return router;
