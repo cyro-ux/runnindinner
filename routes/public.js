@@ -357,6 +357,7 @@ router.post('/api/contact', asyncHandler(async (req, res) => {
     nl: { title: 'Nieuw contactbericht', name: 'Naam', email: 'E-mail', message: 'Bericht', language: 'Taal' },
     en: { title: 'New contact message',   name: 'Name', email: 'Email', message: 'Message', language: 'Language' },
     es: { title: 'Nuevo mensaje de contacto', name: 'Nombre', email: 'Correo', message: 'Mensaje', language: 'Idioma' },
+    de: { title: 'Neue Kontaktnachricht', name: 'Name', email: 'E-Mail', message: 'Nachricht', language: 'Sprache' },
   }[lang] || { title: 'New contact message', name: 'Name', email: 'Email', message: 'Message', language: 'Language' };
 
   const html = `
