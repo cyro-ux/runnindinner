@@ -45,7 +45,7 @@ router.post('/api/admin/brevo/set-key', requireAdmin, async (req, res) => {
     }
 
     // Write to .env
-    const envPath = path.join(__dirname, '.env');
+    const envPath = path.join(__dirname, '..', '.env');
     let envContent = '';
     try { envContent = fs.readFileSync(envPath, 'utf8'); } catch {}
     const re = /^BREVO_API_KEY=.*$/m;
@@ -66,7 +66,7 @@ router.post('/api/admin/brevo/set-smtp-key', requireAdmin, async (req, res) => {
     return res.status(400).json({ error: 'Invalid Brevo SMTP key format (expect xsmtpsib-...)' });
   }
   try {
-    const envPath = path.join(__dirname, '.env');
+    const envPath = path.join(__dirname, '..', '.env');
     let envContent = '';
     try { envContent = fs.readFileSync(envPath, 'utf8'); } catch {}
     const re = /^SMTP_PASS=.*$/m;
@@ -114,7 +114,7 @@ router.post('/api/admin/sentry/set-dsn', requireAdmin, async (req, res) => {
     return res.status(400).json({ error: 'Invalid Sentry DSN format (expected https://<key>@<host>/<project>)' });
   }
   try {
-    const envPath = path.join(__dirname, '.env');
+    const envPath = path.join(__dirname, '..', '.env');
     let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
     if (envContent.match(/^SENTRY_DSN=/m)) {
       envContent = envContent.replace(/^SENTRY_DSN=.*$/m, `SENTRY_DSN=${cleanDsn}`);
@@ -623,7 +623,7 @@ router.post('/api/admin/zoho/bootstrap', requireAdmin, async (req, res) => {
     }
 
     // 3. Update .env file on disk + process.env (current process)
-    const envPath = path.join(__dirname, '.env');
+    const envPath = path.join(__dirname, '..', '.env');
     let envContent = '';
     try { envContent = fs.readFileSync(envPath, 'utf8'); } catch { /* no .env yet */ }
     const updates = {
