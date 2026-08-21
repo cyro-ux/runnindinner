@@ -687,7 +687,7 @@ app.use(require('./routes/public')({
   getSetting, escHtml, priceResolver, crypto,
 }));
 // ── Content-/SEO-routes: zie routes/pages.js (tranche 9) ───────────────────
-app.use(require('./routes/pages')({ ROOT: __dirname, fs, path, blog, SUPPORTED_LANGS }));
+app.use(require('./routes/pages')({ ROOT: __dirname, fs, path, blog, SUPPORTED_LANGS, db }));
 // ── Demo (publiek toegankelijk) ───────────────────────────────────────────────
 // Serveert dezelfde index.html, maar /demo-mode.js detecteert het URL-pad en
 // schakelt sample-data + paywall-modus aan. Geen auth, geen DB, geen schade.
@@ -703,7 +703,7 @@ app.use('/de/demo',  plannerStatic());
 
 // ── SPA fallbacks ─────────────────────────────────────────────────────────────
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
+// '/' wordt door routes/pages.js bediend (home.html + CMS-teksten server-side).
 
 // ── Scheduler: zie lib/scheduler.js (tranche 11) ────────────────────────────────────────────
 require('./lib/scheduler')({ db, mollie, sendMail, wrapHtml, formatEur, getSetting, BASE_URL, ENV, zohoSync });

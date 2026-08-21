@@ -12,8 +12,20 @@ const express = require('express');
 const { asyncHandler } = require('../lib/async-handler');
 
 module.exports = function pagesRoutes(deps) {
-  const { ROOT, fs, path, blog, SUPPORTED_LANGS } = deps;
+  const { ROOT, fs, path, blog, SUPPORTED_LANGS, db } = deps;
   const router = express.Router();
+
+  // Server-side lokalisatie (SEO): i18n-woordenboek + CMS-teksten al in de
+  // HTML zetten, zodat crawlers op /de/, /en/ en /es/ geen NL-brontekst zien.
+  const { applyI18n, applyCms, pickCmsForLang } = require('../lib/home-ssr');
+  const loadDict = (lang) => {
+    try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'lang', lang + '.json'), 'utf8')); }
+    catch (e) { console.warn('[ssr] lang/' + lang + '.json niet geladen:', e.message); return {}; }
+  };
+  const cmsFor = (lang) => {
+    try { return pickCmsForLang(db.prepare('SELECT key, value FROM cms').all(), lang); }
+    catch { return {}; }
+  };
 
 // ── Sitemap ──────────────────────────────────────────────────────────────────
 router.get('/sitemap.xml', (req, res) => {
@@ -82,6 +94,10 @@ router.get('/sitemap.xml', (req, res) => {
   res.type('application/xml').send(xml);
 });
 
+// ── NL-homepage: home.html met CMS-teksten server-side (SEO) ───────────
+const homeHtmlNL = fs.readFileSync(path.join(ROOT, 'public', 'home.html'), 'utf8');
+router.get('/', (req, res) => res.type('html').send(applyCms(homeHtmlNL, cmsFor('nl'))));
+
 // ── English route handling (/en/*) ──────────────────────────────────────────
 
 // Build English homepage variant at startup (cached in memory for SEO)
@@ -96,7 +112,7 @@ try {
   // 2. <title>
   html = html.replace(
     /<title>[^<]+<\/title>/,
-    '<title>Organize a Running Dinner – The Easiest Planner | Running Dinner Planner</title>'
+    '<title>Running Dinner Planner – Plan Your Running Dinner in Minutes</title>'
   );
 
   // 3. <meta name="description">
@@ -186,6 +202,7 @@ try {
   // Segment-landingspagina's taal-prefixen (Voor wie?-sectie + footer)
   html = html.replace(/href="\/(verenigingen|service-clubs|vriendengroepen)"/g, 'href="/en/$1"');
 
+  html = applyI18n(html, loadDict('en'));
   homeHtmlEN = html;
   console.log('[boot] English homepage SEO variant generated');
 } catch (e) {
@@ -203,7 +220,7 @@ try {
   // 2. <title>
   html = html.replace(
     /<title>[^<]+<\/title>/,
-    '<title>Organiza una Cena Itinerante – El Planificador más Sencillo | Running Dinner Planner</title>'
+    '<title>Running Dinner Planner – Cena itinerante en minutos</title>'
   );
 
   // 3. <meta description>
@@ -293,6 +310,7 @@ try {
   // Segment-landingspagina's taal-prefixen (Voor wie?-sectie + footer)
   html = html.replace(/href="\/(verenigingen|service-clubs|vriendengroepen)"/g, 'href="/es/$1"');
 
+  html = applyI18n(html, loadDict('es'));
   homeHtmlES = html;
   console.log('[boot] Spanish homepage SEO variant generated');
 } catch (e) {
@@ -310,7 +328,7 @@ try {
   // 2. <title>
   html = html.replace(
     /<title>[^<]+<\/title>/,
-    '<title>Running Dinner organisieren – Der einfachste Planer | Running Dinner Planner</title>'
+    '<title>Running Dinner Planner – Running Dinner in Minuten planen</title>'
   );
 
   // 3. <meta description>
@@ -400,6 +418,7 @@ try {
   // Segment-landingspagina's taal-prefixen (Voor wie?-sectie + footer)
   html = html.replace(/href="\/(verenigingen|service-clubs|vriendengroepen)"/g, 'href="/de/$1"');
 
+  html = applyI18n(html, loadDict('de'));
   homeHtmlDE = html;
   console.log('[boot] German homepage SEO variant generated');
 } catch (e) {
@@ -410,7 +429,7 @@ try {
 router.get('/en/app', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 router.get(['/en', '/en/'], (req, res) => {
   if (homeHtmlEN) {
-    res.type('html').send(homeHtmlEN);
+    res.type('html').send(applyCms(homeHtmlEN, cmsFor('en')));
   } else {
     res.sendFile(homeHtmlPath);
   }
@@ -428,7 +447,7 @@ router.get('/en/:page.html', (req, res) => {
 router.get('/es/app', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 router.get(['/es', '/es/'], (req, res) => {
   if (homeHtmlES) {
-    res.type('html').send(homeHtmlES);
+    res.type('html').send(applyCms(homeHtmlES, cmsFor('es')));
   } else {
     res.sendFile(homeHtmlPath);
   }
@@ -446,7 +465,7 @@ router.get('/es/:page.html', (req, res) => {
 router.get('/de/app', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 router.get(['/de', '/de/'], (req, res) => {
   if (homeHtmlDE) {
-    res.type('html').send(homeHtmlDE);
+    res.type('html').send(applyCms(homeHtmlDE, cmsFor('de')));
   } else {
     res.sendFile(homeHtmlPath);
   }
@@ -684,7 +703,23 @@ router.get(['/blog/:slug', '/en/blog/:slug', '/es/blog/:slug', '/de/blog/:slug']
     }
   }
 
-  const content = meta + html + relatedBlock;
+  // Conversie + interne link: elke post eindigt met een demo-CTA
+  // (voorheen linkte geen enkele post naar de demo of de homepage).
+  const CTA = {
+    nl: { title: 'Zelf een running dinner plannen?', body: 'Probeer de gratis demo met 12 voorbeeldkoppels — automatische tafelindeling, routes en envelopkaartjes. Geen account nodig.', btn: 'Probeer de demo →', more: 'Meer over de planner' },
+    en: { title: 'Planning a running dinner yourself?', body: 'Try the free demo with 12 sample couples — automatic table assignment, routes and envelope cards. No account needed.', btn: 'Try the demo →', more: 'More about the planner' },
+    es: { title: '¿Organizas tu propia cena itinerante?', body: 'Prueba la demo gratuita con 12 parejas de ejemplo: asignación automática de mesas, rutas y tarjetas de sobre. Sin cuenta.', btn: 'Probar la demo →', more: 'Más sobre el planificador' },
+    de: { title: 'Selbst ein Running Dinner planen?', body: 'Teste die kostenlose Demo mit 12 Beispielpaaren — automatische Tischzuteilung, Routen und Umschlag-Karten. Ohne Konto.', btn: 'Demo ausprobieren →', more: 'Mehr über den Planer' },
+  };
+  const c = CTA[locale] || CTA.nl;
+  const langPrefix = locale === 'nl' ? '' : '/' + locale;
+  const ctaBlock = `<aside class="blog-cta" style="margin:40px 0 24px;padding:24px 28px;border-radius:16px;background:#FFF4ED;border:1px solid #FBD5C4">
+  <h3 style="margin:0 0 8px;font-size:1.15rem">${c.title}</h3>
+  <p style="margin:0 0 16px;color:#475569;line-height:1.6">${c.body}</p>
+  <a href="${langPrefix}/demo" style="display:inline-block;background:#E85D3A;color:#fff;padding:11px 20px;border-radius:10px;font-weight:700;text-decoration:none">${c.btn}</a>
+  <a href="${langPrefix}/" style="margin-left:14px;color:#E85D3A;font-weight:600;text-decoration:none">${c.more}</a>
+</aside>`;
+  const content = meta + html + ctaBlock + relatedBlock;
   res.type('html').send(renderBlogShell(post.title, content, locale, {
     noindex:     post.draft,   // drafts noindex; publicaties indexeerbaar
     canonical:   `https://runningdinner.app${prefix}/${post.slug}`,
