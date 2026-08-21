@@ -8,6 +8,8 @@
 
 const express = require('express');
 const os = require('os'); // servermetrics in /api/admin/stats
+const gsc = require('../lib/gsc');
+const { asyncHandler } = require('../lib/async-handler');
 
 module.exports = function adminRoutes(deps) {
   const {
@@ -853,6 +855,23 @@ function plausibleFetch(apiPath) {
 }
 
 // GET /api/admin/analytics/realtime
+// ── Google Search Console (service-account, zie lib/gsc.js) ─────────────
+// GET /api/admin/gsc?days=28&dimension=query|page|country|device|date&limit=100
+router.get('/api/admin/gsc', requireAdmin, asyncHandler(async (req, res) => {
+  if (!gsc.isConfigured()) {
+    return res.status(503).json({ ok: false, error: 'GSC niet geconfigureerd (GSC_KEY_FILE ontbreekt)' });
+  }
+  const days = Math.min(Math.max(parseInt(req.query.days, 10) || 28, 1), 480);
+  const dimension = ['query', 'page', 'country', 'device', 'date'].includes(req.query.dimension)
+    ? req.query.dimension : 'query';
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 1000);
+  const filters = [];
+  if (req.query.page) filters.push({ dimension: 'page', operator: 'contains', expression: String(req.query.page) });
+  if (req.query.country) filters.push({ dimension: 'country', operator: 'equals', expression: String(req.query.country).toLowerCase() });
+  const result = await gsc.query({ days, dimensions: [dimension], rowLimit: limit, filters });
+  res.json({ ok: true, ...result });
+}));
+
 router.get('/api/admin/analytics/realtime', requireAdmin, async (req, res) => {
   try {
     const r = await plausibleFetch(`/api/v1/stats/realtime/visitors?site_id=${PLAUSIBLE_SITE_ID}`);
