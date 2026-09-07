@@ -13,6 +13,10 @@ keywords: walking dinner organiseren, walking dinner, walking dinner wat is het,
 
 "Walking dinner" en "running dinner" worden in Nederland door elkaar gebruikt – en dat zorgt voor verwarring bij het organiseren. Want een walking dinner in een restaurant is iets anders dan een walking dinner door de buurt. In dit artikel zetten we de varianten op een rij en krijg je een stappenplan voor de leukste versie: die waarbij de deelnemers zelf koken en van huis naar huis wandelen.
 
+## Wat is een walking dinner? (betekenis)
+
+Een **walking dinner** is een diner waarbij de gasten niet de hele avond aan één tafel zitten, maar zich tijdens het eten verplaatsen. De term heeft in het Nederlands twee betekenissen: in de horeca een staand buffet met kleine gerechtjes op één locatie, en als sociaal evenement een diner waarbij deelnemers **elke gang op een ander adres** eten — wandelend van huis naar huis, met bij elke gang andere tafelgenoten. Die tweede vorm heet ook wel running dinner, lopend diner of diner en route, en daar gaat dit artikel over.
+
 ## Walking dinner of running dinner: wat is het verschil?
 
 Strikt genomen zijn er twee betekenissen:
