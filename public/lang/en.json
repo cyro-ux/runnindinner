@@ -98,7 +98,7 @@
     "q7": "Which payment methods are accepted?",
     "a7": "You can pay via iDEAL, credit card (Visa/Mastercard) or SEPA direct debit. After payment you'll immediately receive an invoice by email.",
     "q8": "Is my data stored?",
-    "a8": "Your account details (email, password) are stored securely. The participant information you enter in the planner is <strong>not</strong> stored permanently — that data only lives in your browser session.",
+    "a8": "Your account details (email, password) are stored securely. As a logged-in user your event (participants, settings and planning) is <strong>automatically saved to your account</strong>, so you can continue on any device; you can delete it yourself at any time. In the free demo everything stays in your browser only. See the <a href=\"/privacy.html\">privacy policy</a> for details.",
     "q_demo": "Can I try it for free before paying?",
     "a_demo": "Yes! With the free demo you play with 12 sample couples and see exactly how the planner works — automatic table layouts, routes and envelope cards. No account or payment needed. <a href=\"/en/demo\">Try the demo →</a>"
   },
@@ -730,6 +730,13 @@
       "deleted": "Share links revoked.",
       "error": "Creating share links failed",
       "login_required": "Log in to create share links."
+    },
+    "sync": {
+      "saved": "Saved automatically",
+      "on": "Saving to account: on",
+      "restore_found": "There is a saved event in your account",
+      "restore_btn": "Load saved event",
+      "restore_dismiss": "Continue here"
     }
   },
   "legal": {

@@ -98,7 +98,7 @@
     "q7": "Welche Zahlungsmethoden werden akzeptiert?",
     "a7": "Sie können per iDEAL, Kreditkarte (Visa/Mastercard) oder SEPA-Lastschrift zahlen. Nach der Zahlung erhalten Sie sofort eine Rechnung per E-Mail.",
     "q8": "Werden meine Daten gespeichert?",
-    "a8": "Ihre Kontodaten (E-Mail, Passwort) werden sicher gespeichert. Die Teilnehmerinformationen, die Sie im Planer eingeben, werden <strong>nicht</strong> dauerhaft gespeichert – diese Daten existieren nur in Ihrer Browser-Session.",
+    "a8": "Ihre Kontodaten (E-Mail, Passwort) werden sicher gespeichert. Als eingeloggter Nutzer wird Ihr Event (Teilnehmer, Einstellungen und Planung) <strong>automatisch in Ihrem Konto gespeichert</strong>, sodass Sie auf jedem Gerät weiterarbeiten können; Sie können es jederzeit selbst löschen. In der kostenlosen Demo bleibt alles nur in Ihrem Browser. Details in der <a href=\"/privacy.html\">Datenschutzerklärung</a>.",
     "q_demo": "Kann ich es kostenlos testen, bevor ich bezahle?",
     "a_demo": "Ja! Mit der kostenlosen Demo spielst du mit 12 Beispielpaaren und siehst genau, wie der Planer funktioniert — Tischzuteilung, Routen und Umschlagkarten. Kein Konto, keine Zahlung nötig. <a href=\"/de/demo\">Demo testen →</a>"
   },
@@ -730,6 +730,13 @@
       "deleted": "Links zurückgezogen.",
       "error": "Links erstellen fehlgeschlagen",
       "login_required": "Melde dich an, um Links zu erstellen."
+    },
+    "sync": {
+      "saved": "Automatisch gespeichert",
+      "on": "Speichern im Konto: aktiv",
+      "restore_found": "In Ihrem Konto liegt ein gespeichertes Event",
+      "restore_btn": "Gespeichertes Event laden",
+      "restore_dismiss": "Hier weiterarbeiten"
     }
   },
   "legal": {

@@ -98,7 +98,7 @@
     "q7": "¿Qué métodos de pago se aceptan?",
     "a7": "Puedes pagar con iDEAL, tarjeta de crédito (Visa/Mastercard) o domiciliación SEPA. Tras el pago recibirás inmediatamente una factura por correo electrónico.",
     "q8": "¿Se almacenan mis datos?",
-    "a8": "Los datos de tu cuenta (correo, contraseña) se almacenan de forma segura. La información de los participantes que introduces en el planificador <strong>no</strong> se guarda de forma permanente — esos datos solo viven en la sesión de tu navegador.",
+    "a8": "Tus datos de cuenta (correo, contraseña) se guardan de forma segura. Como usuario conectado, tu evento (participantes, configuración y planificación) se <strong>guarda automáticamente en tu cuenta</strong>, para que puedas continuar en cualquier dispositivo; puedes borrarlo tú mismo cuando quieras. En la demo gratuita todo permanece solo en tu navegador. Consulta la <a href=\"/privacy.html\">política de privacidad</a> para más detalles.",
     "q_demo": "¿Puedo probarlo gratis antes de pagar?",
     "a_demo": "¡Sí! Con la demo gratuita juegas con 12 parejas de ejemplo y ves exactamente cómo funciona el planificador — distribución de mesas, rutas y tarjetas en sobres. Sin cuenta ni pago. <a href=\"/es/demo\">Probar la demo →</a>"
   },
@@ -730,6 +730,13 @@
       "deleted": "Enlaces revocados.",
       "error": "No se pudieron crear los enlaces",
       "login_required": "Inicia sesión para crear enlaces."
+    },
+    "sync": {
+      "saved": "Guardado automáticamente",
+      "on": "Guardar en cuenta: activado",
+      "restore_found": "Hay un evento guardado en tu cuenta",
+      "restore_btn": "Cargar evento guardado",
+      "restore_dismiss": "Seguir aquí"
     }
   },
   "legal": {

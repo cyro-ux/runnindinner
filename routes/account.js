@@ -217,6 +217,11 @@ router.get('/api/user/data-export', requireAuth, (req, res) => {
       created_at: new Date(p.created_at).toISOString(),
     })),
     ratings: ratings.map(r => ({ ...r, created_at: new Date(r.created_at).toISOString() })),
+    saved_planner_event: (() => {
+      const row = db.prepare("SELECT state_json, updated_at FROM planner_saves WHERE user_id = ? AND slot = 'current'").get(user.id);
+      if (!row) return null;
+      try { return { updated_at: new Date(row.updated_at).toISOString(), state: JSON.parse(row.state_json) }; } catch { return null; }
+    })(),
   };
 
   res.setHeader('Content-Type', 'application/json');
@@ -256,6 +261,7 @@ router.delete('/api/user/account', requireAuth, asyncHandler(async (req, res) =>
   // DELETE daarop liet deze handler crashen zodat AVG-zelfverwijdering
   // in de praktijk nooit werkte (eeuwige spinner).
   db.prepare('DELETE FROM ratings WHERE user_id = ?').run(user.id);
+  db.prepare('DELETE FROM planner_saves WHERE user_id = ?').run(user.id);
   // Anonymize payments instead of deleting (tax law retention)
   db.prepare('UPDATE payments SET user_id = ?, zoho_sync_error = ? WHERE user_id = ?')
     .run('deleted-' + user.id, 'User self-deleted account', user.id);
@@ -400,6 +406,48 @@ router.put('/api/user/language', requireAuth, (req, res) => {
   db.prepare('UPDATE users SET language = ? WHERE id = ?').run(language, req.user.id);
   res.cookie('lang', language, { maxAge: 365 * 86400000, sameSite: 'lax' });
   res.json({ ok: true, language });
+});
+
+
+// ── Serverside planner-opslag (autosave) ────────────────────────────────────
+// De planner bewaart de complete werk-state per gebruiker op de server, zodat
+// een event op elk apparaat verder bewerkt kan worden. Eén 'current'-slot;
+// de client pusht gedebounced. Max ~400KB (ruim boven een event met 50
+// koppels incl. planningresultaat).
+
+const PLANNER_STATE_MAX = 400 * 1024;
+
+router.get('/api/planner/state', requireAuth, (req, res) => {
+  const row = db.prepare(
+    "SELECT state_json, updated_at FROM planner_saves WHERE user_id = ? AND slot = 'current'"
+  ).get(req.user.id);
+  if (!row) return res.json({ ok: true, state: null });
+  let state = null;
+  try { state = JSON.parse(row.state_json); } catch { /* corrupte rij: behandel als leeg */ }
+  res.json({ ok: true, state, updatedAt: row.updated_at });
+});
+
+router.put('/api/planner/state', requireAuth, (req, res) => {
+  const state = req.body && req.body.state;
+  if (!state || typeof state !== 'object' || Array.isArray(state)) {
+    return res.status(400).json({ error: 'Verwacht { state: {...} }' });
+  }
+  const json = JSON.stringify(state);
+  if (json.length > PLANNER_STATE_MAX) {
+    return res.status(413).json({ error: 'Event te groot om op te slaan' });
+  }
+  const now = Date.now();
+  db.prepare(`
+    INSERT INTO planner_saves (id, user_id, slot, state_json, created_at, updated_at)
+    VALUES (?, ?, 'current', ?, ?, ?)
+    ON CONFLICT(user_id, slot) DO UPDATE SET state_json = excluded.state_json, updated_at = excluded.updated_at
+  `).run(uuidv4(), req.user.id, json, now, now);
+  res.json({ ok: true, updatedAt: now });
+});
+
+router.delete('/api/planner/state', requireAuth, (req, res) => {
+  db.prepare("DELETE FROM planner_saves WHERE user_id = ? AND slot = 'current'").run(req.user.id);
+  res.json({ ok: true });
 });
 
   return router;

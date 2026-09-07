@@ -169,6 +169,22 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS audit_log_action_idx ON audit_log(action);
   CREATE INDEX IF NOT EXISTS audit_log_created_idx ON audit_log(created_at);
 
+  -- Serverside opslag van de planner-state (autosave per gebruiker).
+  -- Eén 'current'-slot per gebruiker; de hele state als JSON-blob omdat de
+  -- planner client-side een rijke structuur heeft (beschikbaarheid per
+  -- persoon per gang, combinaties, planningresultaat) die relationeel
+  -- uitsplitsen niets oplevert. AVG: mee in data-export, weg bij
+  -- accountverwijdering.
+  CREATE TABLE IF NOT EXISTS planner_saves (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL,
+    slot        TEXT NOT NULL DEFAULT 'current',
+    state_json  TEXT NOT NULL,
+    created_at  INTEGER NOT NULL,
+    updated_at  INTEGER NOT NULL,
+    UNIQUE(user_id, slot)
+  );
+
   CREATE TABLE IF NOT EXISTS event_participants (
     id                   TEXT PRIMARY KEY,
     event_id             TEXT NOT NULL,
