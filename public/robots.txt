@@ -35,6 +35,13 @@ Disallow: /de/payment-success.html
 Disallow: /de/profile.html
 Disallow: /de/app
 
+# Cloudflare-interne paden (e-mail-verhulling e.d.) — voorkomt
+# 404-ruis in Search Console (aanbeveling van Cloudflare zelf)
+Disallow: /cdn-cgi/
+
+# Juridische PDF's: gedekt door de HTML-paginas, hoeven niet in de index
+Disallow: /downloads/
+
 # Demo (interactieve sandbox – geen indexeerbare content)
 Disallow: /demo
 Disallow: /en/demo
