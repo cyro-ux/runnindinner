@@ -107,6 +107,33 @@
       </div>
 
       <div class="card">
+        <h3 data-i18n="app.venue.title">Waar vindt het diner plaats?</h3>
+        <div class="form-group" style="display:flex;gap:24px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="radio" name="event-type" value="home" checked data-change="venueMode">
+            <span data-i18n="app.venue.mode_home">🏠 Bij deelnemers thuis (klassiek running dinner)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="radio" name="event-type" value="venue" data-change="venueMode">
+            <span data-i18n="app.venue.mode_venue">🏛️ Eén locatie — tafelrotatie per gang</span>
+          </label>
+        </div>
+        <div id="venue-config-fields" style="display:none">
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label data-i18n="app.venue.name_label">Naam van de locatie</label>
+              <input type="text" id="venue-name" placeholder="Bv. Clubhuis De Meander" data-i18n-placeholder="app.venue.name_placeholder" data-input="venueName">
+            </div>
+            <div class="form-group">
+              <label data-i18n="app.venue.tables_label">Aantal tafels (leeg = automatisch)</label>
+              <input type="number" id="venue-tables" min="2" max="50" placeholder="Auto" data-change="venueTables">
+            </div>
+          </div>
+          <p class="hint" data-i18n="app.venue.hint">Iedereen blijft in dezelfde zaal en schuift per gang door naar een andere tafel, met steeds nieuwe tafelgenoten. Adressen en routes zijn niet nodig; de tafelgrootte stel je hierboven in bij de algemene instellingen.</p>
+        </div>
+      </div>
+
+      <div class="card">
         <h3 data-i18n="app.config.time_settings">Tijdsinstellingen</h3>
         <div class="time-config">
           <div class="time-item" id="voorborrel-time-config" style="display:none">
@@ -421,6 +448,7 @@
             </div>
           </div>
 
+          <div id="modal-address-section">
           <h4 data-i18n="app.modal.address">Adres</h4>
           <div class="form-row" style="flex-wrap:nowrap;align-items:flex-end;gap:10px">
             <div class="form-group" style="flex:1.2">
@@ -448,10 +476,12 @@
             </div>
           </div>
 
+          </div>
           <h4 data-i18n="app.modal.availability">Beschikbaarheid</h4>
           <p class="hint" data-i18n="app.modal.availability_hint">Geef aan bij welke onderdelen persoon 1, de partner en eventueel de meereiziger aanwezig kunnen zijn.</p>
           <div id="availability-grid" class="availability-grid"></div>
 
+          <div id="modal-host-section">
           <h4 data-i18n="app.modal.host_preference">Gastrol voorkeur</h4>
           <div class="form-group">
             <label data-i18n="app.modal.host_preference_label">Bij welk onderdeel wil je graag gastheer/gastvrouw zijn?</label>
@@ -471,6 +501,7 @@
           </div>
           <p class="hint" data-i18n="app.modal.custom_capacity_hint">Laat leeg om de algemene instellingen uit stap 1 te gebruiken. Vul alleen in als deze gastheer/gastvrouw een afwijkende capaciteit heeft (bv. kleine eetkamer of grote tuin).</p>
 
+          </div>
           <h4 data-i18n="app.modal.diet_title">Dieetwensen & Allergieën</h4>
           <div class="form-row">
             <div class="form-group">
@@ -513,13 +544,13 @@
   <!-- Demo-mode controller (zelf-uit als URL-pad geen /demo is) -->
   <script src="/demo-mode.js?v=13"></script>
   <!-- Planner-scripts: volgorde = lib/planner-files.js (bewaakt door test) -->
-  <script src="js/planner/01-core.js?v=rename1"></script>
-  <script src="js/planner/02-participants.js?v=split1"></script>
-  <script src="js/planner/03-planning.js?v=split1"></script>
-  <script src="js/planner/04-overview.js?v=rename1"></script>
+  <script src="js/planner/01-core.js?v=venue1"></script>
+  <script src="js/planner/02-participants.js?v=venue1"></script>
+  <script src="js/planner/03-planning.js?v=venue1"></script>
+  <script src="js/planner/04-overview.js?v=venue1"></script>
   <script src="js/planner/05-extras.js?v=split1"></script>
-  <script src="js/planner/06-ui.js?v=rename1"></script>
-  <script src="js/planner/07-sync.js?v=2"></script>
+  <script src="js/planner/06-ui.js?v=venue1"></script>
+  <script src="js/planner/07-sync.js?v=3"></script>
   <script src="js/page-boot.js?v=1"></script>
 </body>
 </html>

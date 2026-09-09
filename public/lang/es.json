@@ -553,7 +553,9 @@
       "table_underfilled_at": "en",
       "table_underfilled_suffix": "solo tiene",
       "guests": "invitado(s)",
-      "guideline_min": "mínimo recomendado"
+      "guideline_min": "mínimo recomendado",
+      "venue_overflow": "asientos necesarios, pero las mesas solo ofrecen",
+      "venue_overflow_fix": "Aumenta el número de mesas o su tamaño."
     },
     "rating": {
       "title": "Valoración",
@@ -739,6 +741,16 @@
       "restore_found": "Hay un evento guardado en tu cuenta",
       "restore_btn": "Cargar evento guardado",
       "restore_dismiss": "Seguir aquí"
+    },
+    "venue": {
+      "title": "¿Dónde tiene lugar la cena?",
+      "mode_home": "🏠 En casa de los participantes (cena itinerante clásica)",
+      "mode_venue": "🏛️ Un solo lugar — rotación de mesas por plato",
+      "name_label": "Nombre del lugar",
+      "name_placeholder": "P. ej. El Club",
+      "tables_label": "Número de mesas (vacío = automático)",
+      "hint": "Todos permanecen en la misma sala y cambian de mesa en cada plato, conociendo gente nueva cada vez. No se necesitan direcciones ni rutas; el tamaño de mesa se define arriba.",
+      "default_name": "la sala"
     }
   },
   "legal": {

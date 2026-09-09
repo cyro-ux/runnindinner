@@ -25,7 +25,7 @@ function generatePlanning(participantOrder) {
   const planning = {};
 
   // Step 1: Determine hosts for each hosting course
-  const hostAssignments = assignHosts(participants, hostCourses, warnings);
+  const hostAssignments = isVenueMode() ? {} : assignHosts(participants, hostCourses, warnings);
 
   // Step 2: For each course, fill tables
   const tableMateHistory = {}; // track who has eaten with whom
@@ -39,13 +39,14 @@ function generatePlanning(participantOrder) {
       return;
     }
 
-    const hosts = hostAssignments[course] || [];
-    const tables = fillTables(course, hosts, participants, tableMateHistory, warnings);
+    const tables = isVenueMode()
+      ? fillVenueTables(course, participants, tableMateHistory, warnings)
+      : fillTables(course, hostAssignments[course] || [], participants, tableMateHistory, warnings);
     planning[course] = tables;
 
-    // Update tablemate history
+    // Update tablemate history (zaaltafels hebben geen gastheer -> geen hostId)
     tables.forEach(table => {
-      const allAtTable = [table.hostId, ...table.guestIds];
+      const allAtTable = [...(table.hostId != null ? [table.hostId] : []), ...table.guestIds];
       allAtTable.forEach(id1 => {
         allAtTable.forEach(id2 => {
           if (id1 !== id2) tableMateHistory[id1].add(id2);
@@ -230,6 +231,80 @@ function fillTables(course, hosts, participants, tableMateHistory, warnings) {
   return tables;
 }
 
+// Zaal-modus: vult genummerde tafels zonder gastheren. Zelfde greedy-
+// strategie als fillTables (balans eerst, dan zo min mogelijk herhaalde
+// tafelgenoten, met respect voor geforceerde combinaties en vermijd/
+// voorkeur), maar iedereen is gast en de capaciteit is de algemene
+// tafelgrootte uit stap 1.
+function fillVenueTables(course, participants, tableMateHistory, warnings) {
+  const maxSize = state.config.maxTableSize;
+  const attending = participants.filter(p => personSeatsAt(p, course) > 0);
+  const seatsNeeded = attending.reduce((sum, p) => sum + personSeatsAt(p, course), 0);
+  const numTables = state.config.venueTables || Math.max(2, Math.ceil(seatsNeeded / maxSize));
+
+  const tables = Array.from({ length: numTables }, (_, i) => ({
+    id: `${course}-${i}`,
+    course,
+    hostId: null,
+    hostName: null,
+    tableNumber: i + 1,
+    address: null,
+    guestIds: [],
+    guestNames: []
+  }));
+
+  const guestSeats = (t) => t.guestIds.reduce((sum, gid) => {
+    const g = participants.find(p => p.id === gid);
+    return sum + (g ? personSeatsAt(g, course) : 1);
+  }, 0);
+
+  if (seatsNeeded > numTables * maxSize) {
+    warnings.push(`${getCourseLabel(course)}: ${seatsNeeded} ` + I18n.t('app.warning.venue_overflow', 'stoelen nodig, maar de tafels bieden er') + ` ${numTables * maxSize}. ` + I18n.t('app.warning.venue_overflow_fix', 'Vergroot het aantal tafels of de tafelgrootte.'));
+  }
+
+  const sortedGuests = [...attending].sort((a, b) =>
+    (tableMateHistory[a.id]?.size ?? 0) - (tableMateHistory[b.id]?.size ?? 0)
+  );
+  const forcedGroups = buildForcedGroups(state.forcedCombos, participants);
+
+  sortedGuests.forEach(guest => {
+    const forcedTable = findForcedTable(guest.id, forcedGroups, tables, participants, course);
+    let targetTable;
+    if (forcedTable !== null) {
+      targetTable = forcedTable;
+    } else {
+      const seats = personSeatsAt(guest, course);
+      const candidates = tables.filter(t => guestSeats(t) + seats <= maxSize);
+      if (candidates.length === 0) {
+        targetTable = tables.reduce((a, b) => guestSeats(a) <= guestSeats(b) ? a : b);
+      } else {
+        const minFill = Math.min(...candidates.map(t => guestSeats(t)));
+        targetTable = candidates.reduce((best, t) => {
+          const fillT    = (guestSeats(t)    - minFill) * 3;
+          const fillBest = (guestSeats(best) - minFill) * 3;
+          const overlapT    = countOverlap(guest.id, t,    tableMateHistory);
+          const overlapBest = countOverlap(guest.id, best, tableMateHistory);
+          const avoidPenalty = (tbl) => (guest.avoid || []).some(name => {
+            const p = participants.find(x => x.name1 === name || x.name2 === name || x.name3 === name);
+            return p && tbl.guestIds.includes(p.id);
+          }) ? 100 : 0;
+          const preferBonus = (tbl) => (guest.preferWith || []).some(name => {
+            const p = participants.find(x => x.name1 === name || x.name2 === name || x.name3 === name);
+            return p && tbl.guestIds.includes(p.id);
+          }) ? -5 : 0;
+          const scoreT    = fillT    + overlapT    + avoidPenalty(t)    + preferBonus(t);
+          const scoreBest = fillBest + overlapBest + avoidPenalty(best) + preferBonus(best);
+          return scoreT <= scoreBest ? t : best;
+        }, candidates[0]);
+      }
+    }
+    targetTable.guestIds.push(guest.id);
+    targetTable.guestNames.push(displayNameAt(guest, course));
+  });
+
+  return tables;
+}
+
 function countSeats(table, participants) {
   // Aantal personen aan tafel incl. host (voor weergave). Gebruikt dezelfde
   // beschikbaarheids-logica als het algoritme, zodat het getoonde aantal
@@ -282,6 +357,8 @@ function findForcedTable(guestId, forcedGroups, tables, participants, currentCou
 function createSocialCourse(course, participants) {
   const hostConfig = state.socialHosts[course];
   let hostId = null, hostName = null, address = null;
+  // Zaal-modus: borrels zijn gewoon in de zaal
+  if (isVenueMode()) hostName = state.config.venueName || I18n.t('app.venue.default_name', 'de zaal');
 
   if (hostConfig?.participantId) {
     const host = participants.find(p => p.id === hostConfig.participantId);
@@ -374,6 +451,12 @@ function renderDraggablePlanning() {
   }).join('');
 }
 
+function venueTableLabel(table) {
+  const base = `${I18n.t('app.planning.table', 'Tafel')} ${table.tableNumber}`;
+  const venue = state.config.venueName;
+  return venue ? `${base} — ${venue}` : base;
+}
+
 function renderDraggableTableCard(table, i, participants, course) {
   if (table.isSocial) {
     return `
@@ -396,15 +479,15 @@ function renderDraggableTableCard(table, i, participants, course) {
     <div class="table-card dnd-table" id="dnd-${table.id}"
          data-drop-table="${table.id}" data-drop-course="${course}">
       <div class="table-card-header">
-        ${I18n.t('app.planning.table', 'Tafel')} ${i + 1} – ${escapeHtml(table.address?.city || '')}
+        ${I18n.t('app.planning.table', 'Tafel')} ${table.tableNumber || (i + 1)}${table.address?.city ? ' – ' + escapeHtml(table.address.city) : ''}
         <span>🪑 ${seats}</span>
       </div>
       <div class="table-card-body">
-        <div class="table-host">
+        ${table.hostId == null ? '' : `<div class="table-host">
           <span class="host-badge">HOST</span>
           <strong>${escapeHtml(table.hostName)}</strong>
           ${hostDiet ? `<span class="diet-icon" title="${escapeHtml(hostDiet)}">🥦</span>` : ''}
-        </div>
+        </div>`}
         ${table.guestIds.map((gid, gi) => {
           const g = participants.find(p => p.id === gid);
           const diet = dietsOf(g);

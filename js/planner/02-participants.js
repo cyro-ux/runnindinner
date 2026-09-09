@@ -171,7 +171,7 @@ function saveParticipant(event) {
       housenumber,
       postcode,
       city,
-      full: `${street} ${housenumber}, ${postcode} ${city}`
+      full: (street || postcode || city) ? `${street} ${housenumber}, ${postcode} ${city}`.replace(/\s+/g, ' ').replace(/^ ?, ?| ?, ?$/g, '').trim() : ''
     },
     availability,
     hostPreference: document.getElementById('p-host-preference').value || null,
@@ -242,7 +242,7 @@ function renderParticipantsList() {
         <div class="participant-avatar">${initials}</div>
         <div class="participant-info">
           <div class="participant-name">${fullName}</div>
-          <div class="participant-address">📍 ${escapeHtml(p.address.full)}</div>
+          ${p.address?.full ? `<div class="participant-address">📍 ${escapeHtml(p.address.full)}</div>` : ''}
           <div class="participant-meta">${tags.join('')}</div>
         </div>
         <div class="participant-actions">

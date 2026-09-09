@@ -39,7 +39,7 @@ function getPersonRoute(participant) {
 
     let companions = [];
     if (!table.isSocial) {
-      const allIds = [table.hostId, ...table.guestIds].filter(id => id !== participant.id);
+      const allIds = [table.hostId, ...table.guestIds].filter(id => id != null && id !== participant.id);
       companions = allIds.map(id => {
         const p = participants.find(x => x.id === id);
         return displayNameAt(p, course);
@@ -51,6 +51,7 @@ function getPersonRoute(participant) {
       time: timeInfo.start,
       endTime,
       isHost,
+      tableNumber: table.tableNumber || null,
       address: table.isSocial ? null : table.address,
       hostName: table.isSocial ? null : (isHost ? I18n.t('app.overview.yourself', 'u zelf') : table.hostName),
       companions,
@@ -73,7 +74,7 @@ function renderPerPerson() {
       <div class="person-schedule-card">
         <div class="person-schedule-header">
           <h3>📋 ${fullName}</h3>
-          <p>📍 ${escapeHtml(p.address.full)}${p.diet1 ? ` · 🥦 ${escapeHtml(p.diet1)}${p.diet2 ? ' / ' + escapeHtml(p.diet2) : ''}` : ''}</p>
+          <p>${p.address?.street ? `📍 ${escapeHtml(p.address.full)}` : ''}${p.diet1 ? ` · 🥦 ${escapeHtml(p.diet1)}${p.diet2 ? ' / ' + escapeHtml(p.diet2) : ''}` : ''}</p>
         </div>
         <div class="schedule-route">
           ${route.map(r => `
@@ -85,7 +86,8 @@ function renderPerPerson() {
                   ${getCourseLabel(r.course)}
                   ${r.isHost ? `<span class="hosting-badge">🏠 ${I18n.t('app.overview.you_are_host', 'U bent gastheer/vrouw')}</span>` : ''}
                 </div>
-                ${r.isSocial ? `<div class="route-address">${I18n.t('app.planning.everyone_together', 'Iedereen bijeen')}</div>` : `
+                ${r.isSocial ? `<div class="route-address">${I18n.t('app.planning.everyone_together', 'Iedereen bijeen')}</div>` : r.tableNumber ? `
+                  <div class="route-address">🪑 ${escapeHtml(venueTableLabel({ tableNumber: r.tableNumber }))}</div>` : `
                   <div class="route-address">📍 ${escapeHtml(r.address?.street)}, ${escapeHtml(r.address?.postcode)} ${escapeHtml(r.address?.city)}</div>
                   ${!r.isHost ? `<div class="route-companions">${I18n.t('app.overview.host', 'Gastheer/vrouw')}: <span>${escapeHtml(r.hostName)}</span></div>` : ''}
                   <div class="route-companions">${I18n.t('app.overview.tablemates', 'Tafelgenoten')}: <span>${r.companions.length ? r.companions.map(c => escapeHtml(c)).join(', ') : '–'}</span></div>
@@ -129,9 +131,31 @@ function renderPerLocation() {
         return;
       }
 
+      const timeStr = `${state.config.times[course].start} – ${addMinutes(state.config.times[course].start, state.config.times[course].duration)}`;
+
+      if (table.hostId == null) {
+        // Zaal-modus: genummerde tafel zonder gastheer
+        locationSections.push(`
+        <div class="location-card">
+          <div class="location-header">
+            <h3>${COURSE_ICONS[course]} ${getCourseLabel(course)} – ${escapeHtml(venueTableLabel(table))}</h3>
+            <p>⏰ ${timeStr}</p>
+          </div>
+          <div class="location-body">
+            <table class="guests-table">
+              <thead><tr><th>${I18n.t('app.overview.name', 'Naam')}</th><th>${I18n.t('app.overview.dietary', 'Dieetwensen')}</th></tr></thead>
+              <tbody>${table.guestIds.map((gid, gi) => {
+                const g = participants.find(p => p.id === gid);
+                return `<tr><td>${escapeHtml(table.guestNames[gi] || displayName(g))}</td><td>${escapeHtml(dietsOf(g)) || '–'}</td></tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>`);
+        return;
+      }
+
       const host = participants.find(p => p.id === table.hostId);
       if (!host) return;
-      const timeStr = `${state.config.times[course].start} – ${addMinutes(state.config.times[course].start, state.config.times[course].duration)}`;
 
       locationSections.push(`
         <div class="location-card">
@@ -182,6 +206,10 @@ function renderEnvelopes() {
     return;
   }
 
+  function tableLoc(table) {
+    if (table && table.tableNumber) return escapeHtml(venueTableLabel(table));
+    return addrStr(table && table.address);
+  }
   function addrStr(address) {
     if (!address) return I18n.t('app.envelope.location_unknown', 'Locatie onbekend');
     return `${escapeHtml(address.street)}${address.housenumber ? ' ' + escapeHtml(address.housenumber) : ''}, ${escapeHtml(address.postcode)} ${escapeHtml(address.city)}`;
@@ -201,12 +229,12 @@ function renderEnvelopes() {
           <span class="env-next-arrow">→ ${I18n.t('app.envelope.next', 'volgende')}: ${COURSE_ICONS[nextCourse]} ${getCourseLabel(nextCourse)}</span>
         </div>
         ${courseTables.map(table => {
-          const tableAddr = addrStr(table.address);
+          const tableAddr = tableLoc(table);
           const allIds = [table.hostId, ...table.guestIds].filter(Boolean);
 
           return `
             <div class="env-table-group">
-              <div class="env-table-location">📍 ${I18n.t('app.envelope.table_at', 'Tafel bij')}: ${escapeHtml(table.hostName) || tableAddr} &nbsp;—&nbsp; ${tableAddr}</div>
+              <div class="env-table-location">📍 ${table.tableNumber ? tableAddr : `${I18n.t('app.envelope.table_at', 'Tafel bij')}: ${escapeHtml(table.hostName) || tableAddr} &nbsp;—&nbsp; ${tableAddr}`}</div>
               <div class="env-cards-row">
                 ${allIds.map(pid => {
                   const person = participants.find(p => p.id === pid);
@@ -223,7 +251,7 @@ function renderEnvelopes() {
                     if (nextTable) {
                       nextIsHost = nextTable.hostId === pid;
                       nextHostName = nextIsHost ? '' : escapeHtml(nextTable.hostName || '');
-                      nextAddr = addrStr(nextTable.address);
+                      nextAddr = tableLoc(nextTable);
                     }
                   }
 
@@ -321,7 +349,7 @@ function buildPublishPayload() {
       course:   r.course,
       isHost:   r.isHost,
       isSocial: r.isSocial,
-      address:  r.address ? `${r.address.street} ${r.address.housenumber || ''}, ${r.address.postcode} ${r.address.city}`.replace(/\s+/g, ' ').trim() : null,
+      address:  r.tableNumber ? venueTableLabel({ tableNumber: r.tableNumber }) : (r.address ? `${r.address.street} ${r.address.housenumber || ''}, ${r.address.postcode} ${r.address.city}`.replace(/\s+/g, ' ').trim() : null),
       // Server toont zelf een "jij bent gastheer"-badge; hostName alleen voor gasten
       hostName: r.isHost ? null : (r.hostName || null),
       companions: r.companions || [],

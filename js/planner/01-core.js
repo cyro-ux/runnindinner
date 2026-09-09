@@ -38,6 +38,11 @@ const state = {
     eventCity: '',
     // Eigen ganglabels (bv. naborrel -> "Quiz"); leeg = standaardnaam
     courseLabels: {},
+    // Zaal-modus: alle gangen op één locatie, deelnemers rouleren van
+    // tafel per gang (bv. clubdiner in een zaal). Geen adressen/routes.
+    venueMode: false,
+    venueName: '',
+    venueTables: null,   // null = automatisch (stoelen / max tafelgrootte)
     transportMode: 'walking',     // walking | cycling | driving
     maxDistanceKm: 3              // drempel voor warnings in distance-check
   },
@@ -160,6 +165,35 @@ function applyCourseLabelsToUI() {
       el.textContent = getCourseLabel(course);
     }
   });
+}
+
+function isVenueMode() {
+  return Boolean(state.config.venueMode);
+}
+
+function setVenueMode(mode) {
+  state.config.venueMode = (mode === 'venue');
+  applyVenueModeToUI();
+}
+
+// Verbergt/toont alles wat alleen bij thuis-hosting hoort (adres, gastrol,
+// afstandscheck, borrellocaties) en versoepelt de adres-verplichting.
+function applyVenueModeToUI() {
+  const venue = isVenueMode();
+  const setShown = (id, shown) => { const el = document.getElementById(id); if (el) el.style.display = shown ? '' : 'none'; };
+  setShown('venue-config-fields', venue);
+  setShown('modal-address-section', !venue);
+  setShown('modal-host-section', !venue);
+  setShown('distance-check-card', !venue);
+  if (venue) setShown('social-locations-card', false);
+  ['p-postcode', 'p-housenumber', 'p-street', 'p-city'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.required = !venue;
+  });
+  const radioHome = document.querySelector('input[name="event-type"][value="home"]');
+  const radioVenue = document.querySelector('input[name="event-type"][value="venue"]');
+  if (radioHome) radioHome.checked = !venue;
+  if (radioVenue) radioVenue.checked = venue;
 }
 
 const COURSE_ICONS = {

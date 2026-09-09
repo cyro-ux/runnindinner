@@ -553,7 +553,9 @@
       "table_underfilled_at": "at",
       "table_underfilled_suffix": "has only",
       "guests": "guest(s)",
-      "guideline_min": "guideline minimum"
+      "guideline_min": "guideline minimum",
+      "venue_overflow": "seats needed, but the tables only offer",
+      "venue_overflow_fix": "Increase the number of tables or the table size."
     },
     "rating": {
       "title": "Rating",
@@ -739,6 +741,16 @@
       "restore_found": "There is a saved event in your account",
       "restore_btn": "Load saved event",
       "restore_dismiss": "Continue here"
+    },
+    "venue": {
+      "title": "Where does the dinner take place?",
+      "mode_home": "🏠 At participants’ homes (classic running dinner)",
+      "mode_venue": "🏛️ One venue — table rotation per course",
+      "name_label": "Venue name",
+      "name_placeholder": "E.g. The Clubhouse",
+      "tables_label": "Number of tables (empty = automatic)",
+      "hint": "Everyone stays in the same room and moves to a different table for each course, meeting new tablemates every time. No addresses or routes needed; table size is set in the general settings above.",
+      "default_name": "the venue"
     }
   },
   "legal": {

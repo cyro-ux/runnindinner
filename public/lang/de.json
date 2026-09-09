@@ -553,7 +553,9 @@
       "table_underfilled_at": "bei",
       "table_underfilled_suffix": "hat nur",
       "guests": "Gast/Gäste",
-      "guideline_min": "Richtwert Minimum"
+      "guideline_min": "Richtwert Minimum",
+      "venue_overflow": "Plätze nötig, aber die Tische bieten nur",
+      "venue_overflow_fix": "Erhöhen Sie die Tischanzahl oder die Tischgröße."
     },
     "rating": {
       "title": "Bewertung",
@@ -739,6 +741,16 @@
       "restore_found": "In Ihrem Konto liegt ein gespeichertes Event",
       "restore_btn": "Gespeichertes Event laden",
       "restore_dismiss": "Hier weiterarbeiten"
+    },
+    "venue": {
+      "title": "Wo findet das Dinner statt?",
+      "mode_home": "🏠 Bei den Teilnehmern zu Hause (klassisches Running Dinner)",
+      "mode_venue": "🏛️ Ein Ort — Tischrotation pro Gang",
+      "name_label": "Name des Ortes",
+      "name_placeholder": "z. B. Das Clubhaus",
+      "tables_label": "Anzahl Tische (leer = automatisch)",
+      "hint": "Alle bleiben im selben Raum und wechseln pro Gang an einen anderen Tisch — jedes Mal neue Tischnachbarn. Keine Adressen oder Routen nötig; die Tischgröße stellen Sie oben ein.",
+      "default_name": "der Saal"
     }
   },
   "legal": {

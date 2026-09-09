@@ -233,6 +233,8 @@ document.addEventListener('click', (e) => {
 });
 
 const UI_CHANGE = {
+  venueMode:               (el) => setVenueMode(el.value),
+  venueTables:             (el) => { const n = parseInt(el.value, 10); state.config.venueTables = (Number.isFinite(n) && n >= 2) ? n : null; },
   importParticipantsFromFile: (el, e) => importParticipantsFromFile(e),
   updateForcedCombo:       (el) => updateForcedCombo(parseInt(el.dataset.id, 10), el.dataset.field, el.value),
   toggleForcedComboCourse: (el) => toggleForcedComboCourse(parseInt(el.dataset.id, 10), el.dataset.course, el.checked),
@@ -245,6 +247,7 @@ document.addEventListener('change', (e) => {
 });
 
 const UI_INPUT = {
+  venueName:               (el) => { state.config.venueName = el.value.trim().slice(0, 80); },
   socialCustom: (el) => onSocialCustomChange(el.dataset.course, el.dataset.field, el.value),
   stripSpaces:  (el) => { el.value = el.value.replace(/\s/g, ''); },
 };

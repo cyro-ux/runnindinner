@@ -68,6 +68,9 @@
     state.nextId = s.nextId || maxId + 1;
     applyConfigToUI();
     if (typeof applyCourseLabelsToUI === 'function') applyCourseLabelsToUI();
+    var vn = document.getElementById('venue-name'); if (vn) vn.value = state.config.venueName || '';
+    var vt = document.getElementById('venue-tables'); if (vt) vt.value = state.config.venueTables || '';
+    if (typeof applyVenueModeToUI === 'function') applyVenueModeToUI();
     lastPushed = snapshotState();
     // Toon de gebruiker zijn data: planning aanwezig → overzicht, anders deelnemers
     if (state.planning) goToStep(4);
