@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=rename1">
   <!-- SheetJS wordt lazy geladen bij de eerste klik op import/template
        (lib is ~880KB; met lazy-load is de app ~1-2s sneller bootable op 4G).
        Zie loadXlsx() in app.js. -->
@@ -68,34 +68,39 @@
           <label class="course-item optional">
             <input type="checkbox" id="has-voorborrel" name="voorborrel">
             <span class="course-icon">🥂</span>
-            <span class="course-name" data-i18n="app.courses.voorborrel">Voorborrel</span>
+            <span class="course-name" data-course="voorborrel" data-i18n="app.courses.voorborrel">Voorborrel</span>
+            <button type="button" class="rename-course" data-action="renameCourse" data-arg="voorborrel" data-i18n-title="app.config.rename_title" title="Naam aanpassen">✏️</button>
             <span class="badge optional-badge" data-i18n="app.config.optional">Optioneel</span>
           </label>
           <label class="course-item required">
             <input type="checkbox" id="has-voorgerecht" name="voorgerecht" checked disabled>
             <span class="course-icon">🥗</span>
-            <span class="course-name" data-i18n="app.courses.voorgerecht">Voorgerecht</span>
+            <span class="course-name" data-course="voorgerecht" data-i18n="app.courses.voorgerecht">Voorgerecht</span>
+            <button type="button" class="rename-course" data-action="renameCourse" data-arg="voorgerecht" data-i18n-title="app.config.rename_title" title="Naam aanpassen">✏️</button>
             <span class="badge required-badge" data-i18n="app.config.required">Verplicht</span>
             <span class="duration-badge">45 min</span>
           </label>
           <label class="course-item required">
             <input type="checkbox" id="has-hoofdgerecht" name="hoofdgerecht" checked disabled>
             <span class="course-icon">🍖</span>
-            <span class="course-name" data-i18n="app.courses.hoofdgerecht">Hoofdgerecht</span>
+            <span class="course-name" data-course="hoofdgerecht" data-i18n="app.courses.hoofdgerecht">Hoofdgerecht</span>
+            <button type="button" class="rename-course" data-action="renameCourse" data-arg="hoofdgerecht" data-i18n-title="app.config.rename_title" title="Naam aanpassen">✏️</button>
             <span class="badge required-badge" data-i18n="app.config.required">Verplicht</span>
             <span class="duration-badge">60 min</span>
           </label>
           <label class="course-item required">
             <input type="checkbox" id="has-nagerecht" name="nagerecht" checked disabled>
             <span class="course-icon">🍰</span>
-            <span class="course-name" data-i18n="app.courses.nagerecht">Nagerecht</span>
+            <span class="course-name" data-course="nagerecht" data-i18n="app.courses.nagerecht">Nagerecht</span>
+            <button type="button" class="rename-course" data-action="renameCourse" data-arg="nagerecht" data-i18n-title="app.config.rename_title" title="Naam aanpassen">✏️</button>
             <span class="badge required-badge" data-i18n="app.config.required">Verplicht</span>
             <span class="duration-badge">45 min</span>
           </label>
           <label class="course-item optional">
             <input type="checkbox" id="has-naborrel" name="naborrel">
             <span class="course-icon">🎉</span>
-            <span class="course-name" data-i18n="app.courses.naborrel">Naborrel</span>
+            <span class="course-name" data-course="naborrel" data-i18n="app.courses.naborrel">Naborrel</span>
+            <button type="button" class="rename-course" data-action="renameCourse" data-arg="naborrel" data-i18n-title="app.config.rename_title" title="Naam aanpassen">✏️</button>
             <span class="badge optional-badge" data-i18n="app.config.optional">Optioneel</span>
           </label>
         </div>
@@ -508,13 +513,13 @@
   <!-- Demo-mode controller (zelf-uit als URL-pad geen /demo is) -->
   <script src="/demo-mode.js?v=13"></script>
   <!-- Planner-scripts: volgorde = lib/planner-files.js (bewaakt door test) -->
-  <script src="js/planner/01-core.js?v=split1"></script>
+  <script src="js/planner/01-core.js?v=rename1"></script>
   <script src="js/planner/02-participants.js?v=split1"></script>
   <script src="js/planner/03-planning.js?v=split1"></script>
-  <script src="js/planner/04-overview.js?v=split1"></script>
+  <script src="js/planner/04-overview.js?v=rename1"></script>
   <script src="js/planner/05-extras.js?v=split1"></script>
-  <script src="js/planner/06-ui.js?v=split2"></script>
-  <script src="js/planner/07-sync.js?v=1"></script>
+  <script src="js/planner/06-ui.js?v=rename1"></script>
+  <script src="js/planner/07-sync.js?v=2"></script>
   <script src="js/page-boot.js?v=1"></script>
 </body>
 </html>

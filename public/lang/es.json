@@ -344,7 +344,9 @@
       "transport_walking": "A pie",
       "transport_cycling": "Bicicleta",
       "transport_driving": "Coche",
-      "max_distance": "Distancia máxima por ruta"
+      "max_distance": "Distancia máxima por ruta",
+      "rename_prompt": "Nuevo nombre para este plato (vacío = nombre estándar):",
+      "rename_title": "Renombrar plato"
     },
     "participants": {
       "title": "Participantes",

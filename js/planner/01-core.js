@@ -36,6 +36,8 @@ const state = {
     eventName: 'Running Dinner 2026',
     eventDate: '2026-05-16',
     eventCity: '',
+    // Eigen ganglabels (bv. naborrel -> "Quiz"); leeg = standaardnaam
+    courseLabels: {},
     transportMode: 'walking',     // walking | cycling | driving
     maxDistanceKm: 3              // drempel voor warnings in distance-check
   },
@@ -120,6 +122,9 @@ function hostMinGuests(host) {
 }
 
 function getCourseLabel(key) {
+  // Eigen label van de organisator wint van de standaard-/vertaalde naam
+  const custom = state.config.courseLabels && state.config.courseLabels[key];
+  if (custom) return custom;
   const labels = {
     voorborrel: I18n.t('app.courses.voorborrel', 'Voorborrel'),
     voorgerecht: I18n.t('app.courses.voorgerecht', 'Voorgerecht'),
@@ -129,6 +134,34 @@ function getCourseLabel(key) {
   };
   return labels[key] || key;
 }
+function renameCourse(course) {
+  const current = getCourseLabel(course);
+  const answer = prompt(I18n.t('app.config.rename_prompt', 'Nieuwe naam voor deze gang (leeg laten = standaardnaam):'), current);
+  if (answer === null) return; // geannuleerd
+  const label = answer.trim().slice(0, 40);
+  if (!state.config.courseLabels) state.config.courseLabels = {};
+  if (label) state.config.courseLabels[course] = label;
+  else delete state.config.courseLabels[course];
+  applyCourseLabelsToUI();
+}
+
+// Zet eigen labels in de stap-1-rijen. Bij een eigen label verwijderen we
+// data-i18n zodat de taalwissel het niet meer overschrijft; bij reset komt
+// het attribuut (en de vertaalde naam) terug.
+function applyCourseLabelsToUI() {
+  document.querySelectorAll('.course-name[data-course]').forEach(el => {
+    const course = el.dataset.course;
+    const custom = state.config.courseLabels && state.config.courseLabels[course];
+    if (custom) {
+      el.removeAttribute('data-i18n');
+      el.textContent = custom;
+    } else {
+      el.setAttribute('data-i18n', 'app.courses.' + course);
+      el.textContent = getCourseLabel(course);
+    }
+  });
+}
+
 const COURSE_ICONS = {
   voorborrel: '🥂',
   voorgerecht: '🥗',

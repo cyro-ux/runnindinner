@@ -344,7 +344,9 @@
       "transport_walking": "Zu Fuß",
       "transport_cycling": "Fahrrad",
       "transport_driving": "Auto",
-      "max_distance": "Maximale Entfernung pro Route"
+      "max_distance": "Maximale Entfernung pro Route",
+      "rename_prompt": "Neuer Name für diesen Gang (leer = Standardname):",
+      "rename_title": "Gang umbenennen"
     },
     "participants": {
       "title": "Teilnehmer",

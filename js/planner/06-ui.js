@@ -174,6 +174,7 @@ document.addEventListener('keydown', e => {
 const UI_ACTIONS = {
   goToStep:               (arg) => goToStep(parseInt(arg, 10)),
   switchTab:              (arg) => switchTab(arg),
+  renameCourse:           (arg) => renameCourse(arg),
   setShareMode:           (arg) => setShareMode(arg),
   printSection:           (arg) => printSection(arg),
   printSingleEnvelopes:   () => printSingleEnvelopes(),

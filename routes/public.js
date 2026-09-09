@@ -582,7 +582,7 @@ router.get('/r/:token', (req, res) => {
     const c = timeMap.get(item.course);
     const revealAt = revealMap.has(item.course) ? revealMap.get(item.course) : null;
     const revealed = sharedPlanning.isRevealed(revealAt, now);
-    const label = labels[item.course] || item.course;
+    const label = item.label || labels[item.course] || item.course;
     const icon  = sharedPlanning.COURSE_ICONS[item.course] || '🍽️';
     const timeStr = c ? `${c.time} – ${c.endTime}` : '';
 

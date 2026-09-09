@@ -67,6 +67,7 @@
     state.participants.forEach(function (p) { if (p.id > maxId) maxId = p.id; });
     state.nextId = s.nextId || maxId + 1;
     applyConfigToUI();
+    if (typeof applyCourseLabelsToUI === 'function') applyCourseLabelsToUI();
     lastPushed = snapshotState();
     // Toon de gebruiker zijn data: planning aanwezig → overzicht, anders deelnemers
     if (state.planning) goToStep(4);

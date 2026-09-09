@@ -344,7 +344,9 @@
       "transport_walking": "Walking",
       "transport_cycling": "Bicycle",
       "transport_driving": "Car",
-      "max_distance": "Maximum distance per route"
+      "max_distance": "Maximum distance per route",
+      "rename_prompt": "New name for this course (leave empty = default name):",
+      "rename_title": "Rename course"
     },
     "participants": {
       "title": "Participants",

@@ -313,7 +313,7 @@ function _shareStatus(msg, isErr) {
 function buildPublishPayload() {
   const courses = getActiveCourses().map(c => {
     const tinfo = state.config.times[c];
-    return { course: c, time: tinfo.start, endTime: addMinutes(tinfo.start, tinfo.duration) };
+    return { course: c, time: tinfo.start, endTime: addMinutes(tinfo.start, tinfo.duration), label: getCourseLabel(c) };
   });
   const participants = [];
   state.participants.forEach(p => {
