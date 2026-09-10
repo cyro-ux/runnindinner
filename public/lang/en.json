@@ -41,7 +41,9 @@
     "overview_title": "Overview per location",
     "overview_desc": "Every host wants to know: who's coming, and how many? You can send this overview straight away — saves a lot of last-minute messages on the day itself.",
     "drinks_title": "Pre-dinner & after-party drinks",
-    "drinks_desc": "The first time I forgot to include the pre-dinner drinks in my plan. Never again: set a central location and the planner automatically factors it into the schedule."
+    "drinks_desc": "The first time I forgot to include the pre-dinner drinks in my plan. Never again: set a central location and the planner automatically factors it into the schedule.",
+    "venue_title": "Also in a single venue",
+    "venue_desc": "A club dinner or gala takes place at one location, not across the neighbourhood. Switch on venue mode and the planner creates numbered tables with a fresh seating for every course — no addresses needed. And you can rename courses yourself: from \"after-party drinks\" to \"pub quiz\"."
   },
   "how_it_works": {
     "title": "Done in 4 steps",
@@ -100,7 +102,9 @@
     "q8": "Is my data stored?",
     "a8": "Your account details (email, password) are stored securely. As a logged-in user your event (participants, settings and planning) is <strong>automatically saved to your account</strong>, so you can continue on any device; you can delete it yourself at any time. In the free demo everything stays in your browser only. See the <a href=\"/privacy.html\">privacy policy</a> for details.",
     "q_demo": "Can I try it for free before paying?",
-    "a_demo": "Yes! With the free demo you play with 12 sample couples and see exactly how the planner works — automatic table layouts, routes and envelope cards. No account or payment needed. <a href=\"/en/demo\">Try the demo →</a>"
+    "a_demo": "Yes! With the free demo you play with 12 sample couples and see exactly how the planner works — automatic table layouts, routes and envelope cards. No account or payment needed. <a href=\"/en/demo\">Try the demo →</a>",
+    "q_venue": "Can I organise a dinner at a single location, like a clubhouse or function room?",
+    "a_venue": "Yes — enable venue mode in step 1. Everyone stays in the same room and moves to a numbered table for each course, always with new table companions; addresses and routes are not needed. Ideal for club dinners, galas and networking events. You can also give courses your own names, for example \"Quiz\" instead of \"after-party drinks\"."
   },
   "cta": {
     "title": "Save yourself the spreadsheet evening",

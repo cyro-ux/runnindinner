@@ -41,7 +41,9 @@
     "overview_title": "Übersicht pro Standort",
     "overview_desc": "Jeder Gastgeber möchte wissen: Wer kommt und wie viele? Diese Übersicht können Sie direkt verschicken – das erspart viele Last-Minute-Nachrichten am Tag selbst.",
     "drinks_title": "Vorborrel & Naborrel (Aperitif & Absacker)",
-    "drinks_desc": "Beim ersten Mal habe ich vergessen, den Aperitif in meinen Plan aufzunehmen. Nie wieder: Legen Sie einen zentralen Ort fest, und der Planer berücksichtigt ihn automatisch im Ablauf."
+    "drinks_desc": "Beim ersten Mal habe ich vergessen, den Aperitif in meinen Plan aufzunehmen. Nie wieder: Legen Sie einen zentralen Ort fest, und der Planer berücksichtigt ihn automatisch im Ablauf.",
+    "venue_title": "Auch in einem Saal",
+    "venue_desc": "Ein Vereinsdinner oder eine Gala findet an einem Ort statt, nicht quer durchs Viertel. Schalte den Saal-Modus ein und der Planer erstellt nummerierte Tische mit einer neuen Verteilung pro Gang — ganz ohne Adressen. Und Gänge benennst du einfach selbst um: aus \"Absacker\" wird \"Pub-Quiz\"."
   },
   "how_it_works": {
     "title": "In 4 Schritten fertig",
@@ -100,7 +102,9 @@
     "q8": "Werden meine Daten gespeichert?",
     "a8": "Ihre Kontodaten (E-Mail, Passwort) werden sicher gespeichert. Als eingeloggter Nutzer wird Ihr Event (Teilnehmer, Einstellungen und Planung) <strong>automatisch in Ihrem Konto gespeichert</strong>, sodass Sie auf jedem Gerät weiterarbeiten können; Sie können es jederzeit selbst löschen. In der kostenlosen Demo bleibt alles nur in Ihrem Browser. Details in der <a href=\"/privacy.html\">Datenschutzerklärung</a>.",
     "q_demo": "Kann ich es kostenlos testen, bevor ich bezahle?",
-    "a_demo": "Ja! Mit der kostenlosen Demo spielst du mit 12 Beispielpaaren und siehst genau, wie der Planer funktioniert — Tischzuteilung, Routen und Umschlagkarten. Kein Konto, keine Zahlung nötig. <a href=\"/de/demo\">Demo testen →</a>"
+    "a_demo": "Ja! Mit der kostenlosen Demo spielst du mit 12 Beispielpaaren und siehst genau, wie der Planer funktioniert — Tischzuteilung, Routen und Umschlagkarten. Kein Konto, keine Zahlung nötig. <a href=\"/de/demo\">Demo testen →</a>",
+    "q_venue": "Kann ich ein Dinner auch an einem einzigen Ort organisieren, etwa im Vereinsheim oder Saal?",
+    "a_venue": "Ja — aktiviere in Schritt 1 den Saal-Modus. Alle bleiben im selben Saal und wechseln pro Gang an einen nummerierten Tisch, immer mit neuen Tischnachbarn; Adressen und Routen sind dann nicht nötig. Ideal für Vereinsdinner, Galas und Netzwerkabende. Gänge kannst du außerdem selbst benennen, zum Beispiel \"Quiz\" statt \"Absacker\"."
   },
   "cta": {
     "title": "Ersparen Sie sich den Abend mit der Excel-Tabelle",

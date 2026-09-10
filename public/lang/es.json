@@ -41,7 +41,9 @@
     "overview_title": "Resumen por ubicación",
     "overview_desc": "Todo anfitrión quiere saber: ¿quién viene y cuántos? Puedes enviar este resumen de inmediato — te ahorra muchos mensajes de última hora el mismo día.",
     "drinks_title": "Aperitivo previo y copas finales",
-    "drinks_desc": "La primera vez se me olvidó incluir el aperitivo previo en mi plan. Nunca más: fija una ubicación central y el planificador lo incluye automáticamente en el horario."
+    "drinks_desc": "La primera vez se me olvidó incluir el aperitivo previo en mi plan. Nunca más: fija una ubicación central y el planificador lo incluye automáticamente en el horario.",
+    "venue_title": "También en un solo salón",
+    "venue_desc": "Una cena de club o una gala se celebra en un solo lugar, no por el barrio. Activa el modo salón y el planificador crea mesas numeradas con una distribución nueva en cada plato — sin direcciones. Además, puedes renombrar los platos tú mismo: de \"copa final\" a \"concurso de preguntas\"."
   },
   "how_it_works": {
     "title": "Listo en 4 pasos",
@@ -100,7 +102,9 @@
     "q8": "¿Se almacenan mis datos?",
     "a8": "Tus datos de cuenta (correo, contraseña) se guardan de forma segura. Como usuario conectado, tu evento (participantes, configuración y planificación) se <strong>guarda automáticamente en tu cuenta</strong>, para que puedas continuar en cualquier dispositivo; puedes borrarlo tú mismo cuando quieras. En la demo gratuita todo permanece solo en tu navegador. Consulta la <a href=\"/privacy.html\">política de privacidad</a> para más detalles.",
     "q_demo": "¿Puedo probarlo gratis antes de pagar?",
-    "a_demo": "¡Sí! Con la demo gratuita juegas con 12 parejas de ejemplo y ves exactamente cómo funciona el planificador — distribución de mesas, rutas y tarjetas en sobres. Sin cuenta ni pago. <a href=\"/es/demo\">Probar la demo →</a>"
+    "a_demo": "¡Sí! Con la demo gratuita juegas con 12 parejas de ejemplo y ves exactamente cómo funciona el planificador — distribución de mesas, rutas y tarjetas en sobres. Sin cuenta ni pago. <a href=\"/es/demo\">Probar la demo →</a>",
+    "q_venue": "¿Puedo organizar una cena en un solo lugar, como un club o un salón?",
+    "a_venue": "Sí — activa el modo salón en el paso 1. Todos permanecen en el mismo salón y cambian a una mesa numerada en cada plato, siempre con nuevos compañeros de mesa; no se necesitan direcciones ni rutas. Ideal para cenas de club, galas y eventos de networking. Además puedes dar tu propio nombre a los platos, por ejemplo \"Quiz\" en lugar de \"copa final\"."
   },
   "cta": {
     "title": "Ahórrate la tarde de hojas de cálculo",
