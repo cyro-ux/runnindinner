@@ -14,6 +14,7 @@ module.exports = function accountRoutes(deps) {
     db, t, requireAuth, uuidv4, bcrypt, mollie, sendMail, wrapHtml,
     activeSessions, generateReferralCode, BASE_URL, SUPPORTED_LANGS,
     PDFDocument, formatEur, invoiceNumber,
+    REFERRAL_THRESHOLD, REFERRAL_REWARD_DAYS,
   } = deps;
   const router = express.Router();
 

@@ -117,6 +117,16 @@ describe('runningdinner.app smoke tests', () => {
     assert.equal(r.body?.user?.is_business, false, 'consumer account');
   });
 
+  test('referral overview works for a logged-in user', async () => {
+    // Regressie: REFERRAL_THRESHOLD bleef bij de router-split in server.js
+    // achter → ReferenceError (Sentry 4-9-2026). Deze route raakt die code.
+    const r = await req('GET', '/api/user/referral');
+    assert.equal(r.status, 200);
+    assert.equal(r.body?.ok, true);
+    assert.ok(r.body?.inviteUrl, 'invite-URL verwacht');
+    assert.equal(r.body?.stats?.threshold, 3);
+  });
+
   test('create-payment without waiver is rejected (400)', async () => {
     const r = await req('POST', '/api/mollie/create-payment', {
       body: { autoRenew: false }, // no waiverAccepted

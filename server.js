@@ -619,17 +619,17 @@ const ADMIN_DEPS = {
 app.use(require('./routes/admin')(ADMIN_DEPS));
 
 
+// ── Referral system ──────────────────────────────────────────────────────────
+const REFERRAL_THRESHOLD = 3;        // converted referrals needed per reward
+const REFERRAL_REWARD_DAYS = 365;    // extension granted per reward
+
 // ── Account-routes: zie routes/account.js (tranche 7) ──────────────────────
 app.use(require('./routes/account')({
   db, t, requireAuth, uuidv4, bcrypt, mollie, sendMail, wrapHtml,
   activeSessions, generateReferralCode, BASE_URL, SUPPORTED_LANGS,
   PDFDocument, formatEur, invoiceNumber,
+  REFERRAL_THRESHOLD, REFERRAL_REWARD_DAYS,
 }));
-
-
-// ── Referral system ──────────────────────────────────────────────────────────
-const REFERRAL_THRESHOLD = 3;        // converted referrals needed per reward
-const REFERRAL_REWARD_DAYS = 365;    // extension granted per reward
 
 /**
  * Check if a user has earned a new referral reward and apply it.
