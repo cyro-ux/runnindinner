@@ -17,7 +17,7 @@ module.exports = function pagesRoutes(deps) {
 
   // Server-side lokalisatie (SEO): i18n-woordenboek + CMS-teksten al in de
   // HTML zetten, zodat crawlers op /de/, /en/ en /es/ geen NL-brontekst zien.
-  const { applyI18n, applyCms, pickCmsForLang } = require('../lib/home-ssr');
+  const { applyI18n, applyCms, pickCmsForLang, applyAggregateRating } = require('../lib/home-ssr');
   const loadDict = (lang) => {
     try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'lang', lang + '.json'), 'utf8')); }
     catch (e) { console.warn('[ssr] lang/' + lang + '.json niet geladen:', e.message); return {}; }
@@ -26,6 +26,20 @@ module.exports = function pagesRoutes(deps) {
     try { return pickCmsForLang(db.prepare('SELECT key, value FROM cms').all(), lang); }
     catch { return {}; }
   };
+  // Actuele reviewscore voor het SoftwareApplication-schema (60s-cache;
+  // bij een leesfout blijven de statische waarden in home.html staan).
+  let ratingCache = { at: 0, val: null };
+  const ratingNow = () => {
+    if (Date.now() - ratingCache.at < 60000) return ratingCache.val;
+    let val = null;
+    try {
+      const r = db.prepare("SELECT COUNT(*) AS count, ROUND(AVG(score), 1) AS avg FROM ratings WHERE status = 'approved'").get();
+      if (r && r.count >= 1) val = { count: r.count, avg: r.avg };
+    } catch { /* tabel ontbreekt of db dicht: statische fallback */ }
+    ratingCache = { at: Date.now(), val };
+    return val;
+  };
+  const renderHome = (html, lang) => applyAggregateRating(applyCms(html, cmsFor(lang)), ratingNow());
 
 // ── Sitemap ──────────────────────────────────────────────────────────────────
 router.get('/sitemap.xml', (req, res) => {
@@ -96,7 +110,7 @@ router.get('/sitemap.xml', (req, res) => {
 
 // ── NL-homepage: home.html met CMS-teksten server-side (SEO) ───────────
 const homeHtmlNL = fs.readFileSync(path.join(ROOT, 'public', 'home.html'), 'utf8');
-router.get('/', (req, res) => res.type('html').send(applyCms(homeHtmlNL, cmsFor('nl'))));
+router.get('/', (req, res) => res.type('html').send(renderHome(homeHtmlNL, 'nl')));
 
 // ── English route handling (/en/*) ──────────────────────────────────────────
 
@@ -429,7 +443,7 @@ try {
 router.get('/en/app', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 router.get(['/en', '/en/'], (req, res) => {
   if (homeHtmlEN) {
-    res.type('html').send(applyCms(homeHtmlEN, cmsFor('en')));
+    res.type('html').send(renderHome(homeHtmlEN, 'en'));
   } else {
     res.sendFile(homeHtmlPath);
   }
@@ -447,7 +461,7 @@ router.get('/en/:page.html', (req, res) => {
 router.get('/es/app', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 router.get(['/es', '/es/'], (req, res) => {
   if (homeHtmlES) {
-    res.type('html').send(applyCms(homeHtmlES, cmsFor('es')));
+    res.type('html').send(renderHome(homeHtmlES, 'es'));
   } else {
     res.sendFile(homeHtmlPath);
   }
@@ -465,7 +479,7 @@ router.get('/es/:page.html', (req, res) => {
 router.get('/de/app', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 router.get(['/de', '/de/'], (req, res) => {
   if (homeHtmlDE) {
-    res.type('html').send(applyCms(homeHtmlDE, cmsFor('de')));
+    res.type('html').send(renderHome(homeHtmlDE, 'de'));
   } else {
     res.sendFile(homeHtmlPath);
   }
