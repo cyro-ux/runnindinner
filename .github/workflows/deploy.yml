@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       # package-lock.json is sinds 19-08-2026 gecommit: npm ci geeft
       # reproduceerbare installs op CI en VPS (en schrijft de lockfile
       # nooit, dus git pull op de VPS blijft conflictvrij).
