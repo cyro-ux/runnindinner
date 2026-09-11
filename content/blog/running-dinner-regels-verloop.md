@@ -11,7 +11,7 @@ keywords: running dinner regels, running dinner verloop, running dinner tijdsche
 
 # Running dinner regels en verloop: zo zit de avond in elkaar
 
-Een running dinner klinkt ingewikkeld, maar volgt een simpel patroon: drie gangen, drie adressen, aan elke tafel nieuwe gezichten. Wie het verloop één keer doorheeft, kan het met 12 of met 120 deelnemers draaien. Dit is het complete verloop met tijdschema en de regels die zich in de praktijk bewezen hebben.
+Een running dinner (in Nederland ook wel [walking dinner](/blog/walking-dinner-organiseren) genoemd) klinkt ingewikkeld, maar volgt een simpel patroon: drie gangen, drie adressen, aan elke tafel nieuwe gezichten. Wie het verloop één keer doorheeft, kan het met 12 of met 120 deelnemers draaien. Dit is het complete verloop met tijdschema en de regels die zich in de praktijk bewezen hebben.
 
 ## Het basisverloop in één zin
 

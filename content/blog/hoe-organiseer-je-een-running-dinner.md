@@ -11,7 +11,7 @@ keywords: running dinner organiseren, lopend diner, running dinner tips, progres
 
 # Hoe organiseer je een running dinner? De complete gids
 
-Een running dinner organiseren is een van de leukste manieren om een avond met vrienden, clubleden of collega's te beleven. Je eet elke gang bij iemand anders thuis, leert nieuwe mensen kennen en maakt van een gewone avond iets bijzonders. Maar hoe pak je de organisatie aan? In deze gids leggen we stap voor stap uit hoe je een running dinner organiseert — van de eerste uitnodiging tot de nazorg achteraf.
+Een running dinner organiseren is een van de leukste manieren om een avond met vrienden, clubleden of collega's te beleven. Je eet elke gang bij iemand anders thuis, leert nieuwe mensen kennen en maakt van een gewone avond iets bijzonders. In Nederland heet hetzelfde concept overigens vaak [walking dinner](/blog/walking-dinner-organiseren) — de organisatie is identiek. Maar hoe pak je die aan? In deze gids leggen we stap voor stap uit hoe je een running dinner organiseert — van de eerste uitnodiging tot de nazorg achteraf.
 
 ---
 

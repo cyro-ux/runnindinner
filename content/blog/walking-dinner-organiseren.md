@@ -2,7 +2,7 @@
 title: Walking dinner organiseren – wat het is en hoe je het regelt
 slug: walking-dinner-organiseren
 locale: nl
-date: 2026-08-21
+date: 2026-09-11
 author: Cyro van Malsen
 draft: false
 description: Een walking dinner organiseren? Wat het verschil is met een running dinner, welke opzet bij jouw groep past en een stappenplan voor de organisatie – van uitnodiging tot tafelindeling.
@@ -11,7 +11,9 @@ keywords: walking dinner organiseren, walking dinner, walking dinner wat is het,
 
 # Walking dinner organiseren: wat het is en hoe je het regelt
 
-"Walking dinner" en "running dinner" worden in Nederland door elkaar gebruikt – en dat zorgt voor verwarring bij het organiseren. Want een walking dinner in een restaurant is iets anders dan een walking dinner door de buurt. In dit artikel zetten we de varianten op een rij en krijg je een stappenplan voor de leukste versie: die waarbij de deelnemers zelf koken en van huis naar huis wandelen.
+**Een walking dinner is een diner waarbij de gasten elke gang op een andere plek eten, met steeds andere tafelgenoten.** In de bekendste vorm kookt elk koppel één gang thuis en wandelen de deelnemers tussen de gangen van adres naar adres – vandaar de naam. Aan het einde sluit iedereen samen af met een borrel.
+
+"Walking dinner" en "running dinner" worden in Nederland door elkaar gebruikt – en dat zorgt voor verwarring bij het organiseren. Want een walking dinner in een restaurant is iets anders dan een walking dinner door de buurt. In dit artikel zetten we de varianten op een rij en krijg je een stappenplan voor de leukste versie: die waarbij de deelnemers zelf koken en van huis naar huis wandelen. De volledige organisatiegids met tijdschema's vind je in [hoe organiseer je een running dinner](/blog/hoe-organiseer-je-een-running-dinner) – alles daar geldt óók voor een walking dinner.
 
 ## Wat is een walking dinner? (betekenis)
 
@@ -37,7 +39,7 @@ Een walking dinner werkt vanaf 9 koppels (18 personen); met 12 tot 24 koppels wo
 
 ## Stappenplan voor de organisatie
 
-1. **Kies een datum en stel de uitnodiging op.** Vraag meteen adres, telefoonnummer, allergieën en de gang-voorkeur uit. Een kant-en-klare uitnodigingstekst vind je in ons artikel over de running dinner uitnodiging.
+1. **Kies een datum en stel de uitnodiging op.** Vraag meteen adres, telefoonnummer, allergieën en de gang-voorkeur uit. Een kant-en-klare uitnodigingstekst vind je in ons artikel met een [running dinner uitnodiging voorbeeld](/blog/running-dinner-uitnodiging-voorbeeld).
 2. **Sluit de aanmeldingen drie weken vooraf.** Controleer of het aantal deelbaar is; een oneven koppel kan als meereiziger met een ander koppel mee.
 3. **Maak de tafelindeling.** Dit is het lastigste deel: wie kookt welke gang, wie zit wanneer bij wie – zonder dubbele ontmoetingen en met wandelbare afstanden. Met de hand is dit avonden puzzelen; een planner doet het in één klik en controleert meteen de loopafstanden tussen de adressen.
 4. **Informeer de gastheren.** Zij horen hoeveel gasten er komen en welke dieetwensen er zijn – niet wíé er komen.
@@ -53,7 +55,11 @@ Een walking dinner werkt vanaf 9 koppels (18 personen); met 12 tot 24 koppels wo
 
 ## Voor wie is een walking dinner ideaal?
 
-Voor buurten en straten die elkaar beter willen leren kennen, voor verenigingen en serviceclubs die leden willen mengen, en voor vriendengroepen die iets anders willen dan het jaarlijkse etentje. Alles wat je nodig hebt is een groep die wil koken en wandelen – en een goede planning.
+Voor buurten en straten die elkaar beter willen leren kennen, voor verenigingen en serviceclubs die leden willen mengen, en voor vriendengroepen die iets anders willen dan het jaarlijkse etentje. Alles wat je nodig hebt is een groep die wil koken en wandelen – en een goede planning. De [regels en het verloop van de avond](/blog/running-dinner-regels-verloop) zijn identiek aan die van een running dinner.
+
+## Liever alles op één locatie?
+
+Geen wandelbare buurt, of gewoon liever iedereen in één ruimte – zoals een clubhuis of dorpshuis? Dan kun je hetzelfde principe binnenshuis draaien: iedereen blijft in dezelfde zaal en schuift per gang door naar een andere tafel, met steeds nieuwe tafelgenoten. De planner heeft daar een speciale zaal-modus voor die de tafelrotatie automatisch uitrekent – zonder adressen of routes. Handig voor clubdiners, gala's en nieuwjaarsborrels; [probeer het in de gratis demo](/demo).
 
 ## Conclusie
 

@@ -49,7 +49,7 @@ router.get('/sitemap.xml', (req, res) => {
   // Static marketing pages: a fixed lastmod stops Google from seeing
   // "everything changed" on each deploy. Bump this date only when the
   // visible content on these pages is meaningfully changed.
-  const STATIC_LASTMOD = '2026-04-21';
+  const STATIC_LASTMOD = '2026-09-11';
 
   // Pages with NL + EN + ES + DE alternates
   const multilingualPages = [
@@ -126,13 +126,13 @@ try {
   // 2. <title>
   html = html.replace(
     /<title>[^<]+<\/title>/,
-    '<title>Running Dinner Planner – Plan Your Running Dinner in Minutes</title>'
+    '<title>Running Dinner Planner – Plan in Minutes | Free Demo</title>'
   );
 
   // 3. <meta name="description">
   html = html.replace(
     /<meta name="description" content="[^"]*">/,
-    '<meta name="description" content="Built by an organiser, for organisers. From spreadsheet chaos to planning in minutes. Subscription only €5 per year.">'
+    '<meta name="description" content="Automatic table assignments, routes and envelope cards for your running or progressive dinner. Try the free demo — full access is just €5 per year.">'
   );
 
   // 4. <meta name="keywords">
@@ -234,13 +234,13 @@ try {
   // 2. <title>
   html = html.replace(
     /<title>[^<]+<\/title>/,
-    '<title>Running Dinner Planner – Cena itinerante en minutos</title>'
+    '<title>Running Dinner Planner – Cena itinerante | Demo gratis</title>'
   );
 
   // 3. <meta description>
   html = html.replace(
     /<meta name="description" content="[^"]*">/,
-    '<meta name="description" content="Creado por un organizador, para organizadores. Del caos de hojas de cálculo a la planificación en minutos. Suscripción de solo €5 al año.">'
+    '<meta name="description" content="Mesas, rutas y tarjetas sorpresa automáticas para tu cena itinerante. Prueba la demo gratis — acceso completo por solo 5 € al año.">'
   );
 
   // 4. keywords
@@ -342,13 +342,13 @@ try {
   // 2. <title>
   html = html.replace(
     /<title>[^<]+<\/title>/,
-    '<title>Running Dinner Planner – Running Dinner in Minuten planen</title>'
+    '<title>Running Dinner in Minuten planen – Gratis-Demo</title>'
   );
 
   // 3. <meta description>
   html = html.replace(
     /<meta name="description" content="[^"]*">/,
-    '<meta name="description" content="Von einem Organisator für Organisatoren entwickelt. Vom Tabellenchaos zur fertigen Planung in Minuten. Abonnement für nur €5 pro Jahr.">'
+    '<meta name="description" content="Automatische Tischverteilung, Routen und Umschlagkarten für dein Running Dinner. Teste die Gratis-Demo — voller Zugang für nur 5 € im Jahr.">'
   );
 
   // 4. keywords
