@@ -11,7 +11,7 @@ keywords: progressive dinner, organise progressive dinner, running dinner, progr
 
 # How to Organise a Progressive Dinner: The Complete Guide
 
-A progressive dinner is one of the most enjoyable ways to spend an evening with friends, club members or colleagues. Each course is served at a different home, you meet new people at every table, and an ordinary evening becomes something truly memorable. But how do you organise one? This guide walks you through every step — from the first invitation to the follow-up afterwards.
+A progressive dinner is one of the most enjoyable ways to spend an evening with friends, club members or colleagues. Each course is served at a different home, you meet new people at every table, and an ordinary evening becomes something truly memorable. In the UK the same format is known as a [safari supper](/en/blog/safari-supper-how-to-organise), in Europe as a running dinner — the organisation is identical. But how do you organise one? This guide walks you through every step — from the first invitation to the follow-up afterwards.
 
 ---
 
