@@ -760,7 +760,10 @@ const segmentHtmlCache = {}; // key: `${slug}:${locale}` → html
 try {
   const langJSONs = {};
   for (const l of SUPPORTED_LANGS) {
-    try { langJSONs[l] = require(`./public/lang/${l}.json`); } catch { langJSONs[l] = {}; }
+    // Let op: require('./public/...') zou relatief aan routes/ zoeken en
+    // stil {} opleveren — daardoor werden de vertaalde titles nooit toegepast.
+    try { langJSONs[l] = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'lang', `${l}.json`), 'utf8')); }
+    catch { langJSONs[l] = {}; }
   }
 
   for (const slug of SEGMENT_SLUGS) {
@@ -780,6 +783,10 @@ try {
 
       // <html lang="nl"> → correct locale
       html = html.replace('<html lang="nl">', `<html lang="${locale}">`);
+
+      // Body server-side vertalen (crawlers zagen anders NL-tekst op /de|/en|/es);
+      // client-side i18n blijft draaien en is idempotent.
+      if (locale !== 'nl') html = applyI18n(html, langJSONs[locale]);
 
       // Vervang <title> en <meta description> met locale-specifieke SEO-tekst.
       // Voor NL blijft de NL-default (geen seo_title in nl.json).

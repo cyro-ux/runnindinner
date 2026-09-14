@@ -55,7 +55,7 @@ Een walking dinner werkt vanaf 9 koppels (18 personen); met 12 tot 24 koppels wo
 
 ## Voor wie is een walking dinner ideaal?
 
-Voor buurten en straten die elkaar beter willen leren kennen, voor verenigingen en serviceclubs die leden willen mengen, en voor vriendengroepen die iets anders willen dan het jaarlijkse etentje. Alles wat je nodig hebt is een groep die wil koken en wandelen – en een goede planning. De [regels en het verloop van de avond](/blog/running-dinner-regels-verloop) zijn identiek aan die van een running dinner.
+Voor buurten en straten die elkaar beter willen leren kennen, voor [verenigingen](/verenigingen) en [serviceclubs](/service-clubs) die leden willen mengen, en voor [vriendengroepen](/vriendengroepen) die iets anders willen dan het jaarlijkse etentje. Alles wat je nodig hebt is een groep die wil koken en wandelen – en een goede planning. De [regels en het verloop van de avond](/blog/running-dinner-regels-verloop) zijn identiek aan die van een running dinner.
 
 ## Liever alles op één locatie?
 

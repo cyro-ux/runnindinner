@@ -923,8 +923,8 @@
       "benefit3_text": "Once a year €5 for the whole club. Different chair next year? Share or transfer the login — no hassle with per-person licences.",
       "benefit4_title": "Dietary & allergy management",
       "benefit4_text": "Less worry about the guest with a nut allergy or the vegetarian — every host automatically gets an overview of what their table wants to eat.",
-      "benefit5_title": "Routes as part of the event",
-      "benefit5_text": "Participants receive their route in a sealed envelope — the surprise stays, and so does the logistics. Unique for a service club dinner.",
+      "benefit5_title": "Club dinner in one venue? Table rotation built in",
+      "benefit5_text": "For a fundraising dinner or gala in a single room: venue mode assigns numbered tables with new table companions every course — no addresses or routes needed.",
       "benefit6_title": "Branding on cards and emails",
       "benefit6_text": "Your club logo appears on participant pages and emails. It feels like a real club event, not a generic tool.",
       "quote": "\"The events committee has saved two full weekends. Proceeds rose by 35% because we could make the donation page visible to participants.\"",
@@ -952,7 +952,9 @@
       "pricing_title": "About the price of a portion of chips",
       "pricing_subtitle": "For a whole club. For a whole year.",
       "price_note": "per year, VAT included",
-      "cta2": "Start now →"
+      "cta2": "Start now →",
+      "benefit5_title": "Also in the clubhouse or one hall",
+      "benefit5_text": "No walking routes — everyone in one room? Venue mode creates numbered tables with a new seating every course. Ideal for introduction weeks, galas and club nights."
     },
     "vrienden": {
       "seo_title": "Running Dinner with Friends & Neighbours | €5/year",
@@ -971,7 +973,9 @@
       "benefit4_text": "Share a single link in your WhatsApp group, participants sign up themselves with dietary needs. No fuss collecting addresses.",
       "pricing_title": "Less than one meal, for all the meals of the year",
       "price_note": "per year, VAT included",
-      "cta2": "Organise now →"
+      "cta2": "Organise now →",
+      "benefit5_title": "Or everything in one place",
+      "benefit5_text": "Rather not walk across town? With venue mode everyone stays in one location and you switch tables every course — great for a party room, holiday home or big house."
     }
   },
   "usecases": {

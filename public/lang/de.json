@@ -923,8 +923,8 @@
       "benefit3_text": "Einmal im Jahr 5 € für den gesamten Club. Nächstes Jahr ein anderer Vorsitzender? Login teilen oder übertragen — kein Ärger mit Lizenzen pro Person.",
       "benefit4_title": "Diät- und Allergieverwaltung",
       "benefit4_text": "Weniger Sorgen um den Gast mit Nussallergie oder den Vegetarier — jeder Gastgeber erhält automatisch eine Übersicht, was an seinem Tisch gegessen werden möchte.",
-      "benefit5_title": "Routen als Teil des Events",
-      "benefit5_text": "Die Teilnehmer erhalten ihre Route in einem versiegelten Umschlag — die Überraschung bleibt, die Logistik auch. Einzigartig für ein Service-Club-Dinner.",
+      "benefit5_title": "Clubdinner in einem Saal? Tischrotation eingebaut",
+      "benefit5_text": "Für ein Benefizdinner oder eine Gala in einem Raum: Der Saal-Modus verteilt nummerierte Tische mit neuen Tischnachbarn pro Gang — ganz ohne Adressen oder Routen.",
       "benefit6_title": "Branding auf Karten und E-Mails",
       "benefit6_text": "Ihr Club-Logo erscheint auf Teilnehmerseiten und E-Mails. Es wirkt wie ein echtes Club-Event, nicht wie ein generisches Tool.",
       "quote": "\"Der Veranstaltungsausschuss hat zwei Wochenenden gespart. Der Erlös ist um 35 % gestiegen, weil wir die Spendenseite für die Teilnehmer sichtbar machen konnten.\"",
@@ -952,7 +952,9 @@
       "pricing_title": "Etwa eine Portion Pommes",
       "pricing_subtitle": "Für einen ganzen Verein. Ein Jahr lang.",
       "price_note": "pro Jahr, inkl. MwSt.",
-      "cta2": "Jetzt starten →"
+      "cta2": "Jetzt starten →",
+      "benefit5_title": "Auch im Vereinsheim oder in einem Saal",
+      "benefit5_text": "Keine Laufwege, alle in einem Raum? Der Saal-Modus erstellt nummerierte Tische mit neuer Verteilung pro Gang. Ideal für Einführungswochen, Galas und Clubabende."
     },
     "vrienden": {
       "seo_title": "Running Dinner mit Freunden & Nachbarn | 5 €/Jahr",
@@ -971,7 +973,9 @@
       "benefit4_text": "Teilen Sie einen einzigen Link in Ihrer WhatsApp-Gruppe, die Teilnehmer melden sich selbst mit ihren Ernährungswünschen an. Kein Aufwand beim Einsammeln von Adressen.",
       "pricing_title": "Weniger als eine Mahlzeit, für alle Mahlzeiten des Jahres",
       "price_note": "pro Jahr, inkl. MwSt.",
-      "cta2": "Jetzt organisieren →"
+      "cta2": "Jetzt organisieren →",
+      "benefit5_title": "Oder alles an einem Ort",
+      "benefit5_text": "Lieber nicht durch die Stadt laufen? Im Saal-Modus bleiben alle an einem Ort und wechseln pro Gang den Tisch — perfekt für einen Festsaal, ein Ferienhaus oder ein großes Haus."
     }
   },
   "usecases": {

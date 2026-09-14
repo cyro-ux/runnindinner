@@ -923,8 +923,8 @@
       "benefit3_text": "Una vez al año 5 € para todo el club. ¿Cambia el presidente el año que viene? Comparte o transfiere el login — sin complicaciones con licencias por persona.",
       "benefit4_title": "Gestión de dietas y alergias",
       "benefit4_text": "Menos preocupaciones por el invitado con alergia a los frutos secos o el vegetariano — cada anfitrión recibe automáticamente un resumen de lo que su mesa quiere comer.",
-      "benefit5_title": "Rutas como parte del evento",
-      "benefit5_text": "Los participantes reciben su ruta en un sobre cerrado — la sorpresa se mantiene, y la logística también. Único para una cena de club de servicio.",
+      "benefit5_title": "¿Cena de club en un solo lugar? Rotación de mesas incluida",
+      "benefit5_text": "Para una cena benéfica o gala en una sola sala: el modo salón asigna mesas numeradas con nuevos compañeros en cada plato — sin direcciones ni rutas.",
       "benefit6_title": "Branding en tarjetas y correos",
       "benefit6_text": "El logo de tu club aparece en las páginas de los participantes y en los correos. Se siente como un evento real del club, no como una herramienta genérica.",
       "quote": "\"El comité de eventos se ha ahorrado dos fines de semana completos. La recaudación ha subido un 35 % porque pudimos mostrar la página de donaciones a los participantes.\"",
@@ -952,7 +952,9 @@
       "pricing_title": "Aproximadamente una ración de patatas fritas",
       "pricing_subtitle": "Para toda una asociación. Durante un año entero.",
       "price_note": "al año, IVA incluido",
-      "cta2": "Empieza ahora →"
+      "cta2": "Empieza ahora →",
+      "benefit5_title": "También en la sede o en un solo salón",
+      "benefit5_text": "¿Sin rutas a pie y todos en una sala? El modo salón crea mesas numeradas con una distribución nueva en cada plato. Ideal para semanas de bienvenida, galas y noches de club."
     },
     "vrienden": {
       "seo_title": "Cena itinerante con amigos y vecinos | 5 €/año",
@@ -971,7 +973,9 @@
       "benefit4_text": "Comparte un único enlace en tu grupo de WhatsApp y los participantes se registran ellos mismos indicando sus necesidades dietéticas. Sin líos para recoger direcciones.",
       "pricing_title": "Menos que una comida, para todas las comidas del año",
       "price_note": "al año, IVA incluido",
-      "cta2": "Organiza ahora →"
+      "cta2": "Organiza ahora →",
+      "benefit5_title": "O todo en un mismo sitio",
+      "benefit5_text": "¿Prefieres no cruzar la ciudad? Con el modo salón todos se quedan en un lugar y cambiáis de mesa en cada plato — ideal para un salón de fiestas, casa rural o casa grande."
     }
   },
   "usecases": {

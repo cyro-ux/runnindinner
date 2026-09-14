@@ -19,7 +19,7 @@ Bei einem normalen Menü sprichst du den ganzen Abend mit den zwei Personen nebe
 
 Das funktioniert hervorragend für:
 
-- **Vereins- und Clubdinner** – neue und langjährige Mitglieder lernen sich endlich kennen
+- **[Vereins- und Clubdinner](/de/verenigingen)** – neue und langjährige Mitglieder lernen sich endlich kennen
 - **Galas und Jubiläumsessen** – die Tische bleiben keine Inseln
 - **Netzwerkabende** – strukturiertes Mischen ohne verkrampftes Small-Talk-Gefühl
 - **Neujahrsempfänge und Teamessen** – jeder spricht mit jedem

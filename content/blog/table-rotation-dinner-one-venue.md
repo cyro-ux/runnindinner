@@ -19,7 +19,7 @@ At a classic sit-down dinner, you speak to the two people next to you and nobody
 
 It works brilliantly for:
 
-- **Club and society dinners** – new and old members actually meet
+- **[Club and society dinners](/en/verenigingen)** – new and old members actually meet
 - **Galas and anniversary dinners** – tables stop being islands
 - **Networking events** – structured mingling without the awkwardness
 - **New Year's receptions and team dinners** – everyone speaks to everyone
