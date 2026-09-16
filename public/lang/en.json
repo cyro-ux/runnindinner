@@ -767,6 +767,9 @@
       "rotate_hint": "By default a drinks round is plenary (everyone together in the room). As a table round it rotates too — giving you up to 7 rotating courses. Rename the slot as you like (e.g. \"Cheese & Biscuits\") and set its start time at the right moment; the order follows the times.",
       "rotate_extra1": "Extra course 1 as a table round",
       "rotate_extra2": "Extra course 2 as a table round"
+    },
+    "whatsnew": {
+      "dismiss": "Got it"
     }
   },
   "legal": {

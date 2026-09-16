@@ -767,6 +767,9 @@
       "rotate_hint": "Por defecto una ronda de bebidas es plenaria (todos juntos en el salón). Como ronda de mesa también rota — así consigues hasta 7 platos rotatorios. Renombra la ronda como quieras (p. ej. \"Tabla de quesos\") y ajusta su hora de inicio; el orden sigue los horarios.",
       "rotate_extra1": "Plato extra 1 como ronda de mesa",
       "rotate_extra2": "Plato extra 2 como ronda de mesa"
+    },
+    "whatsnew": {
+      "dismiss": "Entendido"
     }
   },
   "legal": {

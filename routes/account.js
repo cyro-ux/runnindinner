@@ -8,6 +8,7 @@
 
 const express = require('express');
 const { asyncHandler } = require('../lib/async-handler');
+const announcements = require('../lib/announcements');
 
 module.exports = function accountRoutes(deps) {
   const {
@@ -417,6 +418,21 @@ router.put('/api/user/language', requireAuth, (req, res) => {
 // koppels incl. planningresultaat).
 
 const PLANNER_STATE_MAX = 400 * 1024;
+
+// ── "Wat is er nieuw": ongeziene release-aankondigingen (zie lib/announcements.js)
+router.get('/api/announcements', requireAuth, (req, res) => {
+  const user = db.prepare(
+    'SELECT created_at, announcements_seen_at FROM users WHERE id = ?'
+  ).get(req.user.id);
+  if (!user) return res.status(404).json({ ok: false });
+  res.json({ ok: true, items: announcements.unseenFor(user) });
+});
+
+router.post('/api/announcements/seen', requireAuth, (req, res) => {
+  db.prepare('UPDATE users SET announcements_seen_at = ? WHERE id = ?')
+    .run(Date.now(), req.user.id);
+  res.json({ ok: true });
+});
 
 router.get('/api/planner/state', requireAuth, (req, res) => {
   const row = db.prepare(

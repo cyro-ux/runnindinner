@@ -767,6 +767,9 @@
       "rotate_hint": "Standardmäßig ist eine Getränkerunde plenar (alle zusammen im Saal). Als Tischrunde rotiert auch sie — so sind bis zu 7 rotierende Gänge möglich. Benenne den Slot nach Wunsch um (z. B. \"Käseplatte\") und setze die Startzeit an die richtige Stelle; die Reihenfolge folgt den Zeiten.",
       "rotate_extra1": "Extragang 1 als Tischrunde",
       "rotate_extra2": "Extragang 2 als Tischrunde"
+    },
+    "whatsnew": {
+      "dismiss": "Verstanden"
     }
   },
   "legal": {

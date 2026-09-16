@@ -117,6 +117,15 @@ describe('runningdinner.app smoke tests', () => {
     assert.equal(r.body?.user?.is_business, false, 'consumer account');
   });
 
+  test('announcements: fresh account gets no backlog, seen-endpoint works', async () => {
+    const r = await req('GET', '/api/announcements');
+    assert.equal(r.status, 200);
+    assert.equal(r.body?.ok, true);
+    assert.deepEqual(r.body?.items, [], 'nieuw account ziet geen oude aankondigingen');
+    const seen = await req('POST', '/api/announcements/seen');
+    assert.equal(seen.status, 200);
+  });
+
   test('referral overview works for a logged-in user', async () => {
     // Regressie: REFERRAL_THRESHOLD bleef bij de router-split in server.js
     // achter → ReferenceError (Sentry 4-9-2026). Deze route raakt die code.
