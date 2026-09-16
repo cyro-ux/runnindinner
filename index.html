@@ -130,6 +130,20 @@
             </div>
           </div>
           <p class="hint" data-i18n="app.venue.hint">Iedereen blijft in dezelfde zaal en schuift per gang door naar een andere tafel, met steeds nieuwe tafelgenoten. Adressen en routes zijn niet nodig; de tafelgrootte stel je hierboven in bij de algemene instellingen.</p>
+          <div class="form-group" id="venue-social-rotate" style="margin-top:12px">
+            <label data-i18n="app.venue.rotate_label">Ook tafelrotatie bij de borrel-rondes</label>
+            <div style="display:flex;gap:24px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="venue-rotate-voorborrel" data-change="venueSocialRotate" data-arg="voorborrel">
+                <span data-i18n="app.venue.rotate_voorborrel">Voorborrel als tafelronde</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="venue-rotate-naborrel" data-change="venueSocialRotate" data-arg="naborrel">
+                <span data-i18n="app.venue.rotate_naborrel">Naborrel als tafelronde</span>
+              </label>
+            </div>
+            <p class="hint" data-i18n="app.venue.rotate_hint">Standaard is een borrel plenair (iedereen samen in de zaal). Als tafelronde schuift ook die ronde door — zo maak je tot 5 roterende gangen. Hernoem het slot naar wens (bv. "Cheese &amp; Biscuits") en zet de starttijd op het juiste moment in de avond; de volgorde volgt de tijden.</p>
+          </div>
         </div>
       </div>
 
@@ -544,13 +558,13 @@
   <!-- Demo-mode controller (zelf-uit als URL-pad geen /demo is) -->
   <script src="/demo-mode.js?v=13"></script>
   <!-- Planner-scripts: volgorde = lib/planner-files.js (bewaakt door test) -->
-  <script src="js/planner/01-core.js?v=venue1"></script>
+  <script src="js/planner/01-core.js?v=rot1"></script>
   <script src="js/planner/02-participants.js?v=venue1"></script>
-  <script src="js/planner/03-planning.js?v=venue1"></script>
+  <script src="js/planner/03-planning.js?v=rot1"></script>
   <script src="js/planner/04-overview.js?v=venue1"></script>
   <script src="js/planner/05-extras.js?v=split1"></script>
-  <script src="js/planner/06-ui.js?v=venue1"></script>
-  <script src="js/planner/07-sync.js?v=3"></script>
+  <script src="js/planner/06-ui.js?v=rot1"></script>
+  <script src="js/planner/07-sync.js?v=4"></script>
   <script src="js/page-boot.js?v=1"></script>
 </body>
 </html>

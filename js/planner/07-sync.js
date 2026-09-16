@@ -54,6 +54,8 @@
       cb.checked = Boolean(c.optionalCourses && c.optionalCourses[course]);
       // change-event laat de bestaande listener de tijd-config tonen/verbergen
       cb.dispatchEvent(new Event('change'));
+      var rot = document.getElementById('venue-rotate-' + course);
+      if (rot) rot.checked = Boolean(c.venueSocialRotate && c.venueSocialRotate[course]);
     });
   }
 

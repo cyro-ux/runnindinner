@@ -754,7 +754,11 @@
       "name_placeholder": "z. B. Das Clubhaus",
       "tables_label": "Anzahl Tische (leer = automatisch)",
       "hint": "Alle bleiben im selben Raum und wechseln pro Gang an einen anderen Tisch — jedes Mal neue Tischnachbarn. Keine Adressen oder Routen nötig; die Tischgröße stellen Sie oben ein.",
-      "default_name": "der Saal"
+      "default_name": "der Saal",
+      "rotate_label": "Tischrotation auch bei den Getränkerunden",
+      "rotate_voorborrel": "Aperitif als Tischrunde",
+      "rotate_naborrel": "Absacker als Tischrunde",
+      "rotate_hint": "Standardmäßig ist eine Getränkerunde plenar (alle zusammen im Saal). Als Tischrunde rotiert auch sie — so sind bis zu 5 rotierende Gänge möglich. Benenne den Slot nach Wunsch um (z. B. \"Käseplatte\") und setze die Startzeit an die richtige Stelle; die Reihenfolge folgt den Zeiten."
     }
   },
   "legal": {

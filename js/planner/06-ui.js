@@ -235,6 +235,10 @@ document.addEventListener('click', (e) => {
 const UI_CHANGE = {
   venueMode:               (el) => setVenueMode(el.value),
   venueTables:             (el) => { const n = parseInt(el.value, 10); state.config.venueTables = (Number.isFinite(n) && n >= 2) ? n : null; },
+  venueSocialRotate:       (el) => {
+    if (!state.config.venueSocialRotate) state.config.venueSocialRotate = { voorborrel: false, naborrel: false };
+    state.config.venueSocialRotate[el.dataset.arg] = el.checked;
+  },
   importParticipantsFromFile: (el, e) => importParticipantsFromFile(e),
   updateForcedCombo:       (el) => updateForcedCombo(parseInt(el.dataset.id, 10), el.dataset.field, el.value),
   toggleForcedComboCourse: (el) => toggleForcedComboCourse(parseInt(el.dataset.id, 10), el.dataset.course, el.checked),

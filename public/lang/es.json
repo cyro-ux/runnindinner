@@ -754,7 +754,11 @@
       "name_placeholder": "P. ej. El Club",
       "tables_label": "Número de mesas (vacío = automático)",
       "hint": "Todos permanecen en la misma sala y cambian de mesa en cada plato, conociendo gente nueva cada vez. No se necesitan direcciones ni rutas; el tamaño de mesa se define arriba.",
-      "default_name": "la sala"
+      "default_name": "la sala",
+      "rotate_label": "Rotación de mesas también en las rondas de bebidas",
+      "rotate_voorborrel": "Aperitivo como ronda de mesa",
+      "rotate_naborrel": "Copa final como ronda de mesa",
+      "rotate_hint": "Por defecto una ronda de bebidas es plenaria (todos juntos en el salón). Como ronda de mesa también rota — así consigues hasta 5 platos rotatorios. Renombra la ronda como quieras (p. ej. \"Tabla de quesos\") y ajusta su hora de inicio; el orden sigue los horarios."
     }
   },
   "legal": {

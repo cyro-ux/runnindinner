@@ -754,7 +754,11 @@
       "name_placeholder": "E.g. The Clubhouse",
       "tables_label": "Number of tables (empty = automatic)",
       "hint": "Everyone stays in the same room and moves to a different table for each course, meeting new tablemates every time. No addresses or routes needed; table size is set in the general settings above.",
-      "default_name": "the venue"
+      "default_name": "the venue",
+      "rotate_label": "Table rotation for the drinks rounds too",
+      "rotate_voorborrel": "Pre-dinner drinks as a table round",
+      "rotate_naborrel": "After-party drinks as a table round",
+      "rotate_hint": "By default a drinks round is plenary (everyone together in the room). As a table round it rotates too — giving you up to 5 rotating courses. Rename the slot as you like (e.g. \"Cheese & Biscuits\") and set its start time at the right moment; the order follows the times."
     }
   },
   "legal": {

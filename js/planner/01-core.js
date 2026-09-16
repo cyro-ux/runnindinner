@@ -24,6 +24,9 @@ const state = {
   config: {
     courses: ['voorgerecht', 'hoofdgerecht', 'nagerecht'],
     optionalCourses: { voorborrel: false, naborrel: false },
+    // Zaal-modus: borrel-slots kunnen optioneel als tafelronde meedraaien
+    // (i.p.v. plenair) — zo zijn tot 5 roterende "gangen" mogelijk.
+    venueSocialRotate: { voorborrel: false, naborrel: false },
     times: {
       voorborrel: { start: '17:00', duration: 45 },
       voorgerecht: { start: '18:00', duration: 45 },
@@ -206,10 +209,24 @@ const COURSE_ICONS = {
 
 function getActiveCourses() {
   const order = ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'naborrel'];
-  return order.filter(c => {
+  const active = order.filter(c => {
     if (c === 'voorgerecht' || c === 'hoofdgerecht' || c === 'nagerecht') return true;
     return state.config.optionalCourses[c];
   });
+  // Volgorde = ingestelde starttijd, zodat een hernoemd borrel-slot vrij in
+  // de avond geplaatst kan worden (bv. voorborrel -> "Cheese & Biscuits" ná
+  // het dessert). Zonder geldige tijd of bij gelijke tijden geldt de
+  // klassieke volgorde.
+  const toMinutes = (c) => {
+    const t = state.config.times && state.config.times[c] && state.config.times[c].start;
+    if (!/^\d{1,2}:\d{2}$/.test(t || '')) return null;
+    const parts = t.split(':');
+    return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+  };
+  return active
+    .map((c, i) => ({ c, i, m: toMinutes(c) }))
+    .sort((a, b) => (a.m !== null && b.m !== null && a.m !== b.m) ? a.m - b.m : a.i - b.i)
+    .map(x => x.c);
 }
 
 // ---- Navigation ----
