@@ -104,10 +104,18 @@ jobs:
             pm2 reload running-dinner-prod --update-env
             # Health check: retry up to 10× met 1s pauze (PM2 reload duurt
             # soms langer dan een vaste 2s sleep; deze aanpak is robuuster)
+            ok=0
             for i in 1 2 3 4 5 6 7 8 9 10; do
               if curl -sf http://localhost:3000/api/mollie/price > /dev/null; then
-                echo "Health check OK (na $i s)"; exit 0
+                echo "Health check OK (na $i s)"; ok=1; break
               fi
               sleep 1
             done
-            echo "Health check FAILED na 10s"; exit 1
+            if [ "$ok" != "1" ]; then echo "Health check FAILED na 10s"; exit 1; fi
+            # IndexNow: gewijzigde content direct bij Bing/DuckDuckGo melden.
+            # Mag falen zonder de deploy te breken (|| true).
+            EMAIL=$(grep '^ADMIN_EMAIL=' .env | cut -d= -f2)
+            PASS=$(grep '^ADMIN_PASSWORD=' .env | cut -d= -f2)
+            TOKEN=$(curl -s -c - -X POST http://localhost:3000/api/auth/login -H 'Content-Type: application/json' -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\"}" | grep token | awk '{print $NF}') || true
+            curl -s -X POST -H "Cookie: token=$TOKEN" http://localhost:3000/api/admin/indexnow || true
+            echo "IndexNow ping verstuurd"

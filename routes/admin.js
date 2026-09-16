@@ -9,6 +9,7 @@
 const express = require('express');
 const os = require('os'); // servermetrics in /api/admin/stats
 const gsc = require('../lib/gsc');
+const indexnow = require('../lib/indexnow');
 const { asyncHandler } = require('../lib/async-handler');
 
 module.exports = function adminRoutes(deps) {
@@ -869,6 +870,17 @@ router.get('/api/admin/gsc', requireAdmin, asyncHandler(async (req, res) => {
   if (req.query.page) filters.push({ dimension: 'page', operator: 'contains', expression: String(req.query.page) });
   if (req.query.country) filters.push({ dimension: 'country', operator: 'equals', expression: String(req.query.country).toLowerCase() });
   const result = await gsc.query({ days, dimensions: [dimension], rowLimit: limit, filters });
+  res.json({ ok: true, ...result });
+}));
+
+// ── IndexNow: alle sitemap-URL's aanmelden bij Bing/DuckDuckGo/Yandex ─────
+// Aangeroepen door de deploy na elke prod-release (zie deploy.yml).
+router.post('/api/admin/indexnow', requireAdmin, asyncHandler(async (req, res) => {
+  // Alleen prod: acc-URL's horen niet bij zoekmachines aangemeld te worden.
+  if (!/^https:\/\/runningdinner\.app$/.test(BASE_URL)) {
+    return res.status(400).json({ ok: false, error: 'IndexNow alleen op prod (BASE_URL is ' + BASE_URL + ')' });
+  }
+  const result = await indexnow.submitSitemap(BASE_URL);
   res.json({ ok: true, ...result });
 }));
 
