@@ -304,7 +304,9 @@
       "voorgerecht": "Entrante",
       "hoofdgerecht": "Plato principal",
       "nagerecht": "Postre",
-      "naborrel": "Copas finales"
+      "naborrel": "Copas finales",
+      "extra1": "Plato extra 1",
+      "extra2": "Plato extra 2"
     },
     "steps": {
       "step1_btn": "1. Configuración",
@@ -350,7 +352,9 @@
       "transport_driving": "Coche",
       "max_distance": "Distancia máxima por ruta",
       "rename_prompt": "Nuevo nombre para este plato (vacío = nombre estándar):",
-      "rename_title": "Renombrar plato"
+      "rename_title": "Renombrar plato",
+      "time_extra1": "Hora de inicio plato extra 1",
+      "time_extra2": "Hora de inicio plato extra 2"
     },
     "participants": {
       "title": "Participantes",
@@ -758,7 +762,9 @@
       "rotate_label": "Rotación de mesas también en las rondas de bebidas",
       "rotate_voorborrel": "Aperitivo como ronda de mesa",
       "rotate_naborrel": "Copa final como ronda de mesa",
-      "rotate_hint": "Por defecto una ronda de bebidas es plenaria (todos juntos en el salón). Como ronda de mesa también rota — así consigues hasta 5 platos rotatorios. Renombra la ronda como quieras (p. ej. \"Tabla de quesos\") y ajusta su hora de inicio; el orden sigue los horarios."
+      "rotate_hint": "Por defecto una ronda de bebidas es plenaria (todos juntos en el salón). Como ronda de mesa también rota — así consigues hasta 7 platos rotatorios. Renombra la ronda como quieras (p. ej. \"Tabla de quesos\") y ajusta su hora de inicio; el orden sigue los horarios.",
+      "rotate_extra1": "Plato extra 1 como ronda de mesa",
+      "rotate_extra2": "Plato extra 2 como ronda de mesa"
     }
   },
   "legal": {

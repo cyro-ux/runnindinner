@@ -4,7 +4,7 @@
 // geen modules: functies zijn globaal over de delen heen.
 // ---- Social Location Config (Step 3) ----
 function renderSocialLocationConfig() {
-  const activeSocial = ['voorborrel', 'naborrel'].filter(c => state.config.optionalCourses[c]);
+  const activeSocial = ['voorborrel', 'extra1', 'extra2', 'naborrel'].filter(c => state.config.optionalCourses[c]);
   const card = document.getElementById('social-locations-card');
 
   if (activeSocial.length === 0) {

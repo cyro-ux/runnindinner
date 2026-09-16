@@ -42,13 +42,13 @@
     setVal('max-table-size', c.maxTableSize);
     setVal('transport-mode', c.transportMode);
     setVal('max-distance-km', c.maxDistanceKm);
-    ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'naborrel'].forEach(function (course) {
+    ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'extra1', 'extra2', 'naborrel'].forEach(function (course) {
       var tm = c.times && c.times[course];
       if (!tm) return;
       setVal(course + '-start', tm.start);
       setVal(course + '-duration', tm.duration);
     });
-    ['voorborrel', 'naborrel'].forEach(function (course) {
+    ['voorborrel', 'naborrel', 'extra1', 'extra2'].forEach(function (course) {
       var cb = document.getElementById('has-' + course);
       if (!cb) return;
       cb.checked = Boolean(c.optionalCourses && c.optionalCourses[course]);
@@ -61,6 +61,12 @@
 
   function applyServerState(s) {
     state.config = Object.assign({}, state.config, s.config || {});
+    // Oudere opgeslagen states kennen de extra slots nog niet: vul de
+    // rotate-defaults aan (extra gangen roteren standaard in zaal-modus).
+    state.config.venueSocialRotate = Object.assign(
+      { voorborrel: false, naborrel: false, extra1: true, extra2: true },
+      state.config.venueSocialRotate || {}
+    );
     state.participants = Array.isArray(s.participants) ? s.participants : [];
     state.forcedCombos = Array.isArray(s.forcedCombos) ? s.forcedCombos : [];
     state.socialHosts = s.socialHosts || { voorborrel: null, naborrel: null };

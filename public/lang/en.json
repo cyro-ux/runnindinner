@@ -304,7 +304,9 @@
       "voorgerecht": "Starter",
       "hoofdgerecht": "Main course",
       "nagerecht": "Dessert",
-      "naborrel": "After-party drinks"
+      "naborrel": "After-party drinks",
+      "extra1": "Extra course 1",
+      "extra2": "Extra course 2"
     },
     "steps": {
       "step1_btn": "1. Configuration",
@@ -350,7 +352,9 @@
       "transport_driving": "Car",
       "max_distance": "Maximum distance per route",
       "rename_prompt": "New name for this course (leave empty = default name):",
-      "rename_title": "Rename course"
+      "rename_title": "Rename course",
+      "time_extra1": "Extra course 1 start time",
+      "time_extra2": "Extra course 2 start time"
     },
     "participants": {
       "title": "Participants",
@@ -758,7 +762,9 @@
       "rotate_label": "Table rotation for the drinks rounds too",
       "rotate_voorborrel": "Pre-dinner drinks as a table round",
       "rotate_naborrel": "After-party drinks as a table round",
-      "rotate_hint": "By default a drinks round is plenary (everyone together in the room). As a table round it rotates too — giving you up to 5 rotating courses. Rename the slot as you like (e.g. \"Cheese & Biscuits\") and set its start time at the right moment; the order follows the times."
+      "rotate_hint": "By default a drinks round is plenary (everyone together in the room). As a table round it rotates too — giving you up to 7 rotating courses. Rename the slot as you like (e.g. \"Cheese & Biscuits\") and set its start time at the right moment; the order follows the times.",
+      "rotate_extra1": "Extra course 1 as a table round",
+      "rotate_extra2": "Extra course 2 as a table round"
     }
   },
   "legal": {

@@ -33,10 +33,12 @@ function generatePlanning(participantOrder) {
 
   const allCourses = courses;
   allCourses.forEach(course => {
-    // Zaal-modus: een borrel-slot kan optioneel als tafelronde meedraaien
+    // Alles behalve de drie kookgangen is een "sociaal" slot (borrels en
+    // extra gangen). In zaal-modus kan zo'n slot als tafelronde meedraaien
     // (venueSocialRotate) — dan valt hij door naar de gewone tafelindeling.
+    const isHostCourse = course === 'voorgerecht' || course === 'hoofdgerecht' || course === 'nagerecht';
     const rotateSocial = isVenueMode() && state.config.venueSocialRotate && state.config.venueSocialRotate[course];
-    if ((course === 'voorborrel' || course === 'naborrel') && !rotateSocial) {
+    if (!isHostCourse && !rotateSocial) {
       // Everyone gathers at one location (or defined location)
       planning[course] = createSocialCourse(course, participants);
       return;

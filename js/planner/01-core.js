@@ -23,16 +23,19 @@ function escapeHtml(str) {
 const state = {
   config: {
     courses: ['voorgerecht', 'hoofdgerecht', 'nagerecht'],
-    optionalCourses: { voorborrel: false, naborrel: false },
-    // Zaal-modus: borrel-slots kunnen optioneel als tafelronde meedraaien
-    // (i.p.v. plenair) — zo zijn tot 5 roterende "gangen" mogelijk.
-    venueSocialRotate: { voorborrel: false, naborrel: false },
+    optionalCourses: { voorborrel: false, naborrel: false, extra1: false, extra2: false },
+    // Zaal-modus: borrel- en extra slots kunnen als tafelronde meedraaien
+    // (i.p.v. plenair) — zo zijn tot 7 roterende "gangen" mogelijk. Extra
+    // slots zijn "extra gangen" en roteren daar standaard wél.
+    venueSocialRotate: { voorborrel: false, naborrel: false, extra1: true, extra2: true },
     times: {
       voorborrel: { start: '17:00', duration: 45 },
       voorgerecht: { start: '18:00', duration: 45 },
       hoofdgerecht: { start: '19:00', duration: 60 },
       nagerecht: { start: '20:15', duration: 45 },
-      naborrel: { start: '21:15', duration: 60 }
+      extra1: { start: '21:15', duration: 30 },
+      extra2: { start: '21:45', duration: 30 },
+      naborrel: { start: '22:15', duration: 60 }
     },
     minTableSize: 4,
     maxTableSize: 6,
@@ -54,7 +57,7 @@ const state = {
   planning: null,
   nextId: 1,
   // Hosts for social courses: { participantId } or { customAddress }
-  socialHosts: { voorborrel: null, naborrel: null },
+  socialHosts: { voorborrel: null, naborrel: null, extra1: null, extra2: null },
   manualChanges: []
 };
 
@@ -139,6 +142,8 @@ function getCourseLabel(key) {
     hoofdgerecht: I18n.t('app.courses.hoofdgerecht', 'Hoofdgerecht'),
     nagerecht: I18n.t('app.courses.nagerecht', 'Nagerecht'),
     naborrel: I18n.t('app.courses.naborrel', 'Naborrel'),
+    extra1: I18n.t('app.courses.extra1', 'Extra gang 1'),
+    extra2: I18n.t('app.courses.extra2', 'Extra gang 2'),
   };
   return labels[key] || key;
 }
@@ -204,11 +209,13 @@ const COURSE_ICONS = {
   voorgerecht: '🥗',
   hoofdgerecht: '🍖',
   nagerecht: '🍰',
+  extra1: '🧀',
+  extra2: '🍸',
   naborrel: '🎉'
 };
 
 function getActiveCourses() {
-  const order = ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'naborrel'];
+  const order = ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'extra1', 'extra2', 'naborrel'];
   const active = order.filter(c => {
     if (c === 'voorgerecht' || c === 'hoofdgerecht' || c === 'nagerecht') return true;
     return state.config.optionalCourses[c];
@@ -247,23 +254,21 @@ document.querySelectorAll('.step-btn').forEach(btn => {
 
 // ---- Step 1: Config ----
 function initStep1() {
-  const voorborrelCb = document.getElementById('has-voorborrel');
-  const naborrelCb = document.getElementById('has-naborrel');
-
-  voorborrelCb.addEventListener('change', () => {
-    state.config.optionalCourses.voorborrel = voorborrelCb.checked;
-    document.getElementById('voorborrel-time-config').style.display = voorborrelCb.checked ? 'flex' : 'none';
-    updateHostPreferenceOptions();
-  });
-
-  naborrelCb.addEventListener('change', () => {
-    state.config.optionalCourses.naborrel = naborrelCb.checked;
-    document.getElementById('naborrel-time-config').style.display = naborrelCb.checked ? 'flex' : 'none';
-    updateHostPreferenceOptions();
+  // Optionele slots (borrels + extra gangen): checkbox toont/verbergt de
+  // bijbehorende tijdinstelling en werkt de gastheer-voorkeurslijst bij.
+  ['voorborrel', 'naborrel', 'extra1', 'extra2'].forEach(course => {
+    const cb = document.getElementById('has-' + course);
+    if (!cb) return;
+    cb.addEventListener('change', () => {
+      state.config.optionalCourses[course] = cb.checked;
+      const cfg = document.getElementById(course + '-time-config');
+      if (cfg) cfg.style.display = cb.checked ? 'flex' : 'none';
+      updateHostPreferenceOptions();
+    });
   });
 
   // Sync time inputs to state
-  const timeFields = ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'naborrel'];
+  const timeFields = ['voorborrel', 'voorgerecht', 'hoofdgerecht', 'nagerecht', 'extra1', 'extra2', 'naborrel'];
   timeFields.forEach(course => {
     const startEl = document.getElementById(course + '-start');
     const durEl = document.getElementById(course + '-duration');

@@ -304,7 +304,9 @@
       "voorgerecht": "Vorspeise",
       "hoofdgerecht": "Hauptgang",
       "nagerecht": "Dessert",
-      "naborrel": "Absacker"
+      "naborrel": "Absacker",
+      "extra1": "Extragang 1",
+      "extra2": "Extragang 2"
     },
     "steps": {
       "step1_btn": "1. Konfiguration",
@@ -350,7 +352,9 @@
       "transport_driving": "Auto",
       "max_distance": "Maximale Entfernung pro Route",
       "rename_prompt": "Neuer Name für diesen Gang (leer = Standardname):",
-      "rename_title": "Gang umbenennen"
+      "rename_title": "Gang umbenennen",
+      "time_extra1": "Extragang 1 Startzeit",
+      "time_extra2": "Extragang 2 Startzeit"
     },
     "participants": {
       "title": "Teilnehmer",
@@ -758,7 +762,9 @@
       "rotate_label": "Tischrotation auch bei den Getränkerunden",
       "rotate_voorborrel": "Aperitif als Tischrunde",
       "rotate_naborrel": "Absacker als Tischrunde",
-      "rotate_hint": "Standardmäßig ist eine Getränkerunde plenar (alle zusammen im Saal). Als Tischrunde rotiert auch sie — so sind bis zu 5 rotierende Gänge möglich. Benenne den Slot nach Wunsch um (z. B. \"Käseplatte\") und setze die Startzeit an die richtige Stelle; die Reihenfolge folgt den Zeiten."
+      "rotate_hint": "Standardmäßig ist eine Getränkerunde plenar (alle zusammen im Saal). Als Tischrunde rotiert auch sie — so sind bis zu 7 rotierende Gänge möglich. Benenne den Slot nach Wunsch um (z. B. \"Käseplatte\") und setze die Startzeit an die richtige Stelle; die Reihenfolge folgt den Zeiten.",
+      "rotate_extra1": "Extragang 1 als Tischrunde",
+      "rotate_extra2": "Extragang 2 als Tischrunde"
     }
   },
   "legal": {

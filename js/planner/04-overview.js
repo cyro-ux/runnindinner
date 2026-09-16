@@ -193,7 +193,7 @@ function renderEnvelopes() {
   const participants = state.participants;
 
   // Only courses that have a physical table AND a next destination
-  const hostingCourses = courses.filter(c => c !== 'voorborrel' && c !== 'naborrel');
+  const hostingCourses = courses.filter(c => c === 'voorgerecht' || c === 'hoofdgerecht' || c === 'nagerecht');
   // Courses for which we print cards = all hosting courses except the very last
   // (if the last hosting course is followed by a social, we still need cards)
   const cardCourses = hostingCourses.filter((c, i) => {
