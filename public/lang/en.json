@@ -19,7 +19,9 @@
     "hint": "Pay once <span id=\"price-display\">€5</span>/year &bull; Instant access &bull; No auto-renewal &bull; iDEAL &amp; Bancontact",
     "screenshot_participants": "Manage participants",
     "screenshot_planning": "Smart planning",
-    "screenshot_envelopes": "Envelope cards"
+    "screenshot_envelopes": "Envelope cards",
+    "mode_home": "🏠 At participants' homes — with smart walking routes",
+    "mode_venue": "🏛️ Or in one venue — table rotation, up to 7 courses"
   },
   "social_proof": {
     "label": "Trusted by organisers across the Netherlands",

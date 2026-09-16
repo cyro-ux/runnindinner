@@ -19,7 +19,9 @@
     "hint": "Paga una vez <span id=\"price-display\">€5</span>/año &bull; Acceso inmediato &bull; Sin renovación automática &bull; iDEAL &amp; Bancontact",
     "screenshot_participants": "Gestiona participantes",
     "screenshot_planning": "Planificación inteligente",
-    "screenshot_envelopes": "Tarjetas en sobres"
+    "screenshot_envelopes": "Tarjetas en sobres",
+    "mode_home": "🏠 En casa de los participantes — con rutas inteligentes",
+    "mode_venue": "🏛️ O en un solo salón — rotación de mesas, hasta 7 platos"
   },
   "social_proof": {
     "label": "Utilizado por organizadores en toda Europa",

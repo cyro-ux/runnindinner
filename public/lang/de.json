@@ -19,7 +19,9 @@
     "hint": "Einmal zahlen <span id=\"price-display\">5 €</span>/Jahr &bull; Sofortiger Zugang &bull; Keine automatische Verlängerung &bull; iDEAL &amp; Bancontact",
     "screenshot_participants": "Teilnehmer verwalten",
     "screenshot_planning": "Intelligente Planung",
-    "screenshot_envelopes": "Umschlag-Karten"
+    "screenshot_envelopes": "Umschlag-Karten",
+    "mode_home": "🏠 Bei den Teilnehmern zu Hause — mit smarten Laufrouten",
+    "mode_venue": "🏛️ Oder in einem Saal — Tischrotation, bis zu 7 Gänge"
   },
   "social_proof": {
     "label": "Organisatoren in den Niederlanden vertrauen uns",
