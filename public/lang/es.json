@@ -506,7 +506,9 @@
       "custom_min_label": "Min. invitados como anfitrión (opcional)",
       "custom_max_label": "Max. invitados como anfitrión (opcional)",
       "custom_default": "Predeterminado",
-      "custom_capacity_hint": "Déjalo vacío para usar la configuración general del paso 1. Rellénalo solo si este anfitrión tiene una capacidad diferente (p. ej. comedor pequeño o jardín grande)."
+      "custom_capacity_hint": "Déjalo vacío para usar la configuración general del paso 1. Rellénalo solo si este anfitrión tiene una capacidad diferente (p. ej. comedor pequeño o jardín grande).",
+      "venue_host_title": "Anfitrión fijo de mesa",
+      "venue_host_label": "Permanece en la misma mesa toda la velada y recibe nuevos comensales en cada plato (p. ej. un miembro del comité)"
     },
     "social": {
       "unknown_location": "Ubicación desconocida / rellenar más tarde",
@@ -565,7 +567,8 @@
       "guests": "invitado(s)",
       "guideline_min": "mínimo recomendado",
       "venue_overflow": "asientos necesarios, pero las mesas solo ofrecen",
-      "venue_overflow_fix": "Aumenta el número de mesas o su tamaño."
+      "venue_overflow_fix": "Aumenta el número de mesas o su tamaño.",
+      "venue_hosts_tables": "más anfitriones fijos que mesas — el número de mesas se aumentó a"
     },
     "rating": {
       "title": "Valoración",

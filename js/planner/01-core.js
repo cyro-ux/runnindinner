@@ -192,6 +192,7 @@ function applyVenueModeToUI() {
   setShown('venue-config-fields', venue);
   setShown('modal-address-section', !venue);
   setShown('modal-host-section', !venue);
+  setShown('modal-venue-host-section', venue);
   setShown('distance-check-card', !venue);
   if (venue) setShown('social-locations-card', false);
   ['p-postcode', 'p-housenumber', 'p-street', 'p-city'].forEach(id => {

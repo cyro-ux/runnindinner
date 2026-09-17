@@ -527,6 +527,14 @@
           <p class="hint" data-i18n="app.modal.availability_hint">Geef aan bij welke onderdelen persoon 1, de partner en eventueel de meereiziger aanwezig kunnen zijn.</p>
           <div id="availability-grid" class="availability-grid"></div>
 
+          <div id="modal-venue-host-section" style="display:none">
+            <h4 data-i18n="app.modal.venue_host_title">Vaste tafelgastheer</h4>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+              <input type="checkbox" id="p-venue-table-host">
+              <span data-i18n="app.modal.venue_host_label">Blijft de hele avond aan dezelfde tafel en ontvangt elke gang nieuwe gasten (bv. een commissielid)</span>
+            </label>
+          </div>
+
           <div id="modal-host-section">
           <h4 data-i18n="app.modal.host_preference">Gastrol voorkeur</h4>
           <div class="form-group">
@@ -590,9 +598,9 @@
   <!-- Demo-mode controller (zelf-uit als URL-pad geen /demo is) -->
   <script src="/demo-mode.js?v=13"></script>
   <!-- Planner-scripts: volgorde = lib/planner-files.js (bewaakt door test) -->
-  <script src="js/planner/01-core.js?v=extra1"></script>
-  <script src="js/planner/02-participants.js?v=venue1"></script>
-  <script src="js/planner/03-planning.js?v=extra1"></script>
+  <script src="js/planner/01-core.js?v=hostpin1"></script>
+  <script src="js/planner/02-participants.js?v=hostpin1"></script>
+  <script src="js/planner/03-planning.js?v=hostpin1"></script>
   <script src="js/planner/04-overview.js?v=extra1"></script>
   <script src="js/planner/05-extras.js?v=extra1"></script>
   <script src="js/planner/06-ui.js?v=rot1"></script>

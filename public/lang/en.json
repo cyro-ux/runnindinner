@@ -506,7 +506,9 @@
       "custom_min_label": "Min. guests as host (optional)",
       "custom_max_label": "Max. guests as host (optional)",
       "custom_default": "Default",
-      "custom_capacity_hint": "Leave empty to use the general settings from step 1. Only fill in if this host has a different capacity (e.g. small dining room or large garden)."
+      "custom_capacity_hint": "Leave empty to use the general settings from step 1. Only fill in if this host has a different capacity (e.g. small dining room or large garden).",
+      "venue_host_title": "Fixed table host",
+      "venue_host_label": "Stays at the same table all evening and welcomes new diners every course (e.g. a committee member)"
     },
     "social": {
       "unknown_location": "Location unknown / fill in later",
@@ -565,7 +567,8 @@
       "guests": "guest(s)",
       "guideline_min": "guideline minimum",
       "venue_overflow": "seats needed, but the tables only offer",
-      "venue_overflow_fix": "Increase the number of tables or the table size."
+      "venue_overflow_fix": "Increase the number of tables or the table size.",
+      "venue_hosts_tables": "more fixed table hosts than tables — the number of tables was increased to"
     },
     "rating": {
       "title": "Rating",

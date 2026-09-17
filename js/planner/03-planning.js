@@ -245,7 +245,15 @@ function fillVenueTables(course, participants, tableMateHistory, warnings) {
   const maxSize = state.config.maxTableSize;
   const attending = participants.filter(p => personSeatsAt(p, course) > 0);
   const seatsNeeded = attending.reduce((sum, p) => sum + personSeatsAt(p, course), 0);
-  const numTables = state.config.venueTables || Math.max(2, Math.ceil(seatsNeeded / maxSize));
+  // Vaste tafelgastheren (bv. commissieleden): blijven de hele avond op
+  // dezelfde tafel en ontvangen elke gang nieuwe gasten. Sortering op id
+  // maakt de tafeltoewijzing stabiel over alle gangen.
+  const fixedHosts = participants.filter(p => p.venueTableHost).sort((a, b) => a.id - b.id);
+  let numTables = state.config.venueTables || Math.max(2, Math.ceil(seatsNeeded / maxSize));
+  if (fixedHosts.length > numTables) {
+    warnings.push(getCourseLabel(course) + ': ' + I18n.t('app.warning.venue_hosts_tables', 'meer vaste tafelgastheren dan tafels — het aantal tafels is verhoogd naar') + ' ' + fixedHosts.length + '.');
+    numTables = fixedHosts.length;
+  }
 
   const tables = Array.from({ length: numTables }, (_, i) => ({
     id: `${course}-${i}`,
@@ -258,16 +266,28 @@ function fillVenueTables(course, participants, tableMateHistory, warnings) {
     guestNames: []
   }));
 
+  // Gastheren pinnen (een gastheer die deze gang overslaat laat zijn tafel
+  // die ronde zonder ontvangst, maar het tafelnummer blijft gereserveerd).
+  fixedHosts.forEach((h, i) => {
+    if (personSeatsAt(h, course) === 0) return;
+    tables[i].hostId = h.id;
+    tables[i].hostName = displayNameAt(h, course);
+  });
+
   const guestSeats = (t) => t.guestIds.reduce((sum, gid) => {
     const g = participants.find(p => p.id === gid);
     return sum + (g ? personSeatsAt(g, course) : 1);
   }, 0);
+  const usedSeats = (t) => {
+    const h = t.hostId != null ? participants.find(p => p.id === t.hostId) : null;
+    return guestSeats(t) + (h ? personSeatsAt(h, course) : 0);
+  };
 
   if (seatsNeeded > numTables * maxSize) {
     warnings.push(`${getCourseLabel(course)}: ${seatsNeeded} ` + I18n.t('app.warning.venue_overflow', 'stoelen nodig, maar de tafels bieden er') + ` ${numTables * maxSize}. ` + I18n.t('app.warning.venue_overflow_fix', 'Vergroot het aantal tafels of de tafelgrootte.'));
   }
 
-  const sortedGuests = [...attending].sort((a, b) =>
+  const sortedGuests = attending.filter(p => !p.venueTableHost).sort((a, b) =>
     (tableMateHistory[a.id]?.size ?? 0) - (tableMateHistory[b.id]?.size ?? 0)
   );
   const forcedGroups = buildForcedGroups(state.forcedCombos, participants);
@@ -279,14 +299,14 @@ function fillVenueTables(course, participants, tableMateHistory, warnings) {
       targetTable = forcedTable;
     } else {
       const seats = personSeatsAt(guest, course);
-      const candidates = tables.filter(t => guestSeats(t) + seats <= maxSize);
+      const candidates = tables.filter(t => usedSeats(t) + seats <= maxSize);
       if (candidates.length === 0) {
-        targetTable = tables.reduce((a, b) => guestSeats(a) <= guestSeats(b) ? a : b);
+        targetTable = tables.reduce((a, b) => usedSeats(a) <= usedSeats(b) ? a : b);
       } else {
-        const minFill = Math.min(...candidates.map(t => guestSeats(t)));
+        const minFill = Math.min(...candidates.map(t => usedSeats(t)));
         targetTable = candidates.reduce((best, t) => {
-          const fillT    = (guestSeats(t)    - minFill) * 3;
-          const fillBest = (guestSeats(best) - minFill) * 3;
+          const fillT    = (usedSeats(t)    - minFill) * 3;
+          const fillBest = (usedSeats(best) - minFill) * 3;
           const overlapT    = countOverlap(guest.id, t,    tableMateHistory);
           const overlapBest = countOverlap(guest.id, best, tableMateHistory);
           const avoidPenalty = (tbl) => (guest.avoid || []).some(name => {

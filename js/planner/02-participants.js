@@ -89,6 +89,8 @@ function openAddParticipant(id) {
     document.getElementById('p-postcode').value = participant.address.postcode;
     document.getElementById('p-city').value = participant.address.city;
     document.getElementById('p-host-preference').value = participant.hostPreference || '';
+    const vthEl = document.getElementById('p-venue-table-host');
+    if (vthEl) vthEl.checked = Boolean(participant.venueTableHost);
     const minEl = document.getElementById('p-custom-min');
     if (minEl) minEl.value = Number.isFinite(participant.customMinGuests) ? participant.customMinGuests : '';
     const maxEl = document.getElementById('p-custom-max');
@@ -175,6 +177,7 @@ function saveParticipant(event) {
     },
     availability,
     hostPreference: document.getElementById('p-host-preference').value || null,
+    venueTableHost: Boolean(document.getElementById('p-venue-table-host')?.checked),
     customMinGuests: customMin,
     customMaxGuests: customMax,
     diet1: document.getElementById('p-diet1').value.trim() || null,
