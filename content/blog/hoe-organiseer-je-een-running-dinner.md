@@ -5,7 +5,7 @@ locale: nl
 date: 2026-04-21
 author: Cyro van Malsen
 draft: false
-description: Een running dinner organiseren van A tot Z — opzet, uitnodiging, indeling, routes, avond zelf en nazorg. Inclusief checklist, valkuilen en kostenoverzicht.
+description: Running dinner organiseren? Complete gids van uitnodiging tot tafelindeling, met checklist en kant-en-klaar tijdschema. Plus een gratis demo die de hele planning in één klik voor je maakt.
 keywords: running dinner organiseren, lopend diner, running dinner tips, progressive dinner, running dinner schema, running dinner app
 ---
 
