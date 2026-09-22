@@ -468,7 +468,8 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:"],
       connectSrc: ["'self'"],
-      frameSrc: ["https://js.mollie.com"],
+      // youtube-nocookie: productvideo-embed op de homepage (privacyvriendelijke variant)
+      frameSrc: ["https://js.mollie.com", "https://www.youtube-nocookie.com"],
     },
   },
   crossOriginEmbedderPolicy: false, // allow fonts from Google

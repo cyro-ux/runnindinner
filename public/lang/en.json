@@ -1014,5 +1014,8 @@
     "success": "Thanks! You're on the list.",
     "error": "Something went wrong. Please check your email.",
     "network_error": "Network error. Please try again later."
+  },
+  "video": {
+    "title": "See it in 47 seconds"
   }
 }

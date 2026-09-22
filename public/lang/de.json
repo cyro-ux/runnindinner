@@ -1014,5 +1014,8 @@
     "success": "Danke! Du bist auf der Liste.",
     "error": "Etwas ist schiefgelaufen. Prüfe deine E-Mail.",
     "network_error": "Netzwerkfehler. Bitte später erneut versuchen."
+  },
+  "video": {
+    "title": "In 47 Sekunden erklärt"
   }
 }

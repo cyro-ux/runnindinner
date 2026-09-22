@@ -1014,5 +1014,8 @@
     "success": "¡Gracias! Estás en la lista.",
     "error": "Algo salió mal. Comprueba tu correo.",
     "network_error": "Error de red. Inténtalo más tarde."
+  },
+  "video": {
+    "title": "Véalo en 47 segundos"
   }
 }
