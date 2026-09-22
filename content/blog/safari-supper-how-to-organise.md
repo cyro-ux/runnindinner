@@ -44,6 +44,10 @@ For menu inspiration that survives guests arriving 20 minutes late, see our [pro
 
 No walkable village, or a club that wants everyone under one roof? You can run the same format inside one hall: everyone stays in the room and moves to a different numbered table each course, always with new table companions. A sailing club recently ran their annual dinner this way for 60 members – three courses, table rotation, and a quiz to finish. Our planner has a dedicated venue mode that calculates the rotation automatically, no addresses needed. Read more in [table rotation dinner in one venue](/en/blog/table-rotation-dinner-one-venue).
 
+## See it in 47 seconds
+
+<div style="aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin:16px 0"><iframe src="https://www.youtube-nocookie.com/embed/Spnw8uhb36g" title="Running Dinner Planner demo" loading="lazy" allowfullscreen style="width:100%;height:100%;border:0"></iframe></div>
+
 ## Try it before you plan it
 
 The free demo comes preloaded with sample couples, so you can generate a full safari supper plan – tables, routes and envelope cards – in one click, no account needed. [Try the demo →](/en/demo)

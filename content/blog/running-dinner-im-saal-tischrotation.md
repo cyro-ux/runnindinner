@@ -44,6 +44,10 @@ Unser Planer hat dafür einen eigenen **Saal-Modus**: Gäste eintragen, Tischanz
 - **Den Gang-Zeitplan gut sichtbar aufhängen**, zusätzlich zu den persönlichen Karten – das spart Fragen.
 - **Mit einem gemeinsamen Abschluss enden** – Quiz oder Absacker an festen Tischen: bis dahin kennt sich der Saal, und aus Tischen ist eine Gruppe geworden.
 
+## In 47 Sekunden erklärt
+
+<div style="aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin:16px 0"><iframe src="https://www.youtube-nocookie.com/embed/X1G2yT4VS_s" title="Running Dinner Planner Demo" loading="lazy" allowfullscreen style="width:100%;height:100%;border:0"></iframe></div>
+
 ## Rotation mit einem Klick ausprobieren
 
 Die Gratis-Demo ist mit Beispielgästen gefüllt – Saal-Modus einschalten, Planung generieren und die Rotation direkt ansehen. Ganz ohne Konto. [Demo ausprobieren →](/de/demo)

@@ -44,6 +44,10 @@ Our planner has a dedicated **venue mode** for this: enter your guests, choose t
 - **Put the course schedule on the wall** as well as the personal cards; it saves questions.
 - **End with a shared final course or quiz** at fixed tables – by then everyone has met, and the room feels like one group.
 
+## See it in 47 seconds
+
+<div style="aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin:16px 0"><iframe src="https://www.youtube-nocookie.com/embed/Spnw8uhb36g" title="Running Dinner Planner demo" loading="lazy" allowfullscreen style="width:100%;height:100%;border:0"></iframe></div>
+
 ## Generate your rotation in one click
 
 The free demo is preloaded with sample guests – switch on venue mode, generate the plan and see the rotation for yourself. No account needed. [Try the demo →](/en/demo)

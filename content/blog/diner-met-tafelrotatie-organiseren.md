@@ -48,6 +48,10 @@ Onze planner heeft er een speciale **zaal-modus** voor: voer je gasten in, kies 
 
 Handig voor [verenigingen](/verenigingen) en [serviceclubs](/service-clubs): één abonnement dekt onbeperkt events voor de hele club.
 
+## Zie het in 47 seconden
+
+<div style="aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin:16px 0"><iframe src="https://www.youtube-nocookie.com/embed/Z5hWjc1OFpw" title="Running Dinner Planner demo" loading="lazy" allowfullscreen style="width:100%;height:100%;border:0"></iframe></div>
+
 ## Zelf proberen
 
 De gratis demo staat vol voorbeeldgasten – zet de zaal-modus aan, genereer de planning en zie de rotatie direct voor je. Geen account nodig. [Probeer de demo →](/demo)
