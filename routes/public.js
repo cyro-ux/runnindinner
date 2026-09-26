@@ -297,6 +297,23 @@ router.post('/api/ratings', requireAuth, (req, res) => {
   res.json({ ok: true, message: t(req, 'thanks_rating') });
 });
 
+// GET /api/ratings/reprompt — mag de eenmalige review-herinnering getoond
+// worden? Alleen voor gebruikers die de planner echt gebruikt hebben (er
+// staat een opgeslagen event), nog geen review gaven én de herinnering nog
+// niet eerder zagen. Het tonen zelf wordt via POST /seen geregistreerd,
+// zodat de vraag over alle apparaten heen precies één keer terugkomt.
+router.get('/api/ratings/reprompt', requireAuth, (req, res) => {
+  const hasRating = db.prepare('SELECT 1 FROM ratings WHERE user_id = ?').get(req.user.id);
+  const hasUsed = db.prepare("SELECT 1 FROM planner_saves WHERE user_id = ? AND slot = 'current'").get(req.user.id);
+  const user = db.prepare('SELECT rating_reprompted_at FROM users WHERE id = ?').get(req.user.id);
+  res.json({ ok: true, show: Boolean(!hasRating && hasUsed && user && !user.rating_reprompted_at) });
+});
+
+router.post('/api/ratings/reprompt/seen', requireAuth, (req, res) => {
+  db.prepare('UPDATE users SET rating_reprompted_at = ? WHERE id = ?').run(Date.now(), req.user.id);
+  res.json({ ok: true });
+});
+
 // GET /api/ratings/mine  (authenticated – get own rating)
 router.get('/api/ratings/mine', requireAuth, (req, res) => {
   const rating = db.prepare(

@@ -126,6 +126,25 @@ describe('runningdinner.app smoke tests', () => {
     assert.equal(seen.status, 200);
   });
 
+  test('rating-reprompt: pas na echt gebruik, en daarna nooit meer', async () => {
+    // Vers account zonder opgeslagen event: geen herinnering
+    let r = await req('GET', '/api/ratings/reprompt');
+    assert.equal(r.status, 200);
+    assert.equal(r.body?.show, false, 'geen herinnering zonder planner-gebruik');
+
+    // Na een opgeslagen event: herinnering mag één keer
+    const save = await req('PUT', '/api/planner/state', { body: { state: { participants: [] } } });
+    assert.equal(save.status, 200);
+    r = await req('GET', '/api/ratings/reprompt');
+    assert.equal(r.body?.show, true, 'herinnering na gebruik zonder review');
+
+    // Gezien gemeld: daarna nooit meer
+    const seen = await req('POST', '/api/ratings/reprompt/seen');
+    assert.equal(seen.status, 200);
+    r = await req('GET', '/api/ratings/reprompt');
+    assert.equal(r.body?.show, false, 'na tonen komt de vraag niet terug');
+  });
+
   test('referral overview works for a logged-in user', async () => {
     // Regressie: REFERRAL_THRESHOLD bleef bij de router-split in server.js
     // achter → ReferenceError (Sentry 4-9-2026). Deze route raakt die code.

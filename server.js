@@ -249,6 +249,7 @@ if (!userCols.includes('auto_renew'))         db.exec("ALTER TABLE users ADD COL
 if (!userCols.includes('mollie_mandate_id'))  db.exec("ALTER TABLE users ADD COLUMN mollie_mandate_id TEXT");
 if (!userCols.includes('renewal_reminder_sent')) db.exec("ALTER TABLE users ADD COLUMN renewal_reminder_sent INTEGER");
 if (!userCols.includes('announcements_seen_at')) db.exec("ALTER TABLE users ADD COLUMN announcements_seen_at INTEGER");
+if (!userCols.includes('rating_reprompted_at')) db.exec("ALTER TABLE users ADD COLUMN rating_reprompted_at INTEGER");
 if (!userCols.includes('language'))              db.exec("ALTER TABLE users ADD COLUMN language TEXT NOT NULL DEFAULT 'nl'");
 if (!userCols.includes('country'))                db.exec("ALTER TABLE users ADD COLUMN country TEXT");
 if (!userCols.includes('is_business'))            db.exec("ALTER TABLE users ADD COLUMN is_business INTEGER NOT NULL DEFAULT 0");

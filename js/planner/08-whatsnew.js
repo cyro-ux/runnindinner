@@ -59,4 +59,19 @@
       }
     })
     .catch(function () { /* niet ingelogd of offline: stil overslaan */ });
+
+  // Eenmalige review-herinnering: gebruikers die de planner gebruikten maar
+  // nog geen review gaven, krijgen na inloggen nog precies één keer de
+  // bestaande review-modal te zien (server registreert het tonen, dus ook
+  // wegklikken telt en de vraag komt op geen enkel apparaat terug).
+  fetch('/api/ratings/reprompt')
+    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) {
+      if (!data || !data.ok || !data.show) return;
+      if (typeof showRatingModal !== 'function') return;
+      fetch('/api/ratings/reprompt/seen', { method: 'POST' }).catch(function () {});
+      // Ruim na de eventuele "wat is er nieuw"-banner, zodat die eerst landt
+      setTimeout(function () { showRatingModal(); }, 6000);
+    })
+    .catch(function () { /* stil overslaan */ });
 })();
