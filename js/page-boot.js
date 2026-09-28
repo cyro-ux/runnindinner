@@ -56,18 +56,16 @@
       const container = document.getElementById('app-lang-toggle');
       if (container) {
         const toggle = I18n.createToggle();
-        // Style buttons for dark background
+        // Donkere balk: inactieve talen als leesbare witte tekst met subtiele
+        // rand, de actieve als witte pil. cssText overschrijft de standaard
+        // (lichtgrijze) button-achtergrond die de tekst onleesbaar maakte.
         toggle.querySelectorAll('.lang-btn').forEach(btn => {
-          btn.style.color = 'rgba(255,255,255,.6)';
-          btn.style.fontSize = '.78rem';
-          btn.style.padding = '2px 5px';
+          btn.style.cssText = 'background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;font-size:.78rem;font-weight:600;padding:3px 8px;border-radius:6px;cursor:pointer';
         });
         toggle.querySelectorAll('.lang-btn.active').forEach(btn => {
-          btn.style.color = '#fff';
-          btn.style.background = 'rgba(255,255,255,.2)';
-          btn.style.borderRadius = '4px';
+          btn.style.cssText = 'background:#fff;border:1px solid #fff;color:#1E293B;font-size:.78rem;font-weight:700;padding:3px 8px;border-radius:6px;cursor:default';
         });
-        toggle.querySelector('.lang-sep').style.color = 'rgba(255,255,255,.3)';
+        toggle.querySelectorAll('.lang-sep').forEach(sep => { sep.style.color = 'rgba(255,255,255,.35)'; });
         container.appendChild(toggle);
       }
     });
